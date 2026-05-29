@@ -1,0 +1,71 @@
+version: 1
+
+# DeepSWE tasks are graded by the verifier reward (the task's own test.sh),
+# not by assertions or an LLM judge.
+tests:
+  - evals/*/*.yaml # one self-contained folder per task: evals/<id>/<id>.yaml + its test assets
+
+workspace:
+  mode: copy
+  containerPath: /app # per-case `workspace.seedFromImage` extracts the repo here
+
+docker:
+  repoPath: /app
+  # The per-case `image` (a DeepSWE prebuilt ECR image) is used as the managed
+  # build base; the agent CLI is layered on top. baseSetup best-effort ensures
+  # the runtimes the agent CLI and the task's test.sh need exist on any base.
+  baseSetup:
+    - "command -v node >/dev/null 2>&1 || (curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs) || true"
+    - "command -v python3 >/dev/null 2>&1 || (apt-get update && apt-get install -y python3) || true"
+    # DeepSWE's test.sh writes to /logs and `git config --global` to HOME; the
+    # verifier runs as a non-root mapped user, so make those writable.
+    - "mkdir -p /logs/verifier /logs/artifacts /home/harness && chmod -R 777 /logs /home/harness"
+  envAllowlist:
+    - ANTHROPIC_API_KEY
+    - ANTHROPIC_AUTH_TOKEN
+    - CLAUDE_CODE_OAUTH_TOKEN
+    - OPENAI_API_KEY
+    - GEMINI_API_KEY
+
+# Each built-in adapter reuses your real local setup: harness-evals copies a
+# writable snapshot of your current config (skills, settings, plugins, MCP,
+# custom commands/agents) into the run and forwards your credentials.
+#   - claude-code: copies ~/.claude + ~/.claude.json. On macOS the login lives
+#     in the Keychain, NOT the copied dir, so run `claude setup-token` once and
+#     export CLAUDE_CODE_OAUTH_TOKEN before running this agent.
+#   - codex: copies ~/.codex (config.toml, [mcp_servers], auth.json).
+#   - pi: copies ~/.pi/agent (auth/model config) and stages out-of-repo skills
+#     and extensions referenced from your pi settings.
+# Override per case/step via `agents.overrides` or `step.config` (e.g.
+# config.configExcludeDirs, useCurrentConfig: false).
+agents:
+  claude-code:
+    adapter: claude-code
+    model: claude-opus-4-8
+    useCurrentConfig: true
+  codex:
+    adapter: codex
+    useCurrentConfig: true
+  pi:
+    adapter: pi
+    useCurrentConfig: true
+  # No-op agent: makes no edits and needs no API key. Useful to validate the
+  # full pipeline (image build, seed, verifier, reward) deterministically.
+  # A clean run scores reward 0 (the fix is never applied).
+  noop:
+    adapter: command
+    command: echo
+    args: ["{{ prompt }}"]
+
+scoring:
+  verifierReward:
+    weight: 1
+  assertionPassRate:
+    weight: 0
+  judgeScore:
+    weight: 0
+
+visualization:
+  enabled: true
+  formats: [html, json]
+  latest: true

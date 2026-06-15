@@ -29,6 +29,18 @@ const srcRoot = arg('--src', join(projectRoot, 'third_party/deep-swe'));
 const tasksDir = join(srcRoot, 'tasks');
 const casesOutDir = join(projectRoot, 'evals');
 
+// Baselines that no longer pass against the moving mars-base:latest tag
+// (upstream dependency drift, not solvable by any agent). Tagged into their
+// own suite so `run --suite deep-swe` excludes them from comparisons.
+const DRIFT_SUITE_IDS = new Set([
+  'langchain-request-coalescing',
+  'narwhals-rolling-window-suite',
+  'skrub-duration-encoding',
+  'fastapi-deprecation-response-headers',
+  'prometheus-transactional-reload-status',
+  'scriggo-method-declarations',
+]);
+
 // Wrapper run as the verifier command. DeepSWE's own test.sh already cd's to
 // /app, reads /tests/test.patch, and writes /logs/verifier/reward.txt. We just
 // make the expected dirs and copy the reward into the bind-mounted /app so the
@@ -116,7 +128,7 @@ async function main(): Promise<void> {
 
     const testCase = {
       id,
-      suite: 'deep-swe',
+      suite: DRIFT_SUITE_IDS.has(id) ? 'deep-swe-drift' : 'deep-swe',
       description: toml.metadata?.display_title ?? id,
       image,
       workspace: { seedFromImage: true, seedPath: '/app', containerPath: '/app' },

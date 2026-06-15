@@ -1,0 +1,100 @@
+version: 1
+
+# Pilot subset for the 3-agent comparison (Claude Code/Fable 5 vs Codex/GPT 5.5
+# vs custom pi/GPT 5.5): 20 tasks mirroring the full 35ts/34py/34go/5rust/5js
+# distribution, excluding the 6 deep-swe-drift tasks and the OOM-heavy numba
+# suite. Everything except `tests:` must stay identical to harness-evals.yaml
+# (same agent names + docker block ⇒ managed-image cache reuse).
+#
+# Usage:
+#   npx harness-evals run --config harness-evals.pilot.yaml --agents claude-code,codex,pi --concurrency 3
+tests:
+  # typescript (6)
+  - evals/ts-pattern-match-each/ts-pattern-match-each.yaml
+  - evals/drizzle-orm-window-function-builders/drizzle-orm-window-function-builders.yaml
+  - evals/happy-dom-abort-pending-body-reads/happy-dom-abort-pending-body-reads.yaml
+  - evals/valibot-recursive-schema-composition/valibot-recursive-schema-composition.yaml
+  - evals/ofetch-per-origin-circuit-breaker/ofetch-per-origin-circuit-breaker.yaml
+  - evals/superjson-error-stack-serialization/superjson-error-stack-serialization.yaml
+  # python (6)
+  - evals/httpx-streaming-json-iteration/httpx-streaming-json-iteration.yaml
+  - evals/bandit-structured-nosec-directives/bandit-structured-nosec-directives.yaml
+  - evals/tomlkit-toml-table-converters/tomlkit-toml-table-converters.yaml
+  - evals/fastapi-implicit-head-options/fastapi-implicit-head-options.yaml
+  - evals/sqlite-utils-safe-import-checkpoints/sqlite-utils-safe-import-checkpoints.yaml
+  - evals/dateutil-rfc5545-timezone-interop/dateutil-rfc5545-timezone-interop.yaml
+  # go (6)
+  - evals/abs-module-cache-flags/abs-module-cache-flags.yaml
+  - evals/expr-try-catch-errors/expr-try-catch-errors.yaml
+  - evals/dasel-html-document-format/dasel-html-document-format.yaml
+  - evals/termenv-preserve-ansi-resets/termenv-preserve-ansi-resets.yaml
+  - evals/helm-array-merge-strategies/helm-array-merge-strategies.yaml
+  - evals/etree-xml-diff-patch/etree-xml-diff-patch.yaml
+  # rust (1)
+  - evals/fd-deterministic-multi-key-sorting/fd-deterministic-multi-key-sorting.yaml
+  # javascript (1)
+  - evals/yjs-map-conflict-detection/yjs-map-conflict-detection.yaml
+
+workspace:
+  mode: copy
+  containerPath: /app # per-case `workspace.seedFromImage` extracts the repo here
+
+docker:
+  repoPath: /app
+  # Runtime HOME for agent + verifier steps. Must NOT be /home/harness: the
+  # managed image build runs agent install recipes as root with
+  # HOME=/home/harness, leaving root-owned files in /home/harness/.npm that
+  # break npm for the non-root runtime user (pi installs extensions at start).
+  home: /tmp/agent-home
+  # Keep identical to harness-evals.yaml — baseSetup is part of the managed
+  # image cache key; divergence forces a rebuild of every task image.
+  baseSetup:
+    - "command -v node >/dev/null 2>&1 || (curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs) || true"
+    - "command -v python3 >/dev/null 2>&1 || (apt-get update && apt-get install -y python3) || true"
+    # DeepSWE's test.sh writes to /logs and `git config --global` to HOME; the
+    # verifier runs as a non-root mapped user, so make those writable.
+    - "mkdir -p /logs/verifier /logs/artifacts /home/harness && chmod -R 777 /logs /home/harness"
+    - "mkdir -p /tmp/agent-home && chmod 1777 /tmp/agent-home"
+  envAllowlist:
+    - ANTHROPIC_API_KEY
+    - ANTHROPIC_AUTH_TOKEN
+    - CLAUDE_CODE_OAUTH_TOKEN
+    - OPENAI_API_KEY
+    - GEMINI_API_KEY
+
+# Agent definitions must match harness-evals.yaml exactly (see comments there).
+agents:
+  claude-code:
+    adapter: claude-code
+    model: claude-fable-5
+    useCurrentConfig: false
+    args: ["--dangerously-skip-permissions"]
+  codex:
+    adapter: codex
+    model: gpt-5.5
+    userConfigDirs:
+      - ~/workspace/harness-bench/.harness-evals/agent-config/codex
+  pi:
+    adapter: pi
+    provider: openai-codex
+    model: gpt-5.5
+    useCurrentConfig: true
+    userConfigDirs:
+      - ~/.pi-bench/agent
+  noop:
+    adapter: command
+    command: echo
+    args: ["{{ prompt }}"]
+
+scoring:
+  verifierReward:
+    weight: 1
+  assertionPassRate:
+    weight: 0
+  judgeScore:
+    weight: 0
+
+visualization:
+  enabled: true
+  formats: [html, json]
+  latest: true

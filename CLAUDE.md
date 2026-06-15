@@ -8,8 +8,10 @@ Guidance for AI agents working in this repo. See `README.md` for the full narrat
 benchmark (Harbor format) to run under the [`harness-evals`](https://www.npmjs.com/package/harness-evals)
 framework (a published npm package — a normal dependency in `package.json`). Each task is
 rebuilt as a **native** per-task Docker image (`deepswe-task:<id>`) so it does not run under
-amd64 QEMU emulation on Apple Silicon. `harness-evals` is consumed as-is from npm; this
-project requires no changes to it.
+amd64 QEMU emulation on Apple Silicon. `harness-evals` is currently consumed via
+`file:../harness-evals` (local checkout) because token/cost extraction in the
+claude-code/codex/pi adapters is not yet published to npm — switch back to the published
+version once a release ≥0.2.2 ships it.
 
 ## Commands
 
@@ -76,6 +78,41 @@ verifier runs `--network none` (tasks are air-gapped at grading).
   `narwhals-rolling-window-suite`, `skrub-duration-encoding`,
   `fastapi-deprecation-response-headers`, `prometheus-transactional-reload-status`,
   `scriggo-method-declarations`. Fixable only by pinning versions in `overrides/<id>/`.
+  The port script tags these `suite: deep-swe-drift`, so `run --suite deep-swe`
+  (107 tasks) excludes them automatically.
+
+## Agent benchmark setup (Claude Code/Fable 5 vs Codex/GPT 5.5 vs custom pi/GPT 5.5)
+
+- `harness-evals.pilot.yaml` is a standalone 20-task subset config; keep its `docker`
+  and `agents` blocks byte-identical to `harness-evals.yaml` (managed-image cache key
+  includes baseSetup + agent recipes — divergence forces a rebuild of every task image).
+- harness-evals copies agent configs **independent of credentials** — auth env vars do
+  NOT skip the copy; only `useCurrentConfig: false` gives a clean agent. Codex config
+  excludes only work on directories, never files, hence the trimmed dir at
+  `.harness-evals/agent-config/codex/` (auth.json + minimal config.toml; never commit).
+- `docker.home: /tmp/agent-home` is load-bearing: managed builds run npm recipes as root
+  with HOME=/home/harness, leaving a root-owned npm cache that breaks pi's runtime
+  extension installs for the non-root user.
+- pi runs from the frozen bench dir `~/.pi-bench/agent` (mirror of `~/.pi/agent` with
+  absolute extension paths). `@howaboua/pi-codex-conversion` is vendored at
+  `~/.pi-bench/vendor/pi-codex-conversion` because the npm-published linux-arm64
+  `exec_bridge` needs glibc 2.39 while task images are Debian 12 (glibc 2.36) — pi
+  crashes with an unhandled EPIPE on its first shell command. The vendored copy's
+  bridge is rebuilt from the package's bundled Rust sources
+  (`cargo build --release --locked -p codex-exec-shim --bin exec_bridge` in
+  `rust:1-bookworm`). Refresh auth/settings there when the real pi config changes.
+- Auth pre-flight per session: `CLAUDE_CODE_OAUTH_TOKEN` in `.env` (from
+  `claude setup-token`); re-copy `~/.codex/auth.json` and `~/.pi/agent/auth.json` into
+  their bench locations if stale. Codex ChatGPT-OAuth is fragile under the harness:
+  refresh tokens are single-use and rotate inside throwaway per-run config copies, so
+  a mid-sweep refresh 401-cascades all later codex runs AND stales `~/.codex` (re-login
+  needed). API-key auth avoids this entirely.
+- Tokens + cost per run are collected by the adapters (DeepSWE-leaderboard-style
+  metrics) and rendered in the harness HTML/CSV report. The claude-code/codex adapters
+  default to machine-readable output (`--output-format json` / `--json`) when running
+  the real CLIs — `outputFormat: text` opts out; pi reports usage natively from its
+  event stream. Codex reports tokens only (no $ pricing under ChatGPT auth); claude/pi
+  report list-price USD even on subscription auth.
 
 ## Status
 

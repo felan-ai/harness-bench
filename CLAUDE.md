@@ -2,6 +2,12 @@
 
 Guidance for AI agents working in this repo. See `README.md` for the full narrative.
 
+## Skills
+
+When using Pi for harness-evals work in this repo, load the harness-evals
+skill before changing harness config, eval cases, adapters, Docker
+settings, or reports.
+
 ## What this is
 
 `harness-bench` ports the 113-task [DeepSWE](https://github.com/datacurve-ai/deep-swe)

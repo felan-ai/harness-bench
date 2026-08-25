@@ -88,6 +88,23 @@ bun run run --case <task-id> --agents claude-code
 bunx harness-evals view --open
 ```
 
+### Built-in Felan adapter smoke
+
+The standalone `harness-evals.felan.yaml` config exercises the first-party Felan
+adapter without a DeepSWE image or generated case. It installs
+`@felan-ai/felan`, runs `felan --mode json` with explicit Google provider/model
+and thinking selection, then verifies a tiny fixture edit with networking
+disabled for the verifier:
+
+```bash
+bunx harness-evals list --config harness-evals.felan.yaml
+bunx harness-evals run --config harness-evals.felan.yaml \
+  --case felan-adapter-smoke --agents felan-gemini
+```
+
+Set `GEMINI_API_KEY` for the real run. The case uses `useCurrentConfig: false`
+and generated settings, so it does not copy ambient host Felan state.
+
 > **macOS gotcha:** after `bun run port` (which recreates `evals/`), warm the
 > VirtioFS cache before validating/running, or bind-mounts may fail "source path
 > does not exist": `docker run --rm -v "$PWD/evals/<id>:/x:ro" alpine ls /x`.

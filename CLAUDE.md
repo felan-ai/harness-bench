@@ -14,10 +14,7 @@ settings, or reports.
 benchmark (Harbor format) to run under the [`harness-evals`](https://www.npmjs.com/package/harness-evals)
 framework (a published npm package — a normal dependency in `package.json`). Each task is
 rebuilt as a **native** per-task Docker image (`deepswe-task:<id>`) so it does not run under
-amd64 QEMU emulation on Apple Silicon. `harness-evals` is currently consumed via
-`file:../harness-evals` (local checkout) because token/cost extraction in the
-claude-code/codex/pi adapters is not yet published to npm — switch back to the published
-version once a release ≥0.2.2 ships it.
+amd64 QEMU emulation on Apple Silicon.
 
 ## Commands
 
@@ -87,7 +84,7 @@ verifier runs `--network none` (tasks are air-gapped at grading).
   The port script tags these `suite: deep-swe-drift`, so `run --suite deep-swe`
   (107 tasks) excludes them automatically.
 
-## Agent benchmark setup (Claude Code/Fable 5 vs Codex/GPT 5.5 vs custom pi/GPT 5.5)
+## Agent benchmark setup (Claude Code/Fable 5, Codex/GPT 5.5, Pi variants)
 
 - `harness-evals.pilot.yaml` is a standalone 20-task subset config; keep its `docker`
   and `agents` blocks byte-identical to `harness-evals.yaml` (managed-image cache key
@@ -99,7 +96,7 @@ verifier runs `--network none` (tasks are air-gapped at grading).
 - `docker.home: /tmp/agent-home` is load-bearing: managed builds run npm recipes as root
   with HOME=/home/harness, leaving a root-owned npm cache that breaks pi's runtime
   extension installs for the non-root user.
-- pi runs from the frozen bench dir `~/.pi-bench/agent` (mirror of `~/.pi/agent` with
+- Pi runs from the frozen bench dir `~/.pi-bench/agent` (mirror of `~/.pi/agent` with
   absolute extension paths). `@howaboua/pi-codex-conversion` is vendored at
   `~/.pi-bench/vendor/pi-codex-conversion` because the npm-published linux-arm64
   `exec_bridge` needs glibc 2.39 while task images are Debian 12 (glibc 2.36) — pi

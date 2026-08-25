@@ -1,99 +1,28 @@
 version: 1
 
-# DeepSWE tasks are graded by the verifier reward (the task's own test.sh),
-# not by assertions or an LLM judge.
 tests:
-  - evals/*/*.yaml # one self-contained folder per task: evals/<id>/<id>.yaml + its test assets
+  - evals/tests/**/*.yaml
 
 workspace:
   mode: copy
-  containerPath: /app # per-case `workspace.seedFromImage` extracts the repo here
+  containerPath: /workspace
 
 docker:
-  repoPath: /app
-  # Runtime HOME for agent + verifier steps. Must NOT be /home/harness: the
-  # managed image build runs agent install recipes as root with
-  # HOME=/home/harness, leaving root-owned files in /home/harness/.npm that
-  # break npm for the non-root runtime user (pi installs extensions at start).
-  home: /tmp/agent-home
-  # The per-case `image` (the locally built native deepswe-task:<id>) is used
-  # as the managed build base; the agent CLI is layered on top. baseSetup
-  # best-effort ensures the runtimes the agent CLI and the task's test.sh need
-  # exist on any base. NOTE: editing baseSetup invalidates every managed image
-  # cache entry (one rebuild per task on next run) — change it deliberately.
-  baseSetup:
-    - "command -v node >/dev/null 2>&1 || (curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get install -y nodejs) || true"
-    - "command -v python3 >/dev/null 2>&1 || (apt-get update && apt-get install -y python3) || true"
-    # DeepSWE's test.sh writes to /logs and `git config --global` to HOME; the
-    # verifier runs as a non-root mapped user, so make those writable.
-    - "mkdir -p /logs/verifier /logs/artifacts /home/harness && chmod -R 777 /logs /home/harness"
-    - "mkdir -p /tmp/agent-home && chmod 1777 /tmp/agent-home"
+  repoPath: /workspace
+  home: /tmp/felan-home
   envAllowlist:
-    - ANTHROPIC_API_KEY
-    - ANTHROPIC_AUTH_TOKEN
-    - CLAUDE_CODE_OAUTH_TOKEN
-    - OPENAI_API_KEY
     - GEMINI_API_KEY
 
-# Benchmark agents: Claude Code (Fable 5), Codex (GPT 5.5), and Pi variants.
-# Config copying is independent of credentials — an auth env var
-# does NOT skip the copy; only `useCurrentConfig: false` does.
-#   - claude-code: CLEAN config (useCurrentConfig: false → nothing from
-#     ~/.claude is copied). On macOS the login lives in the Keychain, so run
-#     `claude setup-token` once and export CLAUDE_CODE_OAUTH_TOKEN before
-#     running this agent.
-#   - codex: TRIMMED config dir (auth.json + minimal config.toml only) under
-#     .harness-evals/agent-config/codex — the full ~/.codex would drag in
-#     macOS-only MCP servers and ~14MB of sqlite per run. Refresh auth.json
-#     from ~/.codex/auth.json when ChatGPT tokens go stale.
-#   - pi variants: FULL custom setup via the frozen bench dir ~/.pi-bench/agent (a
-#     mirror of ~/.pi/agent/settings.json with absolute extension paths and
-#     @howaboua/pi-codex-conversion swapped for ~/.pi-bench/vendor/… whose
-#     linux-arm64 exec_bridge is rebuilt for glibc 2.36 — the npm-published
-#     binary needs glibc 2.39 and crashes pi inside the Debian-12 task
-#     images). Local extensions are staged per run; npm packages install at
-#     container start (needs the docker.home fix above). Refresh
-#     ~/.pi-bench/agent/{auth.json,settings.json} if your real pi
-#     auth/settings change.
 agents:
-  claude-code:
-    adapter: claude-code
-    model: claude-fable-5
+  felan-gemini:
+    adapter: felan
+    provider: google
+    model: gemini-2.5-pro
+    thinking: low
+    timeoutMs: 600000
     useCurrentConfig: false
-    # The adapter does not add this; required for headless edits with a clean config.
-    args: ["--dangerously-skip-permissions"]
-  codex:
-    adapter: codex
-    model: gpt-5.5
-    userConfigDirs:
-      - ~/workspace/harness-bench/.harness-evals/agent-config/codex
-  pi-codex-gpt55:
-    adapter: pi
-    provider: openai-codex
-    model: gpt-5.5
-    parser: text
-    args: ["--mode", "text"]
-    useCurrentConfig: true
-    userConfigDirs:
-      - ~/.pi-bench/agent
-  pi-opencode-go-glm52:
-    adapter: pi
-    provider: opencode-go
-    model: glm-5.2
-    parser: text
-    args: ["--mode", "text"]
-    useCurrentConfig: true
-    userConfigDirs:
-      - ~/.pi-bench/agent
-  pi:
-    extends: pi-codex-gpt55
-  # No-op agent: makes no edits and needs no API key. Useful to validate the
-  # full pipeline (image build, seed, verifier, reward) deterministically.
-  # A clean run scores reward 0 (the fix is never applied).
-  noop:
-    adapter: command
-    command: echo
-    args: ["{{ prompt }}"]
+    config:
+      useCurrentConfig: false
 
 scoring:
   verifierReward:
@@ -105,5 +34,5 @@ scoring:
 
 visualization:
   enabled: true
-  formats: [html, json]
+  formats: [html, json, csv]
   latest: true

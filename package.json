@@ -3,19 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "DeepSWE benchmark tasks ported to the harness-evals framework.",
+  "description": "Felan agent evaluations and benchmarks powered by harness-evals.",
   "scripts": {
-    "port": "bun scripts/port-deep-swe.ts",
-    "build-images": "bun scripts/build-images.ts",
-    "validate": "bun scripts/validate-native.ts",
-    "list": "harness-evals list",
-    "run": "harness-evals run"
+    "list": "bun node_modules/harness-evals/dist/cli.js list",
+    "run": "bun node_modules/harness-evals/dist/cli.js run",
+    "smoke": "bun node_modules/harness-evals/dist/cli.js run --case felan-adapter-smoke --agents felan-gemini",
+    "view": "bun node_modules/harness-evals/dist/cli.js view --latest --open"
   },
   "dependencies": {
     "harness-evals": "^0.2.3"
-  },
-  "devDependencies": {
-    "smol-toml": "^1.3.1",
-    "yaml": "^2.8.2"
   }
 }

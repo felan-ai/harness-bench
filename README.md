@@ -1,139 +1,98 @@
-# harness-bench — DeepSWE ported to harness-evals
+# harness-bench — Felan agent evaluations and benchmarks
 
-The [DeepSWE](https://github.com/datacurve-ai/deep-swe) benchmark (113 long-horizon
-SWE tasks across TypeScript, Python, Go, Rust, and JavaScript) ported to run under
-the [`harness-evals`](https://www.npmjs.com/package/harness-evals) framework — rebuilt as **native** per-task
-Docker images so tasks don't run under amd64 QEMU emulation on Apple Silicon.
+This repository contains reproducible evals and benchmarks for the Felan agent, run
+through [`harness-evals`](https://www.npmjs.com/package/harness-evals). It is intended
+to grow with Felan and cover adapter smoke tests, behavior regressions, feature
+experiments, quality benchmarks, and cost or latency studies.
 
-> Working in this repo as an agent? See [`CLAUDE.md`](./CLAUDE.md) for the rules and gotchas.
+The initial benchmark family measures the effect of individual extensions by
+comparing identical tasks under controlled Felan configurations. That is one use
+case, not a limit on the repository's scope.
 
-## Prerequisites
+## Repository layout
 
-- **[Bun](https://bun.sh)** — scripts run directly via `bun` (no build step).
-- **Docker** (Desktop on macOS). A full-suite build bakes all 113 images
-  (~0.8–1.1 GB unique each over a shared base) — budget a **~200 GB Docker disk**.
-  Building only the tasks you run needs far less.
-- The **[`harness-evals`](https://www.npmjs.com/package/harness-evals)** npm package —
-  installed by `bun install` (a normal dependency in `package.json`).
-- For real agent runs: the relevant credential (e.g. `ANTHROPIC_API_KEY`, or
-  `CLAUDE_CODE_OAUTH_TOKEN` from `claude setup-token` on macOS).
+```text
+harness-evals.yaml                         canonical harness configuration
+evals/tests/smoke/felan-adapter/            deterministic adapter smoke case
+evals/tests/smoke/felan-adapter/fixture/    isolated starting workspace
 
-## Layout
-
-```
-harness-evals.yaml             Project config (agents, scoring, docker baseSetup; glob evals/*/*.yaml)
-scripts/port-deep-swe.ts       Converter: DeepSWE (Harbor format) -> harness-evals cases
-scripts/build-images.ts        Builds native per-task images from environment/Dockerfile
-scripts/validate-native.ts     Offline reward 0/1 check of native images (no agent/API key)
-evals/<id>/<id>.yaml           One harness-evals case per DeepSWE task (generated)
-evals/<id>/test.sh, test.patch Hidden verifier assets, copied verbatim from DeepSWE
-evals/<id>/run.sh              Reward wrapper (the whole folder mounts at /tests)
-overrides/<id>/Dockerfile      Optional per-task build override (committed, auto-used)
-third_party/deep-swe/          Upstream clone (gitignored)
+evals/tests/<family>/                      future eval and benchmark families
+.harness-evals/                            ignored run artifacts and local caches
 ```
 
-`evals/` is **fully generated** by `scripts/port-deep-swe.ts`; don't hand-edit it —
-edit the generator (or an `overrides/<id>/Dockerfile`) and re-run the port.
+Each case should keep its fixture, prompt, and offline verifier reproducible.
+Comparative benchmarks should use controlled arms that differ only in the behavior
+under test. Verifiers should grade objective workspace or response outcomes, not tool
+usage by itself.
 
-## How the port works
+## Setup
 
-Each DeepSWE task ships as a prebuilt Docker image with the repo checked out at
-`/app`. Those prebuilt images are **linux/amd64 only**, so on an Apple-Silicon /
-arm64 host they run under QEMU emulation (very slow). The fix: every task's
-upstream `environment/Dockerfile` is `FROM public.ecr.aws/x8v8d7g8/mars-base:latest`,
-and **mars-base is multi-arch (has an arm64 variant)**, so rebuilding each task
-from that Dockerfile yields a **native** image for the host.
+Requirements:
 
-`scripts/build-images.ts` does exactly that, tagging each task `deepswe-task:<id>`.
-The port then points each case's `image:` at that local native tag (instead of the
-amd64 prebuilt). Nothing else in the pipeline changes — it relies on three
-`harness-evals` capabilities:
+- [Bun](https://bun.sh)
+- Docker
+- A provider credential, normally `GEMINI_API_KEY`
+- A local `harness-evals` checkout may be linked with `bun link --no-save`; preserve
+  that link when changing dependencies
 
-1. **Per-case image** (`image:` in each case) — the native `deepswe-task:<id>` is the
-   *base* for the managed build, so the agent CLI is layered on top of it.
-2. **`workspace.seedFromImage`** — extracts `/app` (with `.git`, plus the deps baked
-   by the Dockerfile) into the bind-mounted workspace so edits persist into the verifier.
-3. **`verifier.assetsDir`** — mounts the task's own `evals/<id>/` folder read-only at
-   `/tests` in the verifier container *only*, so the hidden tests never leak to the agent.
-
-Because deps are baked into the per-task image (present in both the agent and
-verifier containers), the verifier stays fully air-gapped with no per-language
-tweaks. Grading reuses DeepSWE's own `test.sh` (run via `run.sh`), which applies
-the hidden `test.patch`, runs the task tests, and writes a `0`/`1` reward that
-harness-evals reads as `verifierReward`.
-
-## Usage
+Install dependencies:
 
 ```bash
-# 1. Clone the upstream benchmark (once)
-git clone --depth 1 https://github.com/datacurve-ai/deep-swe third_party/deep-swe
-
-# 2. Install deps (incl. the harness-evals npm package)
 bun install
-
-# 3. (Re)generate all cases + assets
-bun run port
-
-# 4. Build the native per-task image(s). First run pulls mars-base once.
-bun run build-images --only <task-id>          # one (or comma-separated)
-bun run build-images --all --concurrency 4     # everything (~200 GB disk)
-
-# 5. (Optional) Validate the native image offline — reward 0 unmodified,
-#    reward 1 with the held-out solution patch. No agent / API key needed.
-bun run validate --only <task-id>
-
-# 6. List / run (needs Docker + the relevant API key, e.g. ANTHROPIC_API_KEY)
-bun run list
-bun run run --case <task-id> --agents claude-code
-bunx harness-evals view --open
 ```
 
-### Built-in Felan adapter smoke
-
-The standalone `harness-evals.felan.yaml` config exercises the first-party Felan
-adapter without a DeepSWE image or generated case. It installs
-`@felan-ai/felan`, runs `felan --mode json` with explicit Google provider/model
-and thinking selection, then verifies a tiny fixture edit with networking
-disabled for the verifier:
+The canonical config is discovered automatically:
 
 ```bash
-bunx harness-evals list --config harness-evals.felan.yaml
-bunx harness-evals run --config harness-evals.felan.yaml \
-  --case felan-adapter-smoke --agents felan-gemini
+bun run list
 ```
 
-Set `GEMINI_API_KEY` for the real run. The case uses `useCurrentConfig: false`
-and generated settings, so it does not copy ambient host Felan state.
+## Smoke test
 
-> **macOS gotcha:** after `bun run port` (which recreates `evals/`), warm the
-> VirtioFS cache before validating/running, or bind-mounts may fail "source path
-> does not exist": `docker run --rm -v "$PWD/evals/<id>:/x:ro" alpine ls /x`.
+The smoke case asks Felan to edit a tiny fixture and grades it with an offline
+verifier. It intentionally disables the built-in memory, browser, and web-access
+extensions so it tests adapter plumbing rather than extension value:
 
-## Fidelity notes
+```bash
+export GEMINI_API_KEY=...
+bun run smoke
+```
 
-- Task images are rebuilt from the **verbatim** upstream `environment/Dockerfile`
-  (clone + per-task setup) on the native arch via the multi-arch mars-base — same
-  recipe, no emulation. Each task gets its own image (sharing the mars-base layers;
-  ~0.8–1.1 GB unique each — all 113 baked needs a ~200 GB Docker disk).
-- **Status: 113/113 build natively, 107/113 validate green offline.**
-- **Per-task overrides** (`overrides/<id>/Dockerfile`, used automatically when present)
-  fix Dockerfiles that hardcode amd64-only steps:
-  - `cliffy-config-file-parsing` — arch-matching deno binary (was amd64-only).
-  - `eicrud-keyset-pagination-cursor` — MongoDB arm64 server tarball (no Debian arm64 apt pkg).
-  - `valibot-recursive-schema-composition` — `pnpm install --ignore-scripts` (pnpm 10 build-script gate).
-- **6 tasks fail validation from toolchain/dependency drift** — `mars-base:latest`
-  is a moving tag and now ships newer node/go/python + transitive deps than when the
-  benchmark was authored, so some baselines no longer pass: `langchain-request-coalescing`
-  (langchain_core snapshot), `narwhals-rolling-window-suite` (pandas/polars numerics),
-  `skrub-duration-encoding` (polars/sklearn), `fastapi-deprecation-response-headers`
-  (missing `httpx2` test dep), `prometheus-transactional-reload-status` (hidden test
-  pulls a go dep absent from the baked module cache), `scriggo-method-declarations`
-  (go 1.25). Pin per task via `overrides/<id>/Dockerfile` to chase these.
-- **Concurrency caveat:** `validate-native.ts` runs each task's full suite twice; at
-  `--concurrency >= 3` heavy suites (numba, narwhals, rust) can OOM/time out and report
-  false failures. Re-run any failures at `--concurrency 1` to confirm.
-- Agent steps use Docker's default network; the verifier runs `--network none`
-  (DeepSWE tasks are air-gapped at grading). Per-agent allowlists (as in Pier) are
-  not replicated.
-- `solution/` (the held-out reference) is not ported into cases; `validate-native.ts`
-  uses it only to confirm the hidden tests discriminate the fix.
+For discovery without an API call:
+
+```bash
+bun run list
+```
+
+The smoke verifier runs with networking disabled. Agent runs require network access
+for the Felan package installation and model provider. Credentials must remain in
+environment variables or local agent configuration; never commit them.
+
+## Authoring evals and benchmarks
+
+1. Add a case under `evals/tests/<family>/` with a stable suite and id.
+2. Keep immutable fixtures separate from verifier assets when the agent must not see
+   expected answers.
+3. Define objective success criteria before selecting secondary metrics.
+4. For comparative experiments, keep provider, model, thinking level, prompt,
+   fixture, timeout, attempts, and credential policy equivalent between arms.
+5. Record the exact agent and feature configuration needed to reproduce each arm.
+6. Capture correctness first, then compare relevant metrics such as token classes,
+   cost, tool calls, retries, and latency.
+7. Keep live external services separate from replayed or frozen primary fixtures.
+
+Run a focused case with:
+
+```bash
+bun run run --case <case-id> --agents <agent-name>
+```
+
+Inspect the latest report with:
+
+```bash
+bun run view
+```
+
+Generated runs, reports, image caches, and local credentials belong under ignored
+`.harness-evals/`. Do not add generated result exports to the active repository
+unless a specific experiment requires a reviewed artifact.

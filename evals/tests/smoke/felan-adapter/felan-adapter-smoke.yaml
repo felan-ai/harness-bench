@@ -1,0 +1,36 @@
+id: felan-adapter-smoke
+suite: smoke
+description: Verify the built-in Felan adapter can edit a tiny workspace and pass a deterministic verifier.
+workspace:
+  fixture: evals/tests/smoke/felan-adapter/fixture
+agents:
+  include:
+    - felan-gemini
+  overrides:
+    felan-gemini:
+      config:
+        settings:
+          builtinExtensions:
+            memory: false
+            browser: false
+            webAccess: false
+          felanTui:
+            memoryProcessing: false
+prompt: |
+  Open /workspace/target.txt and replace its contents with exactly:
+  FELAN_SMOKE_PASS
+
+  Do not change any other file. Verify the file contents before finishing.
+assert: []
+verifier:
+  command: node
+  args:
+    - /tests/verify.mjs
+  cwd: /workspace
+  assetsDir: evals/tests/smoke/felan-adapter
+  assetsTarget: /tests
+  rewardFile: .harness-evals-reward.txt
+  rewardFormat: text
+  timeoutMs: 60000
+  network:
+    mode: none

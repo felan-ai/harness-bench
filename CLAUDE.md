@@ -1,58 +1,48 @@
 # CLAUDE.md — working in harness-bench
 
-Read `README.md` for the project narrative. This repository contains Felan agent
-evaluations and benchmarks built on `harness-evals`.
+Read `README.md` for the project narrative and `AGENTS.md` for the authoritative
+evaluation-authoring and runtime conventions.
 
 ## Skills
 
-When changing harness configuration, eval cases, adapters, Docker settings, or
-reports, load the `harness-evals` skill first. Use the `linear` skill when work is
-tied to a Linear issue.
+Load the `harness-evals` skill before changing harness configuration, cases,
+adapters, Docker settings, verifiers, or reports. Use the `linear` skill when
+work is tied to a Linear issue.
 
-## Scope and evaluation rules
+## Scope and safety
 
-- Keep changes focused on the requested eval, benchmark, or supporting infrastructure.
-- Do not reintroduce the removed legacy benchmark. New cases must test a documented
-  Felan behavior or hypothesis.
-- The canonical config is `harness-evals.yaml`; cases are discovered from
-  `evals/tests/**/*.yaml`.
-- Keep each case self-contained with a stable fixture, prompt, and deterministic
-  verifier.
-- For extension experiments, compare an all-enabled arm with a variant disabling
-  exactly one extension. Keep provider, model, thinking, prompt, fixture, timeout,
-  attempts, concurrency, and credentials equivalent.
-- Treat correctness as the primary outcome. Interpret cost or latency savings only
-  when quality is non-inferior, and report the relevant supporting metrics.
-- Prefer frozen/replayed external inputs for primary measurements. Put live web or
-  subscription-backed runs in a separate observational track.
-- Never place API keys, OAuth tokens, auth files, or ambient host configuration in
-  the repository.
-- Preserve unrelated local changes. Ask before changing or replacing a linked local
-  dependency.
+- Keep changes focused on the requested evaluation or supporting infrastructure.
+- Do not reintroduce the removed legacy benchmark.
+- Preserve unrelated local changes and the optional no-save `harness-evals` link.
+- Never commit API keys, OAuth tokens, auth files, local environment files,
+  dependencies, generated builds, run artifacts, or caches.
+- Do not start a live paid benchmark solely for offline validation; obtain clear
+  authorization for the paid run.
+- Treat correctness as primary. Cost or latency savings matter only when quality
+  remains acceptable.
 
 ## Commands
 
 ```bash
-bun install
 bun run list
-bun run smoke                 # requires GEMINI_API_KEY and Docker
+bun run smoke                 # live provider call
+bun run build:storzy-runtime
+bun run run --case storzy-authenticated-checkout --agents felan-vercel-gpt56-sol-high-no-prewalk,felan-vercel-gpt56-luna-medium-no-prewalk,felan-vercel-gpt56-sol-high-prewalk-luna-medium --concurrency 1
+bun run compare:prewalk
 bun run run --case <id> --agents <agent>
 bun run view
 ```
-
-`node_modules/harness-evals` may be a no-save symlink to a sibling development
-checkout. Preserve it during dependency maintenance and verify the link after any
-approved install/update.
 
 ## Layout
 
 ```text
 harness-evals.yaml
- evals/tests/<family>/             cases, fixtures, and verifiers
-.harness-evals/                    ignored generated runs and caches
+evals/cases/**/*.eval.yaml
+evals/fixtures/<name>/<version>/{fixture.json,source/}
+evals/runtimes/<name>/Dockerfile
+.harness-evals/
 ```
 
-The committed adapter smoke case is intentionally a plumbing check with the named
-built-in extensions disabled. It is not the all-enabled baseline for extension
-comparisons. Future cases should make feature settings explicit and keep their arms
-comparable.
+The smoke case is a plumbing check, not an all-enabled feature baseline. The
+Storzy runtime is shared by cases using the same fixture dependency lock; it does
+not contain the fixture source or own the Felan version.

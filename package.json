@@ -7,10 +7,12 @@
   "scripts": {
     "list": "bun node_modules/harness-evals/dist/cli.js list",
     "run": "bun node_modules/harness-evals/dist/cli.js run",
-    "smoke": "bun node_modules/harness-evals/dist/cli.js run --case felan-adapter-smoke --agents felan-gemini",
+    "build:storzy-runtime": "docker build -f evals/runtimes/storzy/Dockerfile -t harness-bench-storzy-runtime:v1 .",
+    "compare:prewalk": "bun scripts/compare-prewalk.ts",
+    "smoke": "bun node_modules/harness-evals/dist/cli.js run --case felan-adapter-smoke --agents felan-vercel-gpt56-terra-low",
     "view": "bun node_modules/harness-evals/dist/cli.js view --latest --open"
   },
   "dependencies": {
-    "harness-evals": "^0.2.3"
+    "harness-evals": "^0.2.5"
   }
 }

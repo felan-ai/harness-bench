@@ -1,0 +1,53 @@
+id: storzy-authenticated-checkout
+suite: prewalk
+description: Integrate Storzy authenticated API orders and verify the same checkout behavior across three Felan model-routing arms.
+image: harness-bench-storzy-runtime:v1
+workspace:
+  fixture: evals/fixtures/storzy/v1/source
+  setup:
+    - command: ln
+      args: [-s, /opt/harness-deps/storzy/node_modules, node_modules]
+agents:
+  include:
+    - felan-vercel-gpt56-sol-high-no-prewalk
+    - felan-vercel-gpt56-luna-medium-no-prewalk
+    - felan-vercel-gpt56-sol-high-prewalk-luna-medium
+prompt: |
+  Implement the authenticated checkout integration for this Storzy application.
+
+  Requirements:
+
+  1. Change login to call POST /api/auth/login with the entered username and
+     password. Only on a successful response should it store currentUser and the
+     returned token under the localStorage key authToken and navigate to /inventory.
+     Invalid credentials must remain on the login page and show an error.
+  2. Clear both currentUser and the auth token on logout.
+  3. On checkout submission, reject an empty cart locally, preserve existing field
+     validation, and POST { items, customer } to /api/orders with the stored token
+     as a Bearer Authorization header. Show a stable visible API error when the
+     request fails and leave the cart intact. Prevent duplicate submissions while
+     the request is pending. Only after a 201/successful response may the cart be
+     cleared and the app navigate to /checkout-complete.
+  4. Store enough successful order data for /checkout-complete to show a stable
+     receipt containing the order id, customer name, and total. Preserve the
+     existing empty-cart and login guards.
+  5. Preserve both NEXT_PUBLIC_IMPROVED_CHECKOUT=false and true form variants,
+     the existing product catalog, API order total contract (subtotal only), and
+     NEXT_PUBLIC_ADD_TO_CART_BUG behavior.
+
+  Keep the changes focused on the application source. Do not change package
+  dependencies, the API contract, or the environment flags. Run the relevant
+  type checks before finishing and summarize the files changed.
+assert: []
+verifier:
+  command: node
+  args:
+    - /tests/verify.mjs
+  cwd: /workspace
+  assetsDir: evals/cases/prewalk/storzy-authenticated-checkout/verifier
+  assetsTarget: /tests
+  rewardFile: .harness-evals-reward.txt
+  rewardFormat: text
+  timeoutMs: 180000
+  network:
+    mode: none

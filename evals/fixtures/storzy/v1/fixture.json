@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "storzy-v1",
+  "source": {
+    "repository": "https://github.com/felan-ai/felan-platform.git",
+    "commit": "88d5f146213abbab7f994e6b7c5703adc4c7e6ad",
+    "path": "fixtures/storzy"
+  },
+  "sourceFileCount": 106,
+  "lockfileSha256": "c01689b6865df2cab95caed781a6b3387cd1aed93318e9963a5fc990beab6b08",
+  "excluded": [
+    "node_modules",
+    ".next",
+    ".env.local",
+    "coverage",
+    "generated output",
+    "tool caches"
+  ],
+  "benchmarkChanges": [
+    "Added a pinned packageManager field and typecheck script.",
+    "Added pinned Vitest and jsdom verifier dependencies.",
+    "Removed next/font/google imports so verification builds remain offline.",
+    "Use Next.js webpack builds because Turbopack rejects image-provided dependency symlinks outside the workspace root.",
+    "Normalized incidental upstream trailing whitespace.",
+    "Added fixture-local AGENTS.md guidance."
+  ]
+}

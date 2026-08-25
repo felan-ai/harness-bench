@@ -2,18 +2,19 @@ id: felan-adapter-smoke
 suite: smoke
 description: Verify the built-in Felan adapter can edit a tiny workspace and pass a deterministic verifier.
 workspace:
-  fixture: evals/tests/smoke/felan-adapter/fixture
+  fixture: evals/fixtures/felan-adapter-smoke/v1/source
 agents:
   include:
-    - felan-gemini
+    - felan-vercel-gpt56-terra-low
   overrides:
-    felan-gemini:
+    felan-vercel-gpt56-terra-low:
       config:
         settings:
           builtinExtensions:
             memory: false
             browser: false
             webAccess: false
+            prewalk: false
           felanTui:
             memoryProcessing: false
 prompt: |
@@ -27,7 +28,7 @@ verifier:
   args:
     - /tests/verify.mjs
   cwd: /workspace
-  assetsDir: evals/tests/smoke/felan-adapter
+  assetsDir: evals/cases/smoke/felan-adapter/verifier
   assetsTarget: /tests
   rewardFile: .harness-evals-reward.txt
   rewardFormat: text

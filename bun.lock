@@ -4,7 +4,7 @@
     "": {
       "name": "harness-bench",
       "dependencies": {
-        "harness-evals": "^0.2.3",
+        "harness-evals": "^0.2.5",
       },
     },
   },
@@ -163,7 +163,7 @@
 
     "google-logging-utils": ["google-logging-utils@1.1.3", "", {}, "sha512-eAmLkjDjAFCVXg7A1unxHsLf961m6y17QFqXqAXGj/gVkKFrEICfStRfwUlGNfeCEjNRa32JEWOUTlYXPyyKvA=="],
 
-    "harness-evals": ["harness-evals@0.2.3", "", { "dependencies": { "@earendil-works/pi-ai": "^0.74.0", "fast-glob": "^3.3.3", "yaml": "^2.8.2" }, "bin": { "harness-evals": "dist/cli.js" } }, "sha512-aWhnX/PAvPVrPxIvC2tzyoD/8T6oEK5pq/nMj+oaemBE8eU4XoC0GBWYdWEQCT68/Jr70w7AXxhBeC5Uqt/2+g=="],
+    "harness-evals": ["harness-evals@0.2.5", "", { "dependencies": { "@earendil-works/pi-ai": "^0.74.0", "fast-glob": "^3.3.3", "yaml": "^2.8.2" }, "bin": { "harness-evals": "dist/cli.js" } }, "sha512-Z2vT+1QyabHkQZ22nkAbNem0ZER+uHnk7P3HIfXrbgI9FvtlSuVaSApOQaUG5bJYb5ZMnIdCWz8tuRoyMJ0GMg=="],
 
     "http-proxy-agent": ["http-proxy-agent@7.0.2", "", { "dependencies": { "agent-base": "^7.1.0", "debug": "^4.3.4" } }, "sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig=="],
 

@@ -27,8 +27,8 @@ work is tied to a Linear issue.
 bun run list
 bun run smoke                 # live provider call
 bun run build:storzy-runtime
-bun run run --case storzy-authenticated-checkout --agents felan-vercel-gpt56-sol-high-no-prewalk,felan-vercel-gpt56-luna-medium-no-prewalk,felan-vercel-gpt56-sol-high-prewalk-luna-medium --concurrency 1
-bun run compare:prewalk
+bun run run --case prewalk-checkout --concurrency 1
+bun run view
 bun run run --case <id> --agents <agent>
 bun run view
 ```

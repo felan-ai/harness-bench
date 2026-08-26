@@ -10,53 +10,47 @@ workspace:
 docker:
   repoPath: /workspace
   home: /tmp/felan-home
-  envAllowlist:
-    - AI_GATEWAY_API_KEY
+  envAllowlist: []
 
 agents:
-  felan-vercel-gpt56-terra-low:
+  felan-no-prewalk:
     adapter: felan
-    provider: vercel-ai-gateway
-    model: openai/gpt-5.6-terra
-    thinking: low
-    timeoutMs: 600000
-    apiKeyEnv: AI_GATEWAY_API_KEY
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: high
+    timeoutMs: 900000
+    auth:
+      type: oauth
     useCurrentConfig: false
     config:
       packageVersion: 0.14.2
       useCurrentConfig: false
-
-  felan-vercel-gpt56-sol-high-no-prewalk:
-    extends: felan-vercel-gpt56-terra-low
-    model: openai/gpt-5.6-sol
-    thinking: high
-    timeoutMs: 900000
-    config:
       settings:
         builtinExtensions:
           prewalk: false
         felanTui:
           memoryProcessing: false
 
-  felan-vercel-gpt56-luna-medium-no-prewalk:
-    extends: felan-vercel-gpt56-sol-high-no-prewalk
-    model: openai/gpt-5.6-luna
-    thinking: medium
-
-  felan-vercel-gpt56-sol-high-prewalk-luna-medium:
-    extends: felan-vercel-gpt56-sol-high-no-prewalk
+  felan-all:
+    extends: felan-no-prewalk
     config:
       settings:
         builtinExtensions:
           prewalk: true
         extensionConfig:
           prewalk:
-            targetModel: vercel-ai-gateway/openai/gpt-5.6-luna
+            targetModel: openai-codex/gpt-5.6-luna
             targetThinking: medium
             restorePlanner: true
             entryApproval: always
         felanTui:
           memoryProcessing: false
+
+  felan-smoke:
+    extends: felan-no-prewalk
+    model: gpt-5.6-terra
+    thinking: low
+    timeoutMs: 600000
 
 scoring:
   verifierReward:

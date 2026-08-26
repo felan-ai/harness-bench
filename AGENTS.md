@@ -6,8 +6,8 @@ Read and follow [`CLAUDE.md`](./CLAUDE.md) for the full repository workflow and 
 
 Keep project defaults and reusable agent profiles in the single canonical
 `harness-evals.yaml`. Use native agent `extends` for shared fields when the parent
-is itself a valid runnable profile. Name profiles by exact provider, model,
-thinking level, and behavior; avoid relative names such as `cheap` or `expensive`.
+is itself a valid runnable profile. Use concise, behavior-oriented profile names;
+keep exact provider, model, and thinking settings in configuration and documentation.
 
 Use these ownership boundaries:
 

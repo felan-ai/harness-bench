@@ -1,6 +1,6 @@
-id: storzy-authenticated-checkout
+id: prewalk-checkout
 suite: prewalk
-description: Integrate Storzy authenticated API orders and verify the same checkout behavior across three Felan model-routing arms.
+description: Compare Felan with and without Prewalk on a non-trivial authenticated checkout task.
 image: harness-bench-storzy-runtime:v1
 workspace:
   fixture: evals/fixtures/storzy/v1/source
@@ -9,9 +9,8 @@ workspace:
       args: [-s, /opt/harness-deps/storzy/node_modules, node_modules]
 agents:
   include:
-    - felan-vercel-gpt56-sol-high-no-prewalk
-    - felan-vercel-gpt56-luna-medium-no-prewalk
-    - felan-vercel-gpt56-sol-high-prewalk-luna-medium
+    - felan-no-prewalk
+    - felan-all
 prompt: |
   Implement the authenticated checkout integration for this Storzy application.
 
@@ -38,13 +37,26 @@ prompt: |
   Keep the changes focused on the application source. Do not change package
   dependencies, the API contract, or the environment flags. Run the relevant
   type checks before finishing and summarize the files changed.
-assert: []
+assert:
+  - id: prewalk-entered
+    type: toolCalled
+    name: enter_prewalk
+    isError: false
+    when:
+      agent: felan-all
+  - id: prewalk-disabled
+    type: toolCalled
+    name: enter_prewalk
+    min: 0
+    max: 0
+    when:
+      agent: felan-no-prewalk
 verifier:
   command: node
   args:
     - /tests/verify.mjs
   cwd: /workspace
-  assetsDir: evals/cases/prewalk/storzy-authenticated-checkout/verifier
+  assetsDir: evals/cases/prewalk/checkout/verifier
   assetsTarget: /tests
   rewardFile: .harness-evals-reward.txt
   rewardFormat: text

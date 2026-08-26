@@ -34,7 +34,7 @@ Requirements:
 
 - [Bun](https://bun.sh)
 - Docker
-- A Vercel AI Gateway credential for live runs in `AI_GATEWAY_API_KEY`
+- A ChatGPT Plus or Pro account for OpenAI Codex OAuth
 
 ```bash
 bun install
@@ -42,9 +42,9 @@ bun run list
 ```
 
 This repository may use an intentional no-save link to a sibling
-`harness-evals` checkout. Preserve it during dependency maintenance. The current
-workspace-setup and pinned-Felan support must be released in `harness-evals`
-before replacing that development link with the registry package.
+`harness-evals` checkout. Preserve it during dependency maintenance. The
+published dependency and lockfile remain pinned to the compatible `0.2.5`
+release while that local development link is active.
 
 ## Adapter smoke test
 
@@ -53,26 +53,27 @@ offline verifier. It disables memory, browser, and web-access extensions so it
 tests adapter plumbing rather than extension value.
 
 ```bash
-export AI_GATEWAY_API_KEY=...
 bun run smoke
 ```
 
-The command makes a live provider call. `bun run list` validates discovery and
-configuration without one.
+On the first live run, harness-evals starts the OpenAI Codex OAuth flow and
+stores the resulting credentials in the ignored
+`.harness-evals/auth/felan/default/auth.json` file. The command consumes live
+subscription usage. `bun run list` validates discovery and configuration
+without authenticating or making a model call.
 
 ## Prewalk model-routing benchmark
 
 The Storzy authenticated-checkout task runs these profiles:
 
-1. `felan-vercel-gpt56-sol-high-no-prewalk`
-2. `felan-vercel-gpt56-luna-medium-no-prewalk`
-3. `felan-vercel-gpt56-sol-high-prewalk-luna-medium`
+1. `felan-no-prewalk`
+2. `felan-all`
 
-The third profile starts with OpenAI GPT-5.6 Sol/high through Vercel AI Gateway
-and automatically enters Prewalk, which routes implementation to exact
-`vercel-ai-gateway/openai/gpt-5.6-luna`/medium. The direct Luna arm uses the
-same implementation model and thinking level. The smoke profile uses GPT-5.6
-Terra/low. All profiles pin Felan `0.14.2`.
+Both profiles start with OpenAI GPT-5.6 Sol/high through OpenAI Codex OAuth.
+`felan-no-prewalk` disables Prewalk; `felan-all` enables it and routes
+implementation to the exact `openai-codex/gpt-5.6-luna` target at
+medium thinking. The smoke profile uses GPT-5.6 Terra/low but is not part of
+this benchmark. All profiles pin Felan `0.14.2`.
 
 Storzy uses a shared runtime that pins Node `22.20.0`, pnpm `9.15.5`, and the
 fixture lockfile dependencies. Build it once before running any Storzy case:
@@ -81,20 +82,18 @@ fixture lockfile dependencies. Build it once before running any Storzy case:
 bun run build:storzy-runtime
 ```
 
-Run the three arms sequentially:
+Run both arms sequentially:
 
 ```bash
-bun run run --case storzy-authenticated-checkout \
-  --agents felan-vercel-gpt56-sol-high-no-prewalk,felan-vercel-gpt56-luna-medium-no-prewalk,felan-vercel-gpt56-sol-high-prewalk-luna-medium \
-  --concurrency 1 --attempts 1
-bun run compare:prewalk
+bun run run --case prewalk-checkout --concurrency 1 --attempts 1
+bun run view
 ```
 
-These commands make live, paid provider calls. Repeat with `--attempts N` for a
-distribution. The comparison includes failed and timed-out attempts and reports
-solve rate, latency, cost, token classes, and observed providers and models. It
-also fails when an arm lacks its pinned provider or model, or when the routed arm
-lacks `enter_prewalk`.
+These commands consume live subscription usage. Repeat with `--attempts N` for
+a distribution. The built-in report compares solve rate, latency, reported
+cost, and token usage. The case assertions also require a successful
+`enter_prewalk` call for `felan-all` and reject any such call for
+`felan-no-prewalk`.
 
 ## Common commands
 

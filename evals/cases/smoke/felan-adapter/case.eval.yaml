@@ -5,9 +5,9 @@ workspace:
   fixture: evals/fixtures/felan-adapter-smoke/v1/source
 agents:
   include:
-    - felan-vercel-gpt56-terra-low
+    - felan-smoke
   overrides:
-    felan-vercel-gpt56-terra-low:
+    felan-smoke:
       config:
         settings:
           builtinExtensions:

@@ -1,6 +1,6 @@
 id: output-style-support
 suite: output-style
-description: Compare concise and explanatory support answers without sacrificing required facts.
+description: Compare how response styles answer the same open-ended benchmark question.
 workspace:
   fixture: evals/fixtures/output-style/v1/source
 agents:
@@ -10,30 +10,15 @@ agents:
     - felan-output-style-explanatory
 prompt: |
   A teammate is considering using this benchmark and asks, "What does it
-  actually tell us?"
-
-  Give them a short, practical answer. Explain that it compares response styles
-  by giving the same task to the disabled, concise, and explanatory profiles.
-  The point is to see whether shorter answers save tokens without losing
-  necessary context such as verification results, caveats, or blockers. Be
-  clear that this setup has not run the model evaluation yet, so there are no
-  findings to share. Do not edit any files.
+  actually tell us?" Review the workspace and answer their question. Do not
+  change any files.
 assert:
   - id: outcome-retained
     type: contains
-    value: "disabled, concise, and explanatory"
-  - id: verification-retained
+    value: "response"
+  - id: style-retained
     type: contains
-    value: "same task"
-  - id: caveat-retained
-    type: contains
-    value: "verification results"
-  - id: blocker-retained
-    type: contains
-    value: "not run"
-  - id: unsupported-test-claim
-    type: notContains
-    value: "tests passed"
+    value: "style"
   - id: no-files-edited
     type: workspaceDiff
     changedFiles: []

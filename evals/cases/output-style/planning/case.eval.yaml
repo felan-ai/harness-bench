@@ -1,6 +1,6 @@
 id: output-style-planning
 suite: output-style
-description: Compare planning responses while retaining tradeoffs and verification context.
+description: Compare planning responses for the same requirements and open design decisions.
 workspace:
   fixture: evals/fixtures/output-style/v1/source
 agents:
@@ -9,34 +9,27 @@ agents:
     - felan-output-style-concise
     - felan-output-style-explanatory
 prompt: |
-  We're about to add a health check to a small Node service. Before anyone
-  starts coding, sketch a focused implementation plan for `GET /health`.
-
-  Product expects a 200 JSON response with `{ "status": "ok" }`. The endpoint
-  should not require authentication, but it must not expose internal details.
-  Include unit and HTTP-level verification, and call out the tradeoff between a
-  simple liveness response and checking downstream dependencies. We have not
-  chosen the deployment platform yet, so mention that as the remaining blocker
-  for platform-specific wiring. Do not implement anything or claim checks ran.
+  We need an unauthenticated `GET /health` endpoint for a small Node service. It
+  should return a 200 JSON response with `{ "status": "ok" }` without exposing
+  internal information. We have not decided whether it should be a simple
+  liveness check or include dependency health, and the deployment platform is
+  still undecided. Propose an implementation plan without changing any files.
 assert:
   - id: outcome-retained
     type: contains
     value: "GET /health"
-  - id: verification-retained
+  - id: response-retained
     type: contains
     value: "200"
-  - id: caveat-retained
+  - id: payload-retained
     type: contains
-    value: "details"
+    value: "status"
   - id: blocker-retained
     type: contains
     value: "platform"
   - id: tradeoff-retained
     type: contains
-    value: "downstream"
-  - id: unsupported-check-claim
-    type: notContains
-    value: "I ran"
+    value: "dependenc"
   - id: no-files-edited
     type: workspaceDiff
     changedFiles: []

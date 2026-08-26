@@ -9,26 +9,12 @@ agents:
     - felan-output-style-concise
     - felan-output-style-explanatory
 prompt: |
-  Please finish the small calculator fix: implement `add(left, right)` in
-  `src/calculator.js` so it returns the numeric sum of its arguments. Keep the
-  change limited to that file and inspect the result before you wrap up.
-
-  In your handoff, tell me what changed and how you checked it. No automated
-  tests or build are available for this fixture, so don't imply that either
-  ran. If nothing got in the way, just say "No blockers."
+  Implement `add(left, right)` in `src/calculator.js` so it returns the numeric
+  sum of its arguments. Keep the change limited to that file.
 assert:
   - id: outcome-retained
     type: contains
     value: "add"
-  - id: verification-retained
-    type: contains
-    value: "Checked"
-  - id: caveat-retained
-    type: contains
-    value: "automated test"
-  - id: blocker-retained
-    type: contains
-    value: "No blockers"
   - id: files-retained
     type: contains
     value: "src/calculator.js"

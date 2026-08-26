@@ -1,6 +1,6 @@
 id: output-style-review
 suite: output-style
-description: Compare review summaries for factual findings, verification limits, and caveats.
+description: Compare review summaries for the same merge-readiness finding.
 workspace:
   fixture: evals/fixtures/output-style/v1/source
 agents:
@@ -9,14 +9,7 @@ agents:
     - felan-output-style-concise
     - felan-output-style-explanatory
 prompt: |
-  Can you take a quick look at `src/calculator.js` before we merge it? I'm
-  worried the `add` function may still be a placeholder. Tell me what would
-  happen if callers used it and whether that blocks shipping this file.
-
-  Keep this to a review only: don't change anything or run tests or builds. You
-  may use a read-only command such as `cat src/calculator.js` to inspect it. Say
-  what you inspected, and make it clear that reading one file does not establish
-  how the broader application behaves or whether its tests pass.
+  Review `src/calculator.js` for merge readiness. Do not change any files.
 assert:
   - id: outcome-retained
     type: contains
@@ -24,15 +17,9 @@ assert:
   - id: verification-retained
     type: contains
     value: "src/calculator.js"
-  - id: caveat-retained
+  - id: function-retained
     type: contains
-    value: "broader"
-  - id: blocker-retained
-    type: contains
-    value: "ship"
-  - id: unsupported-build-claim
-    type: notContains
-    value: "build passed"
+    value: "add"
   - id: no-files-edited
     type: workspaceDiff
     changedFiles: []

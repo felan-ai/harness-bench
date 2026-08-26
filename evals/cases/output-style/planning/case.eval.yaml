@@ -1,0 +1,42 @@
+id: output-style-planning
+suite: output-style
+description: Compare planning responses while retaining tradeoffs and verification context.
+workspace:
+  fixture: evals/fixtures/output-style/v1/source
+agents:
+  include:
+    - felan-output-style-disabled
+    - felan-output-style-concise
+    - felan-output-style-explanatory
+prompt: |
+  We're about to add a health check to a small Node service. Before anyone
+  starts coding, sketch a focused implementation plan for `GET /health`.
+
+  Product expects a 200 JSON response with `{ "status": "ok" }`. The endpoint
+  should not require authentication, but it must not expose internal details.
+  Include unit and HTTP-level verification, and call out the tradeoff between a
+  simple liveness response and checking downstream dependencies. We have not
+  chosen the deployment platform yet, so mention that as the remaining blocker
+  for platform-specific wiring. Do not implement anything or claim checks ran.
+assert:
+  - id: outcome-retained
+    type: contains
+    value: "GET /health"
+  - id: verification-retained
+    type: contains
+    value: "200"
+  - id: caveat-retained
+    type: contains
+    value: "details"
+  - id: blocker-retained
+    type: contains
+    value: "platform"
+  - id: tradeoff-retained
+    type: contains
+    value: "downstream"
+  - id: unsupported-check-claim
+    type: notContains
+    value: "I ran"
+  - id: no-files-edited
+    type: workspaceDiff
+    changedFiles: []

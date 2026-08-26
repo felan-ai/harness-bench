@@ -103,6 +103,70 @@ bun run run --case <case-id> --agents <agent-name>
 bun run view
 ```
 
+## BUG-398 output-style benchmark
+
+The `output-style` suite evaluates whether Felan's response-style extension
+reduces user-facing output without dropping required information. It runs the
+same five tasks under three profiles:
+
+1. `felan-output-style-disabled` — output-style extension disabled;
+2. `felan-output-style-concise` — the built-in concise style; and
+3. `felan-output-style-explanatory` — the built-in explanatory style.
+
+All profiles use Felan `0.14.2`, the same OpenAI Codex provider/model/thinking
+selection, OAuth configuration, timeout, fixture, prompt, and verifier. Normal
+built-in extensions remain enabled in every arm; only Prewalk is disabled to
+keep execution on one model. The output-style enablement and selected style are
+the only differences between arms. The tasks cover support,
+planning, review, coding-change summaries, and blocker reports. The coding
+verifier is offline and rejects the untouched fixture with reward `0`; a known-
+good implementation must receive reward `1` before a paid benchmark is trusted.
+
+List the cases without making a model call:
+
+```bash
+bun run list
+```
+
+After an explicitly authorized live run, analyze its artifacts:
+
+```bash
+bun run run --suite output-style --concurrency 1 --attempts 1
+bun run analyze:output-style -- --artifact-root .harness-evals/runs --batch latest \
+  --output .harness-evals/output/output-style.json --format json
+bun run analyze:output-style -- --artifact-root .harness-evals/runs --batch latest \
+  --output .harness-evals/output/output-style.md --format markdown
+```
+
+The analyzer keeps final-response metrics separate from total-run accounting:
+`finalCharacters` and final assistant-message output tokens are distinct from
+the adapter's total input/output/total token rollups, request count, and cost.
+If a provider does not report final-message usage, the analyzer records a
+documented `characters / 4` estimate instead of presenting it as reported
+usage. Fixed output-style prompt additions are reported separately as 0, 280,
+and 308 characters per model invocation for disabled, concise, and explanatory
+respectively. The cases do not configure an LLM judge, so reported agent cost
+does not include evaluation-judge calls; any future judge cost must be reported
+as evaluation cost separately.
+
+Generate an anonymized review sheet and its private mapping key, then provide
+the completed sheet on a later analysis run:
+
+```bash
+bun run analyze:output-style -- --artifact-root .harness-evals/runs --batch latest \
+  --review-template .harness-evals/output/output-style-review.csv \
+  --review-key .harness-evals/output/output-style-review.key.json
+bun run analyze:output-style -- --artifact-root .harness-evals/runs --batch latest \
+  --reviews .harness-evals/output/output-style-review.completed.csv \
+  --output .harness-evals/output/output-style-reviewed.json --format json
+```
+
+Do not commit the review key, completed responses, OAuth data, or generated
+`.harness-evals/` artifacts. Preserve failed, timed-out, and incomplete runs
+in the analysis; do not report only successful attempts. The analyzer's
+findings identify cases where concise output is shorter and successful, and
+cases where it loses required facts and therefore needs explanatory context.
+
 Verifiers should run without networking and must reject the untouched fixture.
 Before authorizing a paid benchmark, also prove a known-good implementation
 receives full reward. Generated artifacts and credentials must remain ignored.

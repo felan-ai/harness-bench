@@ -52,6 +52,45 @@ agents:
     thinking: low
     timeoutMs: 600000
 
+  felan-output-style-disabled:
+    extends: felan-smoke
+    label: Output style disabled
+    config:
+      settings:
+        builtinExtensions:
+          prewalk: false
+          outputStyle: false
+        felanTui:
+          memoryProcessing: false
+
+  felan-output-style-concise:
+    extends: felan-output-style-disabled
+    label: Concise output style
+    config:
+      settings:
+        builtinExtensions:
+          prewalk: false
+          outputStyle: true
+        extensionConfig:
+          outputStyle:
+            style: concise
+        felanTui:
+          memoryProcessing: false
+
+  felan-output-style-explanatory:
+    extends: felan-output-style-disabled
+    label: Explanatory output style
+    config:
+      settings:
+        builtinExtensions:
+          prewalk: false
+          outputStyle: true
+        extensionConfig:
+          outputStyle:
+            style: explanatory
+        felanTui:
+          memoryProcessing: false
+
 scoring:
   verifierReward:
     weight: 1

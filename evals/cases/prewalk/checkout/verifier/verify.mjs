@@ -23,6 +23,29 @@ function requireText(text, patterns, label) {
   }
 }
 
+function localStorageKeys(text, method) {
+  const constants = new Map();
+  for (const match of text.matchAll(/\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*(["'`])([^"'`]+)\2/g)) {
+    constants.set(match[1], match[3]);
+  }
+
+  const keys = new Set();
+  for (const match of text.matchAll(/localStorage\.(getItem|setItem)\(\s*(?:(["'`])([^"'`]+)\2|([A-Za-z_$][\w$]*))/g)) {
+    if (match[1] !== method) continue;
+    const key = match[3] ?? constants.get(match[4]);
+    if (key) keys.add(key);
+  }
+  return keys;
+}
+
+function verifyReceiptStorage(checkout, receipt) {
+  const writes = localStorageKeys(checkout, 'setItem');
+  const reads = localStorageKeys(receipt, 'getItem');
+  const nonReceiptKeys = new Set(['currentUser', 'authToken', 'cart']);
+  const sharedReceiptKey = [...writes].find((key) => reads.has(key) && !nonReceiptKeys.has(key));
+  if (!sharedReceiptKey) fail('receipt: checkout and completion page do not share a stable localStorage order key');
+}
+
 async function run(command, args, options = {}) {
   return new Promise((resolveResult) => {
     const child = spawn(command, args, {
@@ -102,9 +125,12 @@ async function verifySourceContract() {
 
   requireText(receipt, [
     /Thank You For Your Order/s,
-    /localStorage\.getItem\(\s*["'`]lastOrder/s,
     /order|receipt/i,
+    /Order ID/i,
+    /Customer/i,
+    /Total/i,
   ], 'receipt');
+  verifyReceiptStorage(checkout, receipt);
   requireText(inventory, [/NEXT_PUBLIC_ADD_TO_CART_BUG/s, /return/s], 'inventory');
   requireText(apiStore, [/storzy-test-token-2024/s, /total\s*\+=\s*product\.price/s], 'api store');
 }

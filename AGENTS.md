@@ -83,8 +83,9 @@ large pinned dependencies, system packages, or a controlled toolchain.
   fetch or mutate external state.
 - Bump the runtime/fixture version and update integrity labels when its lockfile or
   dependency contract changes.
-- Pin the Felan package in agent `config.packageVersion`; do not rely on an implicit
-  latest package or couple the Felan version to an application runtime image.
+- Pin Felan in `config.packageVersion` for reproducible historical runs. The
+  canonical profiles currently omit the field intentionally to exercise the
+  latest npm release; refresh their managed image before a live comparison.
 
 ## Validation and paid-run safety
 

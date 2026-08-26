@@ -17,17 +17,19 @@ agents:
     adapter: felan
     provider: openai-codex
     model: gpt-5.6-sol
-    thinking: high
+    thinking: max
     timeoutMs: 900000
     auth:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.14.2
       useCurrentConfig: false
       settings:
         builtinExtensions:
           prewalk: false
+        extensionConfig:
+          codex:
+            fast: true
         felanTui:
           memoryProcessing: false
 
@@ -38,6 +40,8 @@ agents:
         builtinExtensions:
           prewalk: true
         extensionConfig:
+          codex:
+            fast: true
           prewalk:
             targetModel: openai-codex/gpt-5.6-luna
             targetThinking: medium

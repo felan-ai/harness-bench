@@ -69,11 +69,13 @@ The Storzy authenticated-checkout task runs these profiles:
 1. `felan-no-prewalk`
 2. `felan-all`
 
-Both profiles start with OpenAI GPT-5.6 Sol/high through OpenAI Codex OAuth.
+Both profiles start with OpenAI GPT-5.6 Sol/max through OpenAI Codex OAuth with
+Codex fast mode enabled.
 `felan-no-prewalk` disables Prewalk; `felan-all` enables it and routes
 implementation to the exact `openai-codex/gpt-5.6-luna` target at
 medium thinking. The smoke profile uses GPT-5.6 Terra/low but is not part of
-this benchmark. All profiles pin Felan `0.14.2`.
+this benchmark. The profiles intentionally track the latest Felan release from
+npm rather than pinning an exact package version.
 
 Storzy uses a shared runtime that pins Node `22.20.0`, pnpm `9.15.5`, and the
 fixture lockfile dependencies. Build it once before running any Storzy case:

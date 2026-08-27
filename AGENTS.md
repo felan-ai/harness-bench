@@ -28,12 +28,12 @@ lockfiles or configuration YAML to the test glob.
 1. Define the behavior or hypothesis and objective success criteria first.
 2. Write one `.eval.yaml` per task. A multi-arm comparison is one task multiplied
    by several named agent profiles, not duplicated case files.
-3. Put the prompt, fixture reference, default `agents.include`, timeout, and
+3. Put the prompt, workspace source, default `agents.include`, timeout, and
    verifier declaration in that case.
 4. Keep prompts implementation-neutral and grade equivalent observable behavior.
 5. Use explicit suites and stable case ids. Never silently change the meaning of
-   a published case; version its fixture or create a new case when needed.
-6. Keep comparison controls equivalent in prompt, fixture, verifier, attempts,
+   a published case; version its fixture or create a new case when its source changes.
+6. Keep comparison controls equivalent in prompt, starting workspace, verifier, attempts,
    timeout, concurrency, credentials, and runtime. Vary only the intended agent
    or feature settings.
 
@@ -74,18 +74,26 @@ large pinned dependencies, system packages, or a controlled toolchain.
 
 - Scope images to a runtime/dependency profile, not an individual test. All Storzy
   cases sharing its lockfile should reuse the same Storzy runtime.
-- Runtime images contain tools and immutable dependencies, not fixture source,
+- Runtime images contain tools and immutable dependencies, not workspace source,
   prompts, verifiers, credentials, or generated run output.
+- Cases may use `workspace.git` to acquire an exact upstream commit on the host;
+  source acquisition is not part of runtime image construction.
 - Pin base runtime and package-manager versions and install application dependencies
   from a committed frozen lockfile.
 - Use `workspace.setup` argv commands to expose image-provided dependencies to the
   copied workspace before its baseline snapshot. Setup runs offline and must not
   fetch or mutate external state.
-- Bump the runtime/fixture version and update integrity labels when its lockfile or
+- Bump the runtime or fixture version and update integrity labels when its lockfile or
   dependency contract changes.
 - Pin Felan in `config.packageVersion` for reproducible historical runs. The
   canonical profiles currently omit the field intentionally to exercise the
   latest npm release; refresh their managed image before a live comparison.
+
+Keep package commands and supporting scripts reusable across cases. Pass runtime,
+case, suite, or agent names as arguments instead of adding one command per target.
+Do not add case-specific top-level analysis, reporting, build, or test commands
+or scripts unless the user explicitly requests them; use the harness's built-in
+HTML, JSON, and CSV reports by default.
 
 ## Validation and paid-run safety
 
@@ -96,7 +104,7 @@ bun run list
 git diff --check
 ```
 
-Build any referenced custom runtime and exercise its fixture setup, typecheck,
+Build any referenced custom runtime and exercise its workspace setup, typecheck,
 build, and verifier controls. Do not make a live provider call unless the current
 request explicitly authorizes that paid run. Keep `.harness-evals/` artifacts and
 result exports ignored unless a specific reviewed result is requested.

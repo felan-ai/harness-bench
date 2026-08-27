@@ -26,7 +26,7 @@ work is tied to a Linear issue.
 ```bash
 bun run list
 bun run smoke                 # live provider call
-bun run build:storzy-runtime
+bun run build:runtime storzy
 bun run run --case prewalk-checkout --concurrency 1
 bun run view
 bun run run --case <id> --agents <agent>

@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 
 const workspace = process.cwd();
@@ -23,24 +23,66 @@ function requireText(text, patterns, label) {
   }
 }
 
-function localStorageKeys(text, method) {
+async function localStorageKeys(text, method, sourcePath) {
   const constants = new Map();
   for (const match of text.matchAll(/\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*(["'`])([^"'`]+)\2/g)) {
     constants.set(match[1], match[3]);
   }
 
+  const imports = await importedStringConstants(text, sourcePath);
+
   const keys = new Set();
   for (const match of text.matchAll(/localStorage\.(getItem|setItem)\(\s*(?:(["'`])([^"'`]+)\2|([A-Za-z_$][\w$]*))/g)) {
     if (match[1] !== method) continue;
-    const key = match[3] ?? constants.get(match[4]);
+    const key = match[3] ?? constants.get(match[4]) ?? imports.get(match[4]);
     if (key) keys.add(key);
   }
   return keys;
 }
 
-function verifyReceiptStorage(checkout, receipt) {
-  const writes = localStorageKeys(checkout, 'setItem');
-  const reads = localStorageKeys(receipt, 'getItem');
+async function importedStringConstants(text, sourcePath) {
+  const imports = new Map();
+  for (const match of text.matchAll(/\bimport\s*\{([^}]+)\}\s*from\s*(["'`])([^"'`]+)\2/g)) {
+    const importedSourcePath = resolveSourceImport(sourcePath, match[3]);
+    if (!importedSourcePath) continue;
+    const importedSource = await source(importedSourcePath);
+    const exportedConstants = new Map();
+    for (const exported of importedSource.matchAll(/\bexport\s+const\s+([A-Za-z_$][\w$]*)(?:\s*:\s*[^=\n]+)?\s*=\s*(["'`])([^"'`]+)\2/g)) {
+      exportedConstants.set(exported[1], exported[3]);
+    }
+    for (const specifier of match[1].split(',')) {
+      const binding = specifier.trim().match(/^(?!type\s)([A-Za-z_$][\w$]*)(?:\s+as\s+([A-Za-z_$][\w$]*))?$/);
+      if (!binding) continue;
+      const value = exportedConstants.get(binding[1]);
+      if (value) imports.set(binding[2] ?? binding[1], value);
+    }
+  }
+  return imports;
+}
+
+function resolveSourceImport(sourcePath, specifier) {
+  const base = specifier.startsWith('@/')
+    ? resolve(workspace, specifier.slice(2))
+    : specifier.startsWith('.')
+      ? resolve(workspace, dirname(sourcePath), specifier)
+      : undefined;
+  if (!base) return undefined;
+
+  const relativeBase = relative(workspace, base);
+  if (relativeBase === '..' || relativeBase.startsWith(`..${sep}`) || isAbsolute(relativeBase)) return undefined;
+  for (const candidate of [base, `${base}.ts`, `${base}.tsx`, `${base}.js`, `${base}.jsx`, join(base, 'index.ts'), join(base, 'index.tsx')]) {
+    try {
+      if (statSync(candidate).isFile()) return relative(workspace, candidate);
+    } catch {
+      // Try the next supported source-file form.
+    }
+  }
+  return undefined;
+}
+
+async function verifyReceiptStorage(checkout, receipt) {
+  const writes = await localStorageKeys(checkout, 'setItem', 'app/checkout/page.tsx');
+  const reads = await localStorageKeys(receipt, 'getItem', 'app/checkout-complete/page.tsx');
   const nonReceiptKeys = new Set(['currentUser', 'authToken', 'cart']);
   const sharedReceiptKey = [...writes].find((key) => reads.has(key) && !nonReceiptKeys.has(key));
   if (!sharedReceiptKey) fail('receipt: checkout and completion page do not share a stable localStorage order key');
@@ -130,7 +172,7 @@ async function verifySourceContract() {
     /Customer/i,
     /Total/i,
   ], 'receipt');
-  verifyReceiptStorage(checkout, receipt);
+  await verifyReceiptStorage(checkout, receipt);
   requireText(inventory, [/NEXT_PUBLIC_ADD_TO_CART_BUG/s, /return/s], 'inventory');
   requireText(apiStore, [/storzy-test-token-2024/s, /total\s*\+=\s*product\.price/s], 'api store');
 }

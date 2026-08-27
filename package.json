@@ -7,9 +7,7 @@
   "scripts": {
     "list": "bun node_modules/harness-evals/dist/cli.js list",
     "run": "bun node_modules/harness-evals/dist/cli.js run",
-    "analyze:output-style": "bun scripts/analyze-output-style.ts",
-    "test:output-style": "bun test scripts/analyze-output-style.test.ts",
-    "build:storzy-runtime": "docker build -f evals/runtimes/storzy/Dockerfile -t harness-bench-storzy-runtime:v1 .",
+    "build:runtime": "bun scripts/build-runtime.ts",
     "smoke": "bun node_modules/harness-evals/dist/cli.js run --case felan-adapter-smoke",
     "view": "bun node_modules/harness-evals/dist/cli.js view --latest --open"
   },

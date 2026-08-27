@@ -95,6 +95,64 @@ agents:
         felanTui:
           memoryProcessing: false
 
+  felan-rtk-disabled:
+    extends: felan-no-prewalk
+    label: RTK optimizer disabled
+    config:
+      packageVersion: 0.15.2
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codex: true
+          context: false
+          felanApi: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: false
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: true
+        felanTui:
+          memoryProcessing: false
+
+  felan-rtk-enabled:
+    extends: felan-rtk-disabled
+    label: RTK optimizer enabled
+    config:
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codex: true
+          context: false
+          felanApi: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          rtkOptimizer: true
+          subagents: false
+          tasks: false
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: true
+        felanTui:
+          memoryProcessing: false
+
 scoring:
   verifierReward:
     weight: 1

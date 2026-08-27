@@ -8,6 +8,7 @@ agents:
     - felan-output-style-disabled
     - felan-output-style-concise
     - felan-output-style-explanatory
+    - felan-output-style-custom-caveman
 prompt: |
   Review `src/calculator.js` for merge readiness. Do not change any files.
 assert:

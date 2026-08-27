@@ -8,6 +8,7 @@ agents:
     - felan-output-style-disabled
     - felan-output-style-concise
     - felan-output-style-explanatory
+    - felan-output-style-custom-caveman
 prompt: |
   We need an unauthenticated `GET /health` endpoint for a small Node service. It
   should return a 200 JSON response with `{ "status": "ok" }` without exposing

@@ -8,6 +8,7 @@ agents:
     - felan-output-style-disabled
     - felan-output-style-concise
     - felan-output-style-explanatory
+    - felan-output-style-custom-caveman
 prompt: |
   A teammate is considering using this benchmark and asks, "What does it
   actually tell us?" Review the workspace and answer their question. Do not

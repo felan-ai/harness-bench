@@ -8,6 +8,7 @@ agents:
     - felan-output-style-disabled
     - felan-output-style-concise
     - felan-output-style-explanatory
+    - felan-output-style-custom-caveman
 prompt: |
   Implement `add(left, right)` in `src/calculator.js` so it returns the numeric
   sum of its arguments. Keep the change limited to that file.

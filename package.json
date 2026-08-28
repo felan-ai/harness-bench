@@ -5,11 +5,12 @@
   "type": "module",
   "description": "Felan agent evaluations and benchmarks powered by harness-evals.",
   "scripts": {
-    "list": "bun node_modules/harness-evals/dist/cli.js list",
-    "run": "bun node_modules/harness-evals/dist/cli.js run",
+    "list": "bun node_modules/harness-evals/dist/cli.js list --config harness-evals.yaml",
+    "list:smoke": "bun node_modules/harness-evals/dist/cli.js list --config harness-evals.smoke.yaml",
+    "run": "bun node_modules/harness-evals/dist/cli.js run --config harness-evals.yaml",
     "build:runtime": "bun scripts/build-runtime.ts",
-    "smoke": "bun node_modules/harness-evals/dist/cli.js run --case felan-adapter-smoke",
-    "view": "bun node_modules/harness-evals/dist/cli.js view --latest --open"
+    "smoke": "bun node_modules/harness-evals/dist/cli.js run --config harness-evals.smoke.yaml --case felan-adapter-smoke",
+    "view": "bun node_modules/harness-evals/dist/cli.js view --config harness-evals.yaml --latest --open"
   },
   "dependencies": {
     "harness-evals": "^0.2.6"

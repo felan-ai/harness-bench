@@ -5,10 +5,10 @@ workspace:
   fixture: evals/fixtures/output-style/v1/source
 agents:
   include:
-    - felan-output-style-disabled
-    - felan-output-style-concise
-    - felan-output-style-explanatory
-    - felan-output-style-custom-caveman
+    - felan-no-output-style
+    - felan-concise
+    - felan-explanatory
+    - felan-caveman
 prompt: |
   Implement `add(left, right)` in `src/calculator.js` so it returns the numeric
   sum of its arguments. Keep the change limited to that file.

@@ -1,0 +1,53 @@
+version: 1
+
+tests:
+  - evals/cases/smoke/**/*.eval.yaml
+
+# Share local history and reports with the main configuration.
+artifactRoot: .harness-evals/runs
+outputRoot: .harness-evals/output
+
+workspace:
+  mode: copy
+  containerPath: /workspace
+
+docker:
+  repoPath: /workspace
+  home: /tmp/felan-home
+  envAllowlist: []
+
+agents:
+  felan-smoke:
+    adapter: felan
+    label: Felan · smoke
+    comparisonId: felan-smoke
+    provider: openai-codex
+    model: gpt-5.6-terra
+    thinking: low
+    timeoutMs: 600000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          memory: false
+          browser: false
+          webAccess: false
+          prewalk: false
+        felanTui:
+          memoryProcessing: false
+
+scoring:
+  verifierReward:
+    weight: 1
+  assertionPassRate:
+    weight: 0
+  judgeScore:
+    weight: 0
+
+visualization:
+  enabled: true
+  formats: [html, json, csv]
+  latest: true

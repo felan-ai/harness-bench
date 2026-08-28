@@ -1,7 +1,13 @@
 version: 1
 
 tests:
-  - evals/cases/**/*.eval.yaml
+  - evals/cases/output-style/**/*.eval.yaml
+  - evals/cases/prewalk/**/*.eval.yaml
+  - evals/cases/rtk/**/*.eval.yaml
+
+# The smoke config uses these same roots so local history and reports stay unified.
+artifactRoot: .harness-evals/runs
+outputRoot: .harness-evals/output
 
 workspace:
   mode: copy
@@ -13,8 +19,12 @@ docker:
   envAllowlist: []
 
 agents:
+  # Public reports group results by comparisonId. Keep an ID stable for the same
+  # logical arm and use a distinct ID for each behaviorally different variant.
   felan-no-prewalk:
     adapter: felan
+    label: Felan · full · Prewalk off
+    comparisonId: felan-no-prewalk
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: max
@@ -34,8 +44,18 @@ agents:
           memoryProcessing: false
 
   felan-all:
-    extends: felan-no-prewalk
+    adapter: felan
+    label: Felan · full · Prewalk on
+    comparisonId: felan-all
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
     config:
+      useCurrentConfig: false
       settings:
         builtinExtensions:
           prewalk: true
@@ -50,17 +70,20 @@ agents:
         felanTui:
           memoryProcessing: false
 
-  felan-smoke:
-    extends: felan-no-prewalk
-    model: gpt-5.6-terra
-    thinking: low
-    timeoutMs: 600000
-
-  felan-output-style-disabled:
-    extends: felan-smoke
-    label: Output style disabled
+  felan-no-output-style:
+    adapter: felan
+    label: Felan · output style off
+    comparisonId: felan-no-output-style
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
     config:
       packageVersion: 0.17.1
+      useCurrentConfig: false
       settings:
         builtinExtensions:
           prewalk: false
@@ -68,10 +91,20 @@ agents:
         felanTui:
           memoryProcessing: false
 
-  felan-output-style-concise:
-    extends: felan-output-style-disabled
-    label: Concise output style
+  felan-concise:
+    adapter: felan
+    label: Felan · concise
+    comparisonId: felan-concise
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
     config:
+      packageVersion: 0.17.1
+      useCurrentConfig: false
       settings:
         builtinExtensions:
           prewalk: false
@@ -82,10 +115,20 @@ agents:
         felanTui:
           memoryProcessing: false
 
-  felan-output-style-explanatory:
-    extends: felan-output-style-disabled
-    label: Explanatory output style
+  felan-explanatory:
+    adapter: felan
+    label: Felan · explanatory
+    comparisonId: felan-explanatory
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
     config:
+      packageVersion: 0.17.1
+      useCurrentConfig: false
       settings:
         builtinExtensions:
           prewalk: false
@@ -99,10 +142,20 @@ agents:
   # Adapted from Julius Brussee's Caveman skill:
   # https://github.com/JuliusBrussee/caveman/blob/main/skills/caveman/SKILL.md
   # Copyright (c) 2026 Julius Brussee. Used under the MIT License.
-  felan-output-style-custom-caveman:
-    extends: felan-output-style-disabled
-    label: Custom Caveman instructions
+  felan-caveman:
+    adapter: felan
+    label: Felan · Caveman
+    comparisonId: felan-caveman
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
     config:
+      packageVersion: 0.17.1
+      useCurrentConfig: false
       settings:
         builtinExtensions:
           prewalk: false
@@ -141,9 +194,17 @@ agents:
         felanTui:
           memoryProcessing: false
 
-  felan-rtk-disabled:
-    extends: felan-no-prewalk
-    label: RTK optimizer disabled
+  felan-no-rtk-optimizer:
+    adapter: felan
+    label: Felan · RTK optimizer off
+    comparisonId: felan-no-rtk-optimizer
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
     config:
       packageVersion: 0.15.2
       useCurrentConfig: false
@@ -171,10 +232,20 @@ agents:
         felanTui:
           memoryProcessing: false
 
-  felan-rtk-enabled:
-    extends: felan-rtk-disabled
-    label: RTK optimizer enabled
+  felan-rtk-optimizer:
+    adapter: felan
+    label: Felan · RTK optimizer on
+    comparisonId: felan-rtk-optimizer
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
     config:
+      packageVersion: 0.15.2
+      useCurrentConfig: false
       settings:
         builtinExtensions:
           askUser: false

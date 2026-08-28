@@ -4,14 +4,34 @@ Read and follow [`CLAUDE.md`](./CLAUDE.md) for the full repository workflow and 
 
 ## Evaluation architecture
 
-Keep project defaults and reusable agent profiles in the single canonical
-`harness-evals.yaml`. Use native agent `extends` for shared fields when the parent
-is itself a valid runnable profile. Use concise, behavior-oriented profile names;
-keep exact provider, model, and thinking settings in configuration and documentation.
+Keep exactly two project configurations at the repository root:
+
+- `harness-evals.yaml` owns the non-smoke benchmark suites and profiles.
+- `harness-evals.smoke.yaml` owns the isolated smoke case and profile.
+
+Keep every agent profile self-contained. Do not use agent `extends`; repeat the
+effective provider, model, thinking, timeout, auth, and adapter configuration so
+reviewers can see exactly what each profile runs. Keep shared project defaults in
+the two files aligned unless their intentional difference is documented. Use
+concise, behavior-oriented profile names and keep exact settings in configuration
+and documentation.
+
+When a profile's defining change is disabling one extension, name it
+`felan-no-<extension-name>` using the extension's kebab-case name, and use the
+same value for `comparisonId`. Name enabled modes by their behavior, such as
+`felan-concise`, rather than by their former inheritance hierarchy.
+
+Every runnable profile must declare a human-readable `label` and an authored
+`comparisonId`. Keep the ID stable for the same deliberate cross-batch comparison,
+use distinct IDs for behaviorally different variants, and override it when a
+case-level agent override changes that comparison identity. A `comparisonId` is
+grouping metadata, not a configuration fingerprint.
 
 Use these ownership boundaries:
 
 ```text
+harness-evals.yaml                         non-smoke project configuration
+harness-evals.smoke.yaml                   smoke-only project configuration
 evals/cases/**/*.eval.yaml                 task and default agent matrix
 evals/cases/<family>/<case>/verifier/      hidden grading assets
 evals/fixtures/<name>/<version>/source/    immutable starting workspace
@@ -85,9 +105,9 @@ large pinned dependencies, system packages, or a controlled toolchain.
   fetch or mutate external state.
 - Bump the runtime or fixture version and update integrity labels when its lockfile or
   dependency contract changes.
-- Pin Felan in `config.packageVersion` for reproducible historical runs. The
-  canonical profiles currently omit the field intentionally to exercise the
-  latest npm release; refresh their managed image before a live comparison.
+- Pin Felan in `config.packageVersion` for reproducible historical runs. Omit
+  the field only when a profile deliberately exercises the latest npm release;
+  refresh that profile's managed image before a live comparison.
 
 Keep package commands and supporting scripts reusable across cases. Pass runtime,
 case, suite, or agent names as arguments instead of adding one command per target.
@@ -101,6 +121,7 @@ For every change, run the narrowest relevant checks followed by:
 
 ```bash
 bun run list
+bun run list:smoke
 git diff --check
 ```
 

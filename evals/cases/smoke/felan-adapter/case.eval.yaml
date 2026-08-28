@@ -6,17 +6,6 @@ workspace:
 agents:
   include:
     - felan-smoke
-  overrides:
-    felan-smoke:
-      config:
-        settings:
-          builtinExtensions:
-            memory: false
-            browser: false
-            webAccess: false
-            prewalk: false
-          felanTui:
-            memoryProcessing: false
 prompt: |
   Open /workspace/target.txt and replace its contents with exactly:
   FELAN_SMOKE_PASS

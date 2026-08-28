@@ -13,8 +13,8 @@ workspace:
       timeoutMs: 300000
 agents:
   include:
-    - felan-rtk-disabled
-    - felan-rtk-enabled
+    - felan-no-rtk-optimizer
+    - felan-rtk-optimizer
 prompt: |
   Fix Felan's root project-instructions regression.
 

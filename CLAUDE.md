@@ -25,6 +25,7 @@ work is tied to a Linear issue.
 
 ```bash
 bun run list
+bun run list:smoke
 bun run smoke                 # live provider call
 bun run build:runtime storzy
 bun run run --case prewalk-checkout --concurrency 1
@@ -37,12 +38,14 @@ bun run view
 
 ```text
 harness-evals.yaml
+harness-evals.smoke.yaml
 evals/cases/**/*.eval.yaml
 evals/fixtures/<name>/<version>/{fixture.json,source/}
 evals/runtimes/<name>/Dockerfile
 .harness-evals/
 ```
 
-The smoke case is a plumbing check, not an all-enabled feature baseline. The
-Storzy runtime is shared by cases using the same fixture dependency lock; it does
-not contain the fixture source or own the Felan version.
+The smoke-only and non-smoke configurations share the same local artifact and
+output roots. The smoke case is a plumbing check, not an all-enabled feature
+baseline. The Storzy runtime is shared by cases using the same fixture dependency
+lock; it does not contain the fixture source or own the Felan version.

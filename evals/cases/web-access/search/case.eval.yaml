@@ -1,0 +1,19 @@
+id: web-access-cost-search
+suite: web-access-cost
+description: Compare extension-assisted discovery with shell-based public package research.
+image: harness-bench-felan-runtime:v1
+workspace: { fixture: evals/fixtures/felan-adapter-smoke/v1/source }
+agents:
+  include: [felan-web-access-off, felan-web-access-on]
+prompt: |
+  I'm checking whether Felan 0.18.2 will work in our CI environment. Can you
+  look at the official npm registry metadata and tell me which version of
+  `@felan-ai/ext-web-access` it depends on, along with the minimum supported
+  Node.js version? Please include the official registry URL you used, and don't
+  change anything in the workspace.
+assert:
+  - { type: contains, value: "0.18.2" }
+  - { type: contains, value: "0.4.2" }
+  - { type: contains, value: "22.19.0" }
+  - { type: contains, value: "registry.npmjs.org" }
+  - { type: workspaceDiff, changedFiles: [] }

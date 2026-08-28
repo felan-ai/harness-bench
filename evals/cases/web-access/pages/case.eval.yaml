@@ -1,0 +1,25 @@
+id: web-access-cost-pages
+suite: web-access-cost
+description: Compare multi-page content fetching with curl-based retrieval.
+image: harness-bench-felan-runtime:v1
+workspace: { fixture: evals/fixtures/felan-adapter-smoke/v1/source }
+agents:
+  include: [felan-web-access-off, felan-web-access-on]
+prompt: |
+  I'm reviewing the web-access package at a specific Felan commit. From the
+  three files below, can you tell me the package version, the model-preview
+  character budget, and the repository structure file limit?
+
+  - https://raw.githubusercontent.com/felan-ai/felan/2c542ffeefd38da0164d997cc580f06eba27c234/packages/ext-web-access/package.json
+  - https://raw.githubusercontent.com/felan-ai/felan/2c542ffeefd38da0164d997cc580f06eba27c234/packages/ext-web-access/src/index.ts
+  - https://raw.githubusercontent.com/felan-ai/felan/2c542ffeefd38da0164d997cc580f06eba27c234/packages/ext-web-access/src/github.ts
+
+  Please write the two numeric limits without thousands separators so I can
+  paste them into a comparison sheet. Mention the commit, don't clone the
+  repository, and don't change anything in the workspace.
+assert:
+  - { type: contains, value: "0.4.2" }
+  - { type: contains, value: "30000" }
+  - { type: contains, value: "200" }
+  - { type: contains, value: "2c542ffeefd38da0164d997cc580f06eba27c234" }
+  - { type: workspaceDiff, changedFiles: [] }

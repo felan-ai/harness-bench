@@ -4,6 +4,8 @@ tests:
   - evals/cases/output-style/**/*.eval.yaml
   - evals/cases/prewalk/**/*.eval.yaml
   - evals/cases/rtk/**/*.eval.yaml
+  - evals/cases/web-access/**/*.eval.yaml
+  - evals/cases/repository-fetch/**/*.eval.yaml
 
 # The smoke config uses these same roots so local history and reports stay unified.
 artifactRoot: .harness-evals/runs
@@ -269,6 +271,83 @@ agents:
             fast: true
         felanTui:
           memoryProcessing: false
+
+  felan-web-access-off:
+    adapter: felan
+    label: Felan · web access off
+    comparisonId: felan-web-access-off
+    provider: openai-codex
+    model: gpt-5.6-terra
+    thinking: low
+    timeoutMs: 600000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      packageVersion: 0.18.2
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codex: false
+          context: false
+          felanApi: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: false
+          webAccess: false
+        extensionConfig:
+          webAccess:
+            provider: openai
+        felanTui:
+          memoryProcessing: false
+
+  felan-web-access-on:
+    adapter: felan
+    label: Felan · web access on
+    comparisonId: felan-web-access-on
+    provider: openai-codex
+    model: gpt-5.6-terra
+    thinking: low
+    timeoutMs: 600000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      packageVersion: 0.18.2
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codex: false
+          context: false
+          felanApi: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: false
+          webAccess: true
+        extensionConfig:
+          webAccess:
+            provider: openai
+        felanTui:
+          memoryProcessing: false
+
 
 scoring:
   verifierReward:

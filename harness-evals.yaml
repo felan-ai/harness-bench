@@ -1,6 +1,7 @@
 version: 1
 
 tests:
+  - evals/cases/codebase-memory/**/*.eval.yaml
   - evals/cases/output-style/**/*.eval.yaml
   - evals/cases/prewalk/**/*.eval.yaml
   - evals/cases/rtk/**/*.eval.yaml
@@ -348,6 +349,84 @@ agents:
         felanTui:
           memoryProcessing: false
 
+  felan-cbm-off:
+    adapter: felan
+    label: Felan · Codebase Memory off
+    comparisonId: felan-cbm-off
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      packageVersion: 0.19.1
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: false
+          felanApi: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: false
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: true
+        felanTui:
+          memoryProcessing: false
+
+  felan-cbm-on:
+    adapter: felan
+    label: Felan · Codebase Memory on
+    comparisonId: felan-cbm-on
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      packageVersion: 0.19.1
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: true
+          codex: true
+          context: false
+          felanApi: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: false
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: true
+        felanTui:
+          memoryProcessing: false
+
 
 scoring:
   verifierReward:
@@ -361,3 +440,30 @@ visualization:
   enabled: true
   formats: [html, json, csv]
   latest: true
+
+benchmarks:
+  # Fast Tier 0 query comparison — grades the agent's answer against a
+  # deterministic rubric. Run on every codebase-memory-mcp version bump.
+  codebase-memory-queries:
+    revision: 1
+    label: Codebase Memory · queries
+    description: Tier 0 query cases that grade Felan's answer with CBM off vs on.
+    select:
+      suites: [codebase-memory-queries]
+    arms:
+      baseline: felan-cbm-off
+      candidate: felan-cbm-on
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 0.8
+    objective:
+      metric: cost.total
+      goal: minimize
+    aggregation:
+      trials: median
+      cases: macroMean
+    secondaryMetrics:
+      - duration.ms
+      - usage.promptTokens
+      - usage.outputTokens

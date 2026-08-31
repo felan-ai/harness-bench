@@ -1,0 +1,37 @@
+id: cbm-q-find-definition
+suite: codebase-memory-queries
+description: Compare Codebase Memory off vs on when locating the definition of the ProjectService class.
+image: harness-bench-felan-cbm-runtime:v1
+timeoutMs: 600000
+workspace:
+  git:
+    repository: https://github.com/felan-ai/felan.git
+    commit: 7ae8f94e72095a8bc38bf62b902164d2717f3294
+  setup:
+    - command: pnpm
+      args: [install, --offline, --frozen-lockfile, --store-dir, /opt/harness-deps/felan-cbm-store]
+      timeoutMs: 300000
+agents:
+  include:
+    - felan-cbm-off
+    - felan-cbm-on
+prompt: |
+  Where is the `ProjectService` class defined in this repository?
+
+  Answer with just the file path (relative to the repository root) and the line
+  number, in the format `packages/some/path.ts:LINE`. If you are unsure, still
+  give your best single answer — do not hedge.
+
+  After answering, write only the file-path-and-line-number answer into
+  `/workspace/.harness-answer.txt`, with no other prose or code fences.
+verifier:
+  command: node
+  args: [/tests/verify.mjs]
+  cwd: /workspace
+  assetsDir: evals/cases/codebase-memory/query-find-definition/verifier
+  assetsTarget: /tests
+  rewardFile: .harness-evals-reward.txt
+  rewardFormat: text
+  timeoutMs: 60000
+  network:
+    mode: none

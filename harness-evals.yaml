@@ -361,7 +361,7 @@ agents:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.19.1
+      packageVersion: 0.19.2
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -400,7 +400,7 @@ agents:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.19.1
+      packageVersion: 0.19.2
       useCurrentConfig: false
       settings:
         builtinExtensions:

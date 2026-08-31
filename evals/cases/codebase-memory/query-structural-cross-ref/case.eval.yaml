@@ -1,0 +1,39 @@
+id: cbm-q-structural-cross-ref
+suite: codebase-memory-queries
+description: Compare Codebase Memory off vs on when listing TypeScript classes whose constructor takes a runtime AgentRuntime parameter.
+image: harness-bench-felan-cbm-runtime:v1
+timeoutMs: 600000
+workspace:
+  git:
+    repository: https://github.com/felan-ai/felan.git
+    commit: 7ae8f94e72095a8bc38bf62b902164d2717f3294
+  setup:
+    - command: pnpm
+      args: [install, --offline, --frozen-lockfile, --store-dir, /opt/harness-deps/felan-cbm-store]
+      timeoutMs: 300000
+agents:
+  include:
+    - felan-cbm-off
+    - felan-cbm-on
+prompt: |
+  List every TypeScript class in this repository whose constructor accepts a
+  parameter typed as `AgentRuntime` (either declared inline like
+  `constructor(private readonly runtime: AgentRuntime, …)` or in a
+  `constructor(runtime: AgentRuntime)` positional form). Include only classes
+  — not free functions, interface members, or type aliases.
+
+  Give the answer as a plain list of class names, one per line, sorted
+  alphabetically. Do not include commentary or file paths.
+
+  Write only that list of class names into `/workspace/.harness-answer.txt`.
+verifier:
+  command: node
+  args: [/tests/verify.mjs]
+  cwd: /workspace
+  assetsDir: evals/cases/codebase-memory/query-structural-cross-ref/verifier
+  assetsTarget: /tests
+  rewardFile: .harness-evals-reward.txt
+  rewardFormat: text
+  timeoutMs: 60000
+  network:
+    mode: none

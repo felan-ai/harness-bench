@@ -1,0 +1,35 @@
+id: cbm-q-not-found
+suite: codebase-memory-queries
+description: Compare Codebase Memory off vs on when the queried class does not exist in the repository.
+image: harness-bench-felan-cbm-runtime:v1
+timeoutMs: 600000
+workspace:
+  git:
+    repository: https://github.com/felan-ai/felan.git
+    commit: 7ae8f94e72095a8bc38bf62b902164d2717f3294
+  setup:
+    - command: pnpm
+      args: [install, --offline, --frozen-lockfile, --store-dir, /opt/harness-deps/felan-cbm-store]
+      timeoutMs: 300000
+agents:
+  include:
+    - felan-cbm-off
+    - felan-cbm-on
+prompt: |
+  Find the class `SessionRunner` in this repository. If it exists, answer with
+  the file path where it is defined. If it does not exist, answer honestly with
+  `not found` (do not fabricate a plausible location).
+
+  Write only that single-line answer — either the file path or `not found` —
+  into `/workspace/.harness-answer.txt`.
+verifier:
+  command: node
+  args: [/tests/verify.mjs]
+  cwd: /workspace
+  assetsDir: evals/cases/codebase-memory/query-not-found/verifier
+  assetsTarget: /tests
+  rewardFile: .harness-evals-reward.txt
+  rewardFormat: text
+  timeoutMs: 60000
+  network:
+    mode: none

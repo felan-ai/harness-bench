@@ -453,7 +453,7 @@ benchmarks:
     arms:
       baseline: felan-cbm-off
       candidate: felan-cbm-on
-    trials: 3
+    trials: 10
     qualityGates:
       - metric: quality.passRate
         min: 0.8

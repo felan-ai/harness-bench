@@ -13,6 +13,6 @@
     "view": "bun node_modules/harness-evals/dist/cli.js view --config harness-evals.yaml --latest --open"
   },
   "dependencies": {
-    "harness-evals": "^0.2.6"
+    "harness-evals": "^0.2.8"
   }
 }

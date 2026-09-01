@@ -4,6 +4,7 @@ tests:
   - evals/cases/output-style/**/*.eval.yaml
   - evals/cases/prewalk/**/*.eval.yaml
   - evals/cases/rtk/**/*.eval.yaml
+  - evals/cases/markitdown/**/*.eval.yaml
   - evals/cases/web-access/**/*.eval.yaml
   - evals/cases/repository-fetch/**/*.eval.yaml
   - evals/cases/memory/**/*.eval.yaml
@@ -343,6 +344,83 @@ agents:
         felanTui:
           memoryProcessing: false
 
+  felan-no-markitdown:
+    adapter: felan
+    label: Felan · MarkItDown off
+    comparisonId: felan-no-markitdown
+    provider: openai-codex
+    model: gpt-5.6-terra
+    thinking: low
+    timeoutMs: 600000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      packageVersion: 0.19.0
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: false
+          context: false
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: false
+          webAccess: false
+        felanTui:
+          memoryProcessing: false
+
+  felan-markitdown:
+    adapter: felan
+    label: Felan · MarkItDown on
+    comparisonId: felan-markitdown
+    provider: openai-codex
+    model: gpt-5.6-terra
+    thinking: low
+    timeoutMs: 600000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      packageVersion: 0.19.0
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: false
+          context: false
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: true
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: false
+          webAccess: false
+        felanTui:
+          memoryProcessing: false
 
 scoring:
   verifierReward:
@@ -355,6 +433,34 @@ scoring:
 # Benchmark objectives are independent from the weighted score above. They
 # compare declared arms across all attempts and gate resource metrics on quality.
 benchmarks:
+  markitdown-cost:
+    revision: 1
+    label: MarkItDown automatic document conversion
+    description: Compare automatic ordinary-read conversion with the same converter installed but the extension disabled.
+    select:
+      suites: [markitdown-cost]
+    arms:
+      baseline: felan-no-markitdown
+      candidate: felan-markitdown
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 1
+    objective:
+      metric: cost.total
+      goal: minimize
+    aggregation:
+      trials: median
+      cases: macroMean
+    secondaryMetrics:
+      - duration.ms
+      - usage.promptTokens
+      - usage.uncachedInputTokens
+      - usage.cacheReadInputTokens
+      - usage.cacheWriteInputTokens
+      - usage.outputTokens
+      - usage.requests
+
   output-style-concise:
     revision: 3
     label: Concise output style

@@ -1,0 +1,25 @@
+id: markitdown-warm-cache
+suite: markitdown-cost
+description: Compare a cold DOCX conversion followed by a same-session cache hit.
+image: harness-bench-felan-runtime:v1
+workspace:
+  fixture: evals/fixtures/markitdown/v1/source
+agents:
+  include: [felan-no-markitdown, felan-markitdown]
+prompt: |
+  Use the ordinary `read` tool twice on `docs/orion-service-brief.docx` in this
+  session. From the first read, identify the incident channel. Read the same
+  path a second time to verify the rollback threshold. Report both values and
+  do not change any files. Use another local method only if ordinary read fails.
+assert:
+  - { type: contains, value: "#orion-ops" }
+  - { type: contains, value: "7 minutes" }
+  - id: converted-read-repeated
+    type: toolCalled
+    name: read
+    min: 2
+    max: 2
+    argsContain: [docs/orion-service-brief.docx]
+    when:
+      agent: felan-markitdown
+  - { type: workspaceDiff, changedFiles: [] }

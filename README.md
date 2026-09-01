@@ -99,6 +99,10 @@ bun node_modules/harness-evals/dist/cli.js export --benchmark prewalk --format j
   task, the other benchmark's task, and a historical memory-summary-links
   regression pinned to its pre-fix Felan commit. The expanded matrix is 18
   attempts per benchmark at three trials per case.
+- Web access compares the enabled and disabled extension across five
+  source-backed research tasks. Its primary objective is provider-reported
+  `cost.total`, gated on every attempt passing, for 30 attempts at three trials
+  per case.
 
 Do not start a provider-backed run without explicit authorization.
 

@@ -407,6 +407,24 @@ benchmarks:
       goal: minimize
     secondaryMetrics: [usage.uncachedInputTokens, usage.cacheReadInputTokens, usage.outputTokens, cost.total]
 
+  web-access:
+    revision: 1
+    label: Web access cost
+    description: Minimize research cost without losing required source-backed answers.
+    select:
+      suites: [web-access-cost]
+    arms:
+      baseline: felan-no-web-access
+      candidate: felan-web-access
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 1
+    objective:
+      metric: cost.total
+      goal: minimize
+    secondaryMetrics: [usage.promptTokens, usage.outputTokens, usage.requests, duration.ms]
+
 visualization:
   enabled: true
   formats: [html, json, csv]

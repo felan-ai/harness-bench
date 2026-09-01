@@ -77,6 +77,7 @@ bun run view
 bun node_modules/harness-evals/dist/cli.js list --config harness-evals.yaml
 bun node_modules/harness-evals/dist/cli.js view --benchmark all --config harness-evals.yaml --no-open
 bun node_modules/harness-evals/dist/cli.js export --benchmark prewalk --format json --output prewalk.json --config harness-evals.yaml
+bun scripts/reverify-retained.ts --source prewalk=<batch-id> --source rtk=<batch-id> --concurrency 3
 ```
 
 - `list` and `list:smoke` validate their configuration and discovery without
@@ -86,11 +87,17 @@ bun node_modules/harness-evals/dist/cli.js export --benchmark prewalk --format j
   usage.
 - `smoke` executes the smoke-only configuration and may consume paid or
   subscription usage.
+- `scripts/reverify-retained.ts` replays only current network-isolated verifiers
+  against explicitly selected retained workspaces. It creates separate,
+  non-publishable derived runs and never executes an agent or provider call.
 - `view` opens the framework's built-in report.
 - Each declared benchmark compares exactly one baseline with one candidate.
-  The combined report shows the case-balanced average percentage gain and the
-  minimum-to-maximum case gain. Positive gain is better after accounting for
-  whether the objective is minimized or maximized. The concise benchmark uses
+  The combined report shows the case-balanced average **raw percentage change**
+  (`candidate - baseline`) and the minimum-to-maximum case change. Reductions
+  retain a `−` sign and increases retain a `+` sign; green/red assessment is
+  determined separately from the declared objective (`minimize` or `maximize`).
+  A quality-regressed comparison is marked ineligible and its resource change
+  is not credited as an improvement. The concise benchmark uses
   provider-reported `usage.outputTokens`; it does not estimate tokens from word
   or character counts. Detail pages retain per-test and per-attempt status,
   failed assertion IDs, verifier failures, and timeout categories separately

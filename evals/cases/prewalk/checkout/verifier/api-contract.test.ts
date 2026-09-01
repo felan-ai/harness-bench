@@ -4,8 +4,6 @@ import { GET as products } from '@/app/api/products/route';
 import { POST as orders } from '@/app/api/orders/route';
 import { GET as orderById, PUT as updateOrder } from '@/app/api/orders/[id]/route';
 
-const token = 'storzy-test-token-2024';
-const auth = { Authorization: `Bearer ${token}` };
 const json = (body: unknown, headers: Record<string, string> = {}) => new Request('http://localhost/api', {
   method: 'POST',
   headers: { 'content-type': 'application/json', ...headers },
@@ -19,9 +17,7 @@ async function body(response: Response) {
 describe('Storzy API contract', () => {
   it('authenticates valid credentials and rejects invalid credentials', async () => {
     expect((await login(json({ username: 'test_user', password: 'wrong' }))).status).toBe(401);
-    const response = await login(json({ username: 'test_user', password: 'password' }));
-    expect(response.status).toBe(200);
-    expect(await body(response)).toEqual({ token, user: 'test_user' });
+    await authenticatedSession();
   });
 
   it('keeps products public and protects order creation', async () => {
@@ -73,10 +69,16 @@ describe('Storzy API contract', () => {
     ]);
 
     expect((await orders(json({ items: [], customer: { firstName: 'A', lastName: 'B', postalCode: '12345' } }))).status).toBe(401);
+    expect((await orders(json({
+      items: [{ productId: 1, quantity: 1 }],
+      customer: { firstName: 'A', lastName: 'B', postalCode: '12345' },
+    }, { Authorization: 'Bearer token-that-was-not-issued' }))).status).toBe(401);
+    const auth = await authenticatedSession();
     expect((await orders(json({ items: [], customer: { firstName: 'A', lastName: 'B', postalCode: '12345' } }, auth))).status).toBe(400);
   });
 
   it('creates an order without changing the API total contract and updates its status', async () => {
+    const auth = await authenticatedSession();
     const response = await orders(json({
       items: [{ productId: 1, quantity: 2 }, { productId: 3, quantity: 1 }],
       customer: { firstName: 'Ada', lastName: 'Lovelace', postalCode: '12345' },
@@ -96,3 +98,12 @@ describe('Storzy API contract', () => {
     expect((await body(updated)).order.status).toBe('confirmed');
   });
 });
+
+async function authenticatedSession() {
+  const response = await login(json({ username: 'test_user', password: 'password' }));
+  expect(response.status).toBe(200);
+  const session = await body(response);
+  expect(session).toMatchObject({ user: 'test_user', token: expect.any(String) });
+  expect(String(session.token).length).toBeGreaterThan(0);
+  return { Authorization: `Bearer ${String(session.token)}` };
+}

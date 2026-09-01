@@ -1,5 +1,5 @@
-import { existsSync } from 'node:fs';
-import { copyFile, mkdir, rm, writeFile } from 'node:fs/promises';
+import { constants, existsSync } from 'node:fs';
+import { copyFile, lstat, mkdir, open, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 
@@ -12,7 +12,11 @@ const expectedHead = '9cb213463222732cb955067953220d665b2f561b';
 const allowedSourcePrefixes = ['app/', 'components/', 'hooks/', 'lib/', 'styles/'];
 
 let passed = false;
+let rewardPathPrepared = false;
 try {
+  const rewardPathSafe = await prepareRewardPath();
+  rewardPathPrepared = true;
+  if (!rewardPathSafe) throw new Error('unsafe verifier reward path');
   verifyWorkspaceBoundary();
   if (!existsSync(join(workspace, 'package.json'))) throw new Error('workspace package.json is missing');
 
@@ -51,11 +55,40 @@ try {
     rm(join(workspace, '.next'), { recursive: true, force: true }),
     rm(join(workspace, 'tsconfig.tsbuildinfo'), { force: true }),
   ]);
-  await writeFile(rewardPath, passed ? '1\n' : '0\n');
+  if (rewardPathPrepared) await writeReward(passed ? '1\n' : '0\n');
 }
 
 console.log(passed ? '1' : '0');
 if (!passed) process.exitCode = 1;
+
+async function prepareRewardPath() {
+  let safe = true;
+  try {
+    const status = await lstat(rewardPath);
+    safe = status.isFile() && !status.isSymbolicLink() && status.nlink === 1;
+    await rm(rewardPath, { recursive: true, force: true });
+  } catch (error) {
+    if (!isMissingPath(error)) throw error;
+  }
+  return safe;
+}
+
+async function writeReward(value) {
+  const handle = await open(
+    rewardPath,
+    constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | (constants.O_NOFOLLOW ?? 0),
+    0o600,
+  );
+  try {
+    await handle.writeFile(value);
+  } finally {
+    await handle.close();
+  }
+}
+
+function isMissingPath(error) {
+  return typeof error === 'object' && error !== null && Reflect.get(error, 'code') === 'ENOENT';
+}
 
 function verifyWorkspaceBoundary() {
   if (capture('git', ['rev-parse', 'HEAD']).trim() !== expectedHead) {

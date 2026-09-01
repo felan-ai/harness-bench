@@ -480,7 +480,7 @@ benchmarks:
     secondaryMetrics: [cost.total, usage.promptTokens, usage.requests, duration.ms]
 
   prewalk:
-    revision: 6
+    revision: 7
     label: Prewalk organic routing cost
     description: Compare organic Prewalk routing with Prewalk disabled; candidate attempts without a successful entry are invalid.
     select:
@@ -498,7 +498,7 @@ benchmarks:
     secondaryMetrics: [usage.promptTokens, usage.outputTokens, usage.requests, duration.ms]
 
   rtk:
-    revision: 6
+    revision: 7
     label: RTK context reduction
     select:
       cases: [rtk-felan-project-instructions, prewalk-checkout, memory-summary-links]

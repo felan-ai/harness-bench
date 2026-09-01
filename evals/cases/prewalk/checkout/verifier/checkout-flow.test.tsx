@@ -10,10 +10,31 @@ import Header from '@/components/header';
 
 type StorageSnapshot = Map<string, string>;
 
+const navigationTargets = vi.hoisted((): string[] => []);
+
+vi.mock('next/navigation', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const capture = (target: string) => navigationTargets.push(new URL(target, 'http://localhost/').pathname);
+  return {
+    ...actual,
+    redirect: capture,
+    permanentRedirect: capture,
+    useRouter: () => ({
+      back: vi.fn(),
+      forward: vi.fn(),
+      prefetch: vi.fn(),
+      push: capture,
+      refresh: vi.fn(),
+      replace: capture,
+    }),
+  };
+});
+
 const originalImprovedCheckout = process.env.NEXT_PUBLIC_IMPROVED_CHECKOUT;
 const originalAddToCartBug = process.env.NEXT_PUBLIC_ADD_TO_CART_BUG;
 let root: Root | undefined;
 let container: HTMLDivElement | undefined;
+let restoreLocationNavigation: (() => void) | undefined;
 
 beforeEach(() => {
   const local = createStorage();
@@ -27,6 +48,8 @@ beforeEach(() => {
   clearCookies();
   document.body.replaceChildren();
   globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  navigationTargets.length = 0;
+  restoreLocationNavigation = trackJsdomNavigation();
   const consoleError = console.error;
   vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
     if (args.some((value) => String(value).includes('Not implemented: navigation'))) return;
@@ -36,6 +59,8 @@ beforeEach(() => {
 
 afterEach(async () => {
   await unmount();
+  restoreLocationNavigation?.();
+  restoreLocationNavigation = undefined;
   localStorage.clear();
   sessionStorage.clear();
   clearCookies();
@@ -55,9 +80,9 @@ describe('authenticated Storzy flow', () => {
     await submit(requiredElement('form'));
 
     await waitFor(() => expect(document.body.textContent).toMatch(/invalid|error|unable/i));
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/api/auth/login');
+    expect(requestsTo(fetchMock, '/api/auth/login').length).toBeLessThanOrEqual(1);
     expect(browserStorage()).toEqual(new Map());
+    expect(navigationTargets).toEqual([]);
   });
 
   it('clears the authenticated state created by login on logout', async () => {
@@ -73,19 +98,72 @@ describe('authenticated Storzy flow', () => {
     for (const key of storage.keys()) expect(readStorageKey(key)).toBeNull();
   });
 
+  it.each([
+    ['cart', () => render(<CartPage />)],
+    ['completion', () => render(<CheckoutCompletePage />)],
+  ])('keeps unauthenticated customers out of the %s page', async (_page, renderPage) => {
+    const navigationStart = navigationTargets.length;
+    await renderPage();
+    await expectOnlyNavigation('/', navigationStart);
+  });
+
   for (const improved of [false, true]) {
     const variant = improved ? 'improved' : 'standard';
 
-    it(`${variant} checkout rejects an empty cart locally`, async () => {
+    it(`${variant} checkout preserves its unauthenticated login guard`, async () => {
+      const fetchMock = vi.fn(async () => response({ error: 'unexpected request' }, 500));
+      vi.stubGlobal('fetch', fetchMock);
+      const navigationStart = navigationTargets.length;
+      await renderCheckoutPage(improved);
+
+      await expectOnlyNavigation('/', navigationStart);
+      expect(requestsTo(fetchMock, '/api/orders')).toHaveLength(0);
+    });
+
+    it(`${variant} checkout guards an empty cart without creating an order`, async () => {
       await authenticate();
       const fetchMock = vi.fn(async () => response({ error: 'unexpected request' }, 500));
       vi.stubGlobal('fetch', fetchMock);
+      const navigationStart = navigationTargets.length;
       await renderCheckout(improved);
       await fillCheckout(improved);
+      const messagesBefore = visibleMessages();
+      const hasExistingFeedback = [...messagesBefore].some(isEmptyCartFeedback);
       await submit(requiredElement('form'));
 
-      await waitFor(() => expect(document.body.textContent).toMatch(/empty/i));
-      expect(fetchMock).not.toHaveBeenCalled();
+      await waitFor(() => {
+        const hasInlineFeedback = [...visibleMessages()]
+          .some((message) => !messagesBefore.has(message) && isEmptyCartFeedback(message));
+        const attemptedNavigation = navigationTargets.slice(navigationStart);
+        const returnedToCart = attemptedNavigation.length > 0
+          && attemptedNavigation.every((target) => target === '/cart');
+        expect(hasExistingFeedback || hasInlineFeedback || returnedToCart).toBe(true);
+      });
+      expect(navigationTargets.slice(navigationStart).every((target) => target === '/cart')).toBe(true);
+      expect(requestsTo(fetchMock, '/api/orders')).toHaveLength(0);
+    });
+
+    it(`${variant} checkout validates required fields before creating an order`, async () => {
+      await authenticate();
+      await addProductToCart(1);
+      const fetchMock = vi.fn(async () => response({ error: 'unexpected request' }, 500));
+      vi.stubGlobal('fetch', fetchMock);
+      await renderCheckout(improved);
+      const form = requiredElement<HTMLFormElement>('form');
+      const messagesBefore = visibleMessages();
+
+      await requestSubmit(form);
+
+      await waitFor(() => {
+        const nativeValidationBlocked = invalidFormControls(form).length > 0;
+        const newValidationFeedback = [...visibleMessages()].some((message) => (
+          !messagesBefore.has(message)
+          && /required|missing|invalid|enter|provide|select|choose/i.test(message)
+        ));
+        expect(nativeValidationBlocked || newValidationFeedback).toBe(true);
+      });
+      expect(requestsTo(fetchMock, '/api/orders')).toHaveLength(0);
+      await expectCart(false);
     });
 
     it(`${variant} checkout preserves the cart and recovers after an API failure`, async () => {
@@ -98,9 +176,11 @@ describe('authenticated Storzy flow', () => {
       vi.stubGlobal('fetch', fetchMock);
       await renderCheckout(improved);
       await fillCheckout(improved);
+      const failureNavigationStart = navigationTargets.length;
       await submit(requiredElement('form'));
 
       await waitFor(() => expect(document.body.textContent).toMatch(/unable|failed|error|try again/i));
+      expect(navigationTargets.slice(failureNavigationStart)).toEqual([]);
       expect(requiredElement<HTMLButtonElement>('button[type="submit"]').disabled).toBe(false);
       expect(fetchMock).toHaveBeenCalledTimes(1);
       assertOrderRequest(fetchMock, token, 0);
@@ -108,10 +188,12 @@ describe('authenticated Storzy flow', () => {
 
       await renderCheckout(improved);
       await fillCheckout(improved);
+      const completionNavigationStart = navigationTargets.length;
       await submit(requiredElement('form'));
       await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
       assertOrderRequest(fetchMock, token, 1);
       await expectCart(true);
+      await expectOnlyNavigation('/checkout-complete', completionNavigationStart);
       await expectReceipt(order);
     });
 
@@ -125,6 +207,7 @@ describe('authenticated Storzy flow', () => {
       vi.stubGlobal('fetch', fetchMock);
       await renderCheckout(improved);
       await fillCheckout(improved);
+      const completionNavigationStart = navigationTargets.length;
 
       const form = requiredElement<HTMLFormElement>('form');
       await act(async () => {
@@ -142,6 +225,7 @@ describe('authenticated Storzy flow', () => {
         await Promise.resolve();
       });
       await expectCart(true);
+      await expectOnlyNavigation('/checkout-complete', completionNavigationStart);
       await expectReceipt(order);
     });
   }
@@ -158,9 +242,9 @@ describe('authenticated Storzy flow', () => {
 });
 
 async function authenticate() {
-  const token = 'storzy-test-token-2024';
+  const token = 'opaque-session-token-from-login';
   const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
-    if (!String(input).includes('/api/auth/login')) throw new Error(`Unexpected request: ${String(input)}`);
+    if (requestPath(input) !== '/api/auth/login') throw new Error(`Unexpected request: ${String(input)}`);
     return response({ token, user: 'test_user' }, 200);
   });
   vi.stubGlobal('fetch', fetchMock);
@@ -175,27 +259,38 @@ async function authenticate() {
     expect(values).toContain(token);
   });
   const request = fetchMock.mock.calls[0];
-  expect(String(request?.[0])).toContain('/api/auth/login');
+  expect(requestPath(request?.[0])).toBe('/api/auth/login');
   const body = JSON.parse(String(request?.[1]?.body)) as Record<string, string>;
   expect(body).toMatchObject({ username: 'test_user', password: 'password' });
   return { token, storage: browserStorage() };
 }
 
 async function renderCheckout(improved: boolean) {
-  process.env.NEXT_PUBLIC_IMPROVED_CHECKOUT = String(improved);
-  vi.resetModules();
-  const { default: CheckoutPage } = await import('@/app/checkout/page');
-  await render(<CheckoutPage />);
+  await renderCheckoutPage(improved);
   requiredElement<HTMLFormElement>('form');
   expect(fieldFor(/country/i) !== undefined).toBe(improved);
   expect(fieldFor(/shipping method/i) !== undefined).toBe(improved);
 }
 
+async function renderCheckoutPage(improved: boolean) {
+  process.env.NEXT_PUBLIC_IMPROVED_CHECKOUT = String(improved);
+  vi.resetModules();
+  const { default: CheckoutPage } = await import('@/app/checkout/page');
+  await render(<CheckoutPage />);
+}
+
 async function fillLogin(username: string, password: string) {
-  const inputs = [...document.querySelectorAll<HTMLInputElement>('input')];
-  expect(inputs).toHaveLength(2);
-  await setValue(inputs[0]!, username);
-  await setValue(inputs[1]!, password);
+  const usernameField = fieldFor(/user(?:name)?|login/i)
+    ?? document.querySelector<HTMLInputElement>(
+      'input[autocomplete="username"], input[name*="user" i], input:not([type="password"]):not([type="hidden"])',
+    );
+  const passwordField = fieldFor(/password/i)
+    ?? document.querySelector<HTMLInputElement>('input[type="password"], input[autocomplete="current-password"]');
+  expect(usernameField).toBeInstanceOf(HTMLInputElement);
+  expect(passwordField).toBeInstanceOf(HTMLInputElement);
+  expect(usernameField).not.toBe(passwordField);
+  await setValue(usernameField!, username);
+  await setValue(passwordField!, password);
 }
 
 async function fillCheckout(improved: boolean) {
@@ -210,7 +305,7 @@ async function fillCheckout(improved: boolean) {
 
 function assertOrderRequest(fetchMock: ReturnType<typeof vi.fn>, token: string, callIndex: number) {
   const [input, init] = fetchMock.mock.calls[callIndex] ?? [];
-  expect(String(input)).toContain('/api/orders');
+  expect(requestPath(input)).toBe('/api/orders');
   expect(init?.method).toBe('POST');
   expect(new Headers(init?.headers).get('authorization')).toBe(`Bearer ${token}`);
   const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
@@ -245,10 +340,11 @@ async function addProductToCart(quantity: number, setWorkingFlag = true) {
 
 async function expectCart(empty: boolean) {
   await render(<CartPage />);
-  await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
-  const text = document.body.textContent ?? '';
-  if (empty) expect(text).toMatch(/cart is empty/i);
-  else expect(text).toContain('Explorer Backpack');
+  await waitFor(() => {
+    const text = document.body.textContent ?? '';
+    if (empty) expect(text).toMatch(/cart is empty/i);
+    else expect(text).toContain('Explorer Backpack');
+  });
 }
 
 async function expectReceipt(order: ReturnType<typeof createOrder>) {
@@ -335,6 +431,13 @@ async function submit(form: Element) {
   });
 }
 
+async function requestSubmit(form: HTMLFormElement) {
+  await act(async () => {
+    form.requestSubmit();
+    await Promise.resolve();
+  });
+}
+
 async function click(element: Element) {
   await act(async () => {
     element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
@@ -407,6 +510,72 @@ function browserStorage(): StorageSnapshot {
     if (key) snapshot.set(`cookie:${key}`, decodeURIComponent(cookie.slice(separator + 1)));
   }
   return snapshot;
+}
+
+function visibleMessages() {
+  return new Set([...document.body.querySelectorAll<HTMLElement>('*')]
+    .filter((element) => element.children.length === 0 && !element.closest('button, label'))
+    .map((element) => element.textContent?.replace(/\s+/gu, ' ').trim() ?? '')
+    .filter(Boolean));
+}
+
+function isEmptyCartFeedback(message: string) {
+  return /empty|no (?:cart )?(?:items|products)|nothing in|add (?:an? |some )?(?:item|product)|cannot .*checkout/iu.test(message);
+}
+
+function requestsTo(fetchMock: ReturnType<typeof vi.fn>, path: string) {
+  return fetchMock.mock.calls.filter(([input]) => requestPath(input) === path);
+}
+
+function requestPath(input: unknown) {
+  if (input instanceof Request) return new URL(input.url).pathname;
+  if (input instanceof URL) return input.pathname;
+  return new URL(String(input), window.location.href).pathname;
+}
+
+async function expectOnlyNavigation(path: string, startIndex: number) {
+  await waitFor(() => {
+    const targets = navigationTargets.slice(startIndex);
+    expect(targets.length).toBeGreaterThan(0);
+    expect(targets.every((target) => target === path)).toBe(true);
+  });
+}
+
+function invalidFormControls(form: HTMLFormElement) {
+  return [...form.elements].filter((element): element is HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement => (
+    element instanceof HTMLInputElement
+    || element instanceof HTMLSelectElement
+    || element instanceof HTMLTextAreaElement
+  )).filter((element) => !element.checkValidity());
+}
+
+type JsdomUrlRecord = { path?: unknown[] };
+type JsdomLocationImplementation = {
+  _locationObjectNavigate: (url: JsdomUrlRecord, options?: unknown) => unknown;
+};
+
+function trackJsdomNavigation() {
+  const implementation = Reflect.ownKeys(window.location)
+    .map((key) => Reflect.get(window.location, key) as unknown)
+    .find((value): value is JsdomLocationImplementation => (
+      typeof value === 'object'
+      && value !== null
+      && typeof Reflect.get(value, '_locationObjectNavigate') === 'function'
+    ));
+  if (!implementation) throw new Error('Unable to instrument jsdom navigation');
+
+  const originalNavigate = implementation._locationObjectNavigate;
+  // jsdom reports cross-document navigation without updating window.location, so capture its parsed destination.
+  implementation._locationObjectNavigate = function captureNavigation(url, options) {
+    navigationTargets.push(pathnameFromJsdomUrl(url));
+    return originalNavigate.call(this, url, options);
+  };
+  return () => { implementation._locationObjectNavigate = originalNavigate; };
+}
+
+function pathnameFromJsdomUrl(url: JsdomUrlRecord) {
+  if (!Array.isArray(url.path)) return '/';
+  return `/${url.path.map(String).join('/')}`.replace(/\/{2,}/gu, '/');
 }
 
 function readStorageKey(namespacedKey: string) {

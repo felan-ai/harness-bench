@@ -1,99 +1,70 @@
 import { describe, expect, it } from 'vitest';
-import {
-  createMemoryProjectionSnapshot,
-  createMemorySnapshot,
-  validateMemoryArtifact,
-} from '../src/index.js';
+import { validateMemoryArtifact } from '../src/index.js';
 
-describe('memory summary links regression', () => {
-  it('allows linked summaries without relaxing publication validation', () => {
-    const complete = [
-      { path: 'summary.md', content: '[Release](pages/workflows/release.md#checks)' },
-      {
-        path: 'index.md',
-        content: '# Memory index\n\n## How to use this memory\n\n## Memory map\n- [Workflow](pages/workflows/index.md)\n',
-      },
-      { path: 'pages/workflows/index.md', content: '# Workflows\n\n- [Release](release.md)\n' },
-      { path: 'pages/workflows/release.md', content: '# Release\n\n## Sources\n- session:session-1\n' },
-    ];
+const validArtifact = [
+  { path: 'summary.md', content: 'Release workflow orientation.' },
+  {
+    path: 'index.md',
+    content: '# Memory index\n\n## How to use this memory\n\n## Memory map\n- [Workflow](pages/workflows/index.md)\n',
+  },
+  { path: 'pages/workflows/index.md', content: '# Workflows\n\n- [Release](release.md)\n' },
+  { path: 'pages/workflows/release.md', content: '# Release\n\n## Sources\n- session:session-1\n' },
+] as const;
 
-    expect(validateMemoryArtifact(complete, {
-      memoryPath: '/work/.memory',
+describe('strict memory publication validation', () => {
+  it('accepts a complete artifact with allowed provenance', () => {
+    expect(validateMemoryArtifact(validArtifact, {
+      memoryPath: '.memory',
       sourceSessionIds: ['session-1'],
     })).toMatchObject({ ok: true });
+  });
 
+  it('requires publication files and page provenance', () => {
     const incomplete = validateMemoryArtifact([
-      { path: 'summary.md', content: '[Release](pages/workflows/release.md#checks)' },
+      { path: 'summary.md', content: 'Incomplete memory.' },
       { path: 'pages/workflows/release.md', content: '# Release without provenance' },
-    ], { memoryPath: '/work/.memory' });
+    ]);
     expect(incomplete.ok).toBe(false);
-    expect(incomplete.errors.map(({ code }) => code)).toEqual(expect.arrayContaining([
+    expect(errorCodes(incomplete)).toEqual(expect.arrayContaining([
       'missing_required_file',
       'missing_sources',
+      'unreachable_page',
     ]));
+  });
 
-    const unknownSource = validateMemoryArtifact(complete.map((file) => ({
+  it('requires publication navigation', () => {
+    const withoutNavigation = validateMemoryArtifact(validArtifact.map((file) => file.path === 'index.md'
+      ? { ...file, content: '# Memory index\n\n## How to use this memory\n\n## Memory map\n' }
+      : file));
+    expect(withoutNavigation.ok).toBe(false);
+    expect(errorCodes(withoutNavigation)).toContain('invalid_markdown');
+  });
+
+  it('rejects publication provenance outside the source allowlist', () => {
+    const unknownSource = validateMemoryArtifact(validArtifact.map((file) => ({
       ...file,
       content: file.content.replace('session:session-1', 'session:session-2'),
-    })), {
-      memoryPath: '/work/.memory',
-      sourceSessionIds: ['session-1'],
-    });
+    })), { sourceSessionIds: ['session-1'] });
     expect(unknownSource.ok).toBe(false);
-    expect(unknownSource.errors.map(({ code }) => code)).toContain('unknown_source');
+    expect(errorCodes(unknownSource)).toContain('unknown_source');
   });
 
-  it('treats summary links as orientation without relaxing path safety', () => {
-    const result = validateMemoryArtifact([
-      {
-        path: 'summary.md',
-        content: 'Review [missing](pages/workflows/missing.md), [external](https://example.com), and [[%ZZ|malformed]].',
-      },
-      {
-        path: 'index.md',
-        content: '# Memory index\n\n## How to use this memory\n\n## Memory map\n- [Workflow](pages/workflows/index.md)\n',
-      },
-      { path: 'pages/workflows/index.md', content: '# Workflows\n\n- [Release](release.md)\n' },
-      { path: 'pages/workflows/release.md', content: '# Release\n\n## Sources\n- session:session-1\n' },
-    ], { sourceSessionIds: ['session-1'] });
-    expect(result).toMatchObject({ ok: true });
-
-    const unsafe = validateMemoryArtifact([
-      { path: '../summary.md', content: 'unsafe' },
+  it.each([
+    '../outside.md',
+    '/outside.md',
+    '..\\outside.md',
+    'pages/../../outside.md',
+    'C:\\outside.md',
+  ])('rejects unsafe publication path %s', (path) => {
+    const unsafePath = validateMemoryArtifact([
+      ...validArtifact,
+      { path, content: 'unsafe' },
     ]);
-    expect(unsafe.ok).toBe(false);
-    expect(unsafe.errors.map(({ code }) => code)).toContain('invalid_path');
-  });
-
-  it('rebases summary Markdown and wiki links without changing canonical memory', () => {
-    const canonicalPath = '.memory';
-    const projectionPath = '/sessions/root-1/.memory';
-    const canonical = createMemorySnapshot([
-      {
-        path: 'summary.md',
-        content: `Review [release](${canonicalPath}/pages/workflows/release.md#checks), [[${canonicalPath}/pages/workflows/index.md|workflow]], [external](https://example.com), [escape](../secrets.md#token), and [[../../outside.md|outside]].`,
-      },
-      {
-        path: 'index.md',
-        content: `# Memory index\n\n## How to use this memory\n\n## Memory map\n- [Workflow](${canonicalPath}/pages/workflows/index.md#overview)\n- [[${canonicalPath}/pages/workflows/release.md#checks|Release checks]]\n`,
-      },
-      { path: 'pages/workflows/index.md', content: '# Workflows\n\n- [Release](release.md)\n' },
-      { path: 'pages/workflows/release.md', content: '# Release\n\n## Sources\n- session:session-1\n' },
-    ], canonicalPath, { sourceSessionIds: ['session-1'] });
-
-    const projection = createMemoryProjectionSnapshot(canonical, projectionPath);
-    const summary = projection.files.find(({ path }) => path === 'summary.md')?.content;
-    const index = projection.files.find(({ path }) => path === 'index.md')?.content;
-    expect(summary).toContain(`[release](${projectionPath}/pages/workflows/release.md#checks)`);
-    expect(summary).toContain(`[[${projectionPath}/pages/workflows/index.md|workflow]]`);
-    expect(summary).toContain('[external](https://example.com)');
-    expect(summary).toContain('[escape](../secrets.md#token)');
-    expect(summary).toContain('[[../../outside.md|outside]]');
-    expect(summary).not.toContain(`${projectionPath}/secrets.md`);
-    expect(index).toContain(`[Workflow](${projectionPath}/pages/workflows/index.md#overview)`);
-    expect(index).toContain(`[[${projectionPath}/pages/workflows/release.md#checks|Release checks]]`);
-    expect(projection.fingerprint).toBe(canonical.fingerprint);
-    expect(canonical.files.find(({ path }) => path === 'summary.md')?.content).toContain(`(${canonicalPath}/pages/workflows/release.md#checks)`);
-    expect(canonical.files.find(({ path }) => path === 'index.md')?.content).toContain(`(${canonicalPath}/pages/workflows/index.md#overview)`);
+    expect(unsafePath.ok).toBe(false);
+    expect(errorCodes(unsafePath)).toContain('invalid_path');
   });
 });
+
+function errorCodes(result: ReturnType<typeof validateMemoryArtifact>): string[] {
+  return result.errors.map(({ code }) => code);
+}

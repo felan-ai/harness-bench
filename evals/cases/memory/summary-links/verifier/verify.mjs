@@ -59,8 +59,8 @@ function verifyWorkspaceBoundary() {
   const changedPaths = capture('git', ['status', '--porcelain=v1', '--untracked-files=all'])
     .split(/\r?\n/u)
     .filter(Boolean)
-    .flatMap((line) => line.slice(3).split(' -> '));
-  if (changedPaths.length === 0) throw new Error('no implementation changes found');
+    .flatMap((line) => line.slice(3).split(' -> '))
+    .filter((path) => path !== '.harness-evals-reward.txt');
   const disallowed = changedPaths.filter((path) => !allowedPrefixes.some((prefix) => path.startsWith(prefix)));
   if (disallowed.length > 0) throw new Error(`changes outside allowed memory sources: ${disallowed.join(', ')}`);
 }

@@ -95,10 +95,18 @@ bun node_modules/harness-evals/dist/cli.js export --benchmark prewalk --format j
   or character counts. Detail pages retain per-test and per-attempt status,
   failed assertion IDs, verifier failures, and timeout categories separately
   from the aggregate quality gate.
-- Prewalk and RTK each cover three shared coding tasks: the original benchmark
-  task, the other benchmark's task, and a historical memory-summary-links
-  regression pinned to its pre-fix Felan commit. The expanded matrix is 18
-  attempts per benchmark at three trials per case.
+- The Prewalk benchmark compares organic routing with Prewalk disabled across
+  three shared coding tasks: the original benchmark task, the other benchmark's
+  task, and a historical memory-summary-links regression pinned to its pre-fix
+  Felan commit. Prompts describe outcomes and constraints without requesting
+  Prewalk or prescribing an implementation plan. Hidden verifiers exercise
+  observable behavior plus the documented source boundaries rather than a
+  required code shape. Every candidate attempt must make a successful
+  `enter_prewalk` call; a missing or failed entry is a failed attempt. The
+  baseline must never call the tool. The expanded matrix is 18 attempts at three
+  trials per case.
+- RTK covers the same three tasks and uses the same outcome-oriented prompts;
+  its matrix is also 18 attempts at three trials per case.
 - Web access compares the enabled and disabled extension across five
   source-backed research tasks. Its primary objective is provider-reported
   `cost.total`, gated on every attempt passing, for 30 attempts at three trials

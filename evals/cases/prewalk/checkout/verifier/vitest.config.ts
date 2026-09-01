@@ -1,13 +1,17 @@
 import { resolve } from 'node:path';
-import { defineConfig } from 'vitest/config';
 
-export default defineConfig({
-  root: '/tests',
+const workspace = resolve(process.env.STORZY_ROOT ?? '/workspace');
+
+export default {
+  root: workspace,
   resolve: {
-    alias: { '@': resolve(process.env.STORZY_ROOT ?? '/workspace') },
+    alias: { '@': workspace },
   },
   test: {
     environment: 'node',
+    environmentOptions: {
+      jsdom: { url: 'http://localhost/' },
+    },
     passWithNoTests: false,
   },
-});
+};

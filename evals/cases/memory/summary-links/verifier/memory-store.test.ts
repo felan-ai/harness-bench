@@ -28,7 +28,8 @@ describe('local memory linked-summary recovery', () => {
       'utf8',
     );
 
-    await expect(store.readCurrent()).resolves.toMatchObject({
+    const canonical = await store.readCurrent();
+    expect(canonical).toMatchObject({
       files: expect.arrayContaining([
         { path: 'summary.md', content: '[Release](pages/workflows/release.md)' },
         { path: 'pages/workflows/release.md', content: '# Release without navigation or provenance' },
@@ -39,5 +40,7 @@ describe('local memory linked-summary recovery', () => {
     await expect(readFile(join(projection.memoryPath, 'summary.md'), 'utf8')).resolves.toContain(
       `${projection.memoryPath}/pages/workflows/release.md`,
     );
+    expect(projection.fingerprint).toBe(canonical.fingerprint);
+    await expect(store.readCurrent()).resolves.toEqual(canonical);
   });
 });

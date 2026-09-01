@@ -21,29 +21,31 @@ agents:
     - felan-no-prewalk
     - felan-all
 prompt: |
-  Fix the memory artifact regression in Felan.
+  Restore safe reading and projection of linked memory summaries in Felan.
 
-  Existing memory can contain ordinary Markdown links in summary.md. Reading
-  that memory for a session must remain available even when the artifact is
-  incomplete, while strict validation for newly published memory must continue
-  to enforce required files, provenance, and navigation. When memory is
-  projected into a session directory, rebase resolvable links in summary.md as
-  well as index.md, preserve anchors and wiki-link syntax, leave external links
-  unchanged, and do not mutate the canonical artifact or its fingerprint.
+  Required outcomes:
 
-  Keep edits strictly inside `packages/ext-memory/src/` and
+  - Existing memory whose `summary.md` contains ordinary Markdown links remains
+    readable and projectable even when the artifact is incomplete.
+  - Strict validation for newly published memory continues to enforce required
+    files, provenance, and navigation without relaxing path safety.
+  - Session projections rebase resolvable links in both `summary.md` and
+    `index.md`, preserve anchors and wiki-link syntax, and leave external links
+    unchanged.
+  - Projection does not mutate the canonical artifact or its fingerprint, and
+    existing source restrictions and session-store behavior remain intact.
+
+  Keep production changes inside `packages/ext-memory/src/` and
   `apps/tui/src/memory/`. Do not modify tests, documentation, package versions,
-  dependencies, lockfiles, generated files, or repository history. Preserve the
-  existing strict validation behavior, path-safety checks, source restrictions,
-  and session-store behavior. Run these focused checks before finishing:
-  `pnpm --filter @felan-ai/ext-memory type-check`,
-  `pnpm --filter @felan-ai/felan type-check`, and the focused memory tests.
-  Once the implementation and checks are complete, stop and summarize; do not
-  create a Git commit.
+  dependencies, lockfiles, generated files, or repository history, and do not
+  create a Git commit. These are acceptance criteria and scope boundaries, not a
+  prescribed implementation plan. Determine the approach from the repository,
+  verify the relevant behavior, and summarize the result.
 assert:
   - id: prewalk-entered
     type: toolCalled
     name: enter_prewalk
+    min: 1
     isError: false
     when:
       agent: felan-all

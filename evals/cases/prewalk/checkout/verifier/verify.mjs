@@ -1,211 +1,107 @@
-import { createHash } from 'node:crypto';
-import { existsSync, statSync } from 'node:fs';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { copyFile, mkdir, rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 
 const workspace = process.cwd();
-const tests = '/tests';
 const tempDir = join(workspace, '.harness-verifier-tmp');
-const failures = [];
+const hiddenFlowTest = join(workspace, 'harness-checkout-flow.test.tsx');
+const hiddenApiTest = join(workspace, 'harness-api-contract.test.ts');
+const rewardPath = join(workspace, '.harness-evals-reward.txt');
+const expectedHead = '9cb213463222732cb955067953220d665b2f561b';
+const allowedSourcePrefixes = ['app/', 'components/', 'hooks/', 'lib/', 'styles/'];
 
-function fail(message) {
-  failures.push(message);
-}
+let passed = false;
+try {
+  verifyWorkspaceBoundary();
+  if (!existsSync(join(workspace, 'package.json'))) throw new Error('workspace package.json is missing');
 
-async function source(path) {
-  return readFile(join(workspace, path), 'utf8').catch(() => '');
-}
-
-function requireText(text, patterns, label) {
-  for (const pattern of patterns) {
-    if (!pattern.test(text)) fail(`${label}: missing ${pattern}`);
-  }
-}
-
-async function localStorageKeys(text, method, sourcePath) {
-  const constants = new Map();
-  for (const match of text.matchAll(/\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*(["'`])([^"'`]+)\2/g)) {
-    constants.set(match[1], match[3]);
-  }
-
-  const imports = await importedStringConstants(text, sourcePath);
-
-  const keys = new Set();
-  for (const match of text.matchAll(/localStorage\.(getItem|setItem)\(\s*(?:(["'`])([^"'`]+)\2|([A-Za-z_$][\w$]*))/g)) {
-    if (match[1] !== method) continue;
-    const key = match[3] ?? constants.get(match[4]) ?? imports.get(match[4]);
-    if (key) keys.add(key);
-  }
-  return keys;
-}
-
-async function importedStringConstants(text, sourcePath) {
-  const imports = new Map();
-  for (const match of text.matchAll(/\bimport\s*\{([^}]+)\}\s*from\s*(["'`])([^"'`]+)\2/g)) {
-    const importedSourcePath = resolveSourceImport(sourcePath, match[3]);
-    if (!importedSourcePath) continue;
-    const importedSource = await source(importedSourcePath);
-    const exportedConstants = new Map();
-    for (const exported of importedSource.matchAll(/\bexport\s+const\s+([A-Za-z_$][\w$]*)(?:\s*:\s*[^=\n]+)?\s*=\s*(["'`])([^"'`]+)\2/g)) {
-      exportedConstants.set(exported[1], exported[3]);
-    }
-    for (const specifier of match[1].split(',')) {
-      const binding = specifier.trim().match(/^(?!type\s)([A-Za-z_$][\w$]*)(?:\s+as\s+([A-Za-z_$][\w$]*))?$/);
-      if (!binding) continue;
-      const value = exportedConstants.get(binding[1]);
-      if (value) imports.set(binding[2] ?? binding[1], value);
-    }
-  }
-  return imports;
-}
-
-function resolveSourceImport(sourcePath, specifier) {
-  const base = specifier.startsWith('@/')
-    ? resolve(workspace, specifier.slice(2))
-    : specifier.startsWith('.')
-      ? resolve(workspace, dirname(sourcePath), specifier)
-      : undefined;
-  if (!base) return undefined;
-
-  const relativeBase = relative(workspace, base);
-  if (relativeBase === '..' || relativeBase.startsWith(`..${sep}`) || isAbsolute(relativeBase)) return undefined;
-  for (const candidate of [base, `${base}.ts`, `${base}.tsx`, `${base}.js`, `${base}.jsx`, join(base, 'index.ts'), join(base, 'index.tsx')]) {
-    try {
-      if (statSync(candidate).isFile()) return relative(workspace, candidate);
-    } catch {
-      // Try the next supported source-file form.
-    }
-  }
-  return undefined;
-}
-
-async function verifyReceiptStorage(checkout, receipt) {
-  const writes = await localStorageKeys(checkout, 'setItem', 'app/checkout/page.tsx');
-  const reads = await localStorageKeys(receipt, 'getItem', 'app/checkout-complete/page.tsx');
-  const nonReceiptKeys = new Set(['currentUser', 'authToken', 'cart']);
-  const sharedReceiptKey = [...writes].find((key) => reads.has(key) && !nonReceiptKeys.has(key));
-  if (!sharedReceiptKey) fail('receipt: checkout and completion page do not share a stable localStorage order key');
-}
-
-async function run(command, args, options = {}) {
-  return new Promise((resolveResult) => {
-    const child = spawn(command, args, {
-      cwd: workspace,
-      env: { ...process.env, TMPDIR: tempDir, TMP: tempDir, TEMP: tempDir, ...options.env },
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    let stdout = '';
-    let stderr = '';
-    child.stdout.on('data', (chunk) => { stdout += chunk; });
-    child.stderr.on('data', (chunk) => { stderr += chunk; });
-    child.on('close', (code, signal) => resolveResult({ code: code ?? 1, signal, stdout, stderr }));
-    child.on('error', (error) => resolveResult({ code: 1, signal: undefined, stdout, stderr: `${stderr}${error.message}` }));
-  });
-}
-
-async function verifyBaselineChanged() {
-  const baseline = JSON.parse(await readFile(join(tests, 'baseline.json'), 'utf8'));
-  for (const [path, expected] of Object.entries(baseline)) {
-    const value = await source(path);
-    const actual = createHash('sha256').update(value).digest('hex');
-    if (actual === expected) fail(`task did not modify ${path}`);
-  }
-}
-
-async function verifySourceContract() {
-  const login = await source('app/page.tsx');
-  const header = await source('components/header.tsx');
-  const checkout = await source('app/checkout/page.tsx');
-  const receipt = await source('app/checkout-complete/page.tsx');
-  const inventory = await source('app/inventory/page.tsx');
-  const apiStore = await source('lib/api-store.ts');
-  const rejectedOrderResponse = /!response\.ok|response\.status\s*!==?\s*201/s;
-  const acceptedOrderResponse = /if\s*\(\s*(?:response\.ok|response\.status\s*===?\s*201)/s;
-  const orderResponseCheck = /!response\.ok|response\.status\s*!==?\s*201|if\s*\(\s*(?:response\.ok|response\.status\s*===?\s*201)/s;
-  const clearCart = /localStorage\.removeItem\(\s*["'`]cart["'`]/s;
-
-  requireText(login, [
-    /fetch\s*\(\s*["'`]\/api\/auth\/login/s,
-    /response\.ok/s,
-    /response\.json\(\)/s,
-    /localStorage\.setItem\(\s*["'`]currentUser/s,
-    /localStorage\.setItem\(\s*["'`]authToken/s,
-  ], 'login');
-  if (/localStorage\.setItem\(\s*["'`]currentUser["'`]\s*,\s*username/s.test(login)
-      && !/authToken/s.test(login)) fail('login: bypasses the authentication response');
-
-  requireText(header, [
-    /localStorage\.removeItem\(\s*["'`]currentUser/s,
-    /localStorage\.removeItem\(\s*["'`]authToken/s,
-  ], 'logout');
-
-  requireText(checkout, [
-    /fetch\s*\(\s*["'`]\/api\/orders/s,
-    /method\s*:\s*["'`]POST/s,
-    /Authorization/s,
-    /Bearer/s,
-    /JSON\.stringify/s,
-    /localStorage\.getItem\(\s*["'`]authToken/s,
-    orderResponseCheck,
-    clearCart,
-    /setIsLoading\(true\)/s,
-    /cartItems\.length\s*===\s*0|items\.length\s*===\s*0|Object\.keys\(cart\).*length\s*===\s*0/s,
-  ], 'checkout');
-  const clearCartIndex = checkout.search(clearCart);
-  const rejectedResponseIndex = checkout.search(rejectedOrderResponse);
-  const acceptedResponseIndex = checkout.search(acceptedOrderResponse);
-  const failureGuardExits = rejectedResponseIndex >= 0
-    && rejectedResponseIndex < clearCartIndex
-    && /\b(?:return|throw)\b/s.test(checkout.slice(rejectedResponseIndex, clearCartIndex));
-  const successBranchClears = acceptedResponseIndex >= 0 && acceptedResponseIndex < clearCartIndex;
-  if (clearCartIndex < 0 || (!failureGuardExits && !successBranchClears)) {
-    fail('checkout: missing success-gated cart clearing');
-  }
-  if (!/NEXT_PUBLIC_IMPROVED_CHECKOUT/s.test(checkout)) fail('checkout: removed the improved checkout variant');
-  if (!/catch|error/i.test(checkout)) fail('checkout: missing API failure handling');
-
-  requireText(receipt, [
-    /Thank You For Your Order/s,
-    /order|receipt/i,
-    /Order ID/i,
-    /Customer/i,
-    /Total/i,
-  ], 'receipt');
-  await verifyReceiptStorage(checkout, receipt);
-  requireText(inventory, [/NEXT_PUBLIC_ADD_TO_CART_BUG/s, /return/s], 'inventory');
-  requireText(apiStore, [/storzy-test-token-2024/s, /total\s*\+=\s*product\.price/s], 'api store');
-}
-
-async function verifyApiRoutes() {
-  const result = await run('pnpm', ['exec', 'vitest', 'run', `${tests}/api-contract.test.ts`, '--config', `${tests}/vitest.config.ts`, '--reporter', 'dot']);
-  if (result.code !== 0) fail(`API contract tests failed:\n${result.stdout}\n${result.stderr}`);
-}
-
-async function main() {
   await mkdir(tempDir, { recursive: true });
-  try {
-    if (!existsSync(join(workspace, 'package.json'))) fail('fixture package.json is missing');
-    await verifyBaselineChanged();
-    await verifySourceContract();
-    const typecheck = await run('pnpm', ['typecheck']);
-    if (typecheck.code !== 0) fail(`typecheck failed:\n${typecheck.stdout}\n${typecheck.stderr}`);
-    const build = await run('pnpm', ['build'], { env: { NEXT_PUBLIC_IMPROVED_CHECKOUT: 'false', NEXT_PUBLIC_ADD_TO_CART_BUG: 'false' } });
-    if (build.code !== 0) fail(`build failed:\n${build.stdout}\n${build.stderr}`);
-    await verifyApiRoutes();
+  run('pnpm', ['typecheck']);
+  run('pnpm', ['build'], {
+    NEXT_PUBLIC_IMPROVED_CHECKOUT: 'false',
+    NEXT_PUBLIC_ADD_TO_CART_BUG: 'false',
+  });
+  await rm(join(workspace, '.next'), { recursive: true, force: true });
+  run('pnpm', ['build'], {
+    NEXT_PUBLIC_IMPROVED_CHECKOUT: 'true',
+    NEXT_PUBLIC_ADD_TO_CART_BUG: 'false',
+  });
+  await copyFile('/tests/checkout-flow.test.tsx', hiddenFlowTest);
+  await copyFile('/tests/api-contract.test.ts', hiddenApiTest);
+  run('pnpm', [
+    'exec',
+    'vitest',
+    'run',
+    hiddenFlowTest,
+    hiddenApiTest,
+    '--config',
+    '/tests/vitest.config.ts',
+    '--reporter',
+    'dot',
+  ]);
+  passed = true;
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+} finally {
+  await Promise.all([
+    rm(tempDir, { recursive: true, force: true }),
+    rm(hiddenFlowTest, { force: true }),
+    rm(hiddenApiTest, { force: true }),
+    rm(join(workspace, '.next'), { recursive: true, force: true }),
+    rm(join(workspace, 'tsconfig.tsbuildinfo'), { force: true }),
+  ]);
+  await writeFile(rewardPath, passed ? '1\n' : '0\n');
+}
 
-    const pass = failures.length === 0;
-    await writeFile(join(workspace, '.harness-evals-reward.txt'), `${pass ? 1 : 0}\n`);
-    for (const failure of failures) console.error(`FAIL: ${failure}`);
-    console.log(pass ? '1' : '0');
-    process.exitCode = pass ? 0 : 1;
-  } finally {
-    await Promise.all([
-      rm(tempDir, { recursive: true, force: true }),
-      rm(join(workspace, '.next'), { recursive: true, force: true }),
-      rm(join(workspace, 'tsconfig.tsbuildinfo'), { force: true }),
-    ]);
+console.log(passed ? '1' : '0');
+if (!passed) process.exitCode = 1;
+
+function verifyWorkspaceBoundary() {
+  if (capture('git', ['rev-parse', 'HEAD']).trim() !== expectedHead) {
+    throw new Error('repository history changed');
+  }
+  if (capture('git', ['remote']).trim() !== '') {
+    throw new Error('benchmark workspace unexpectedly has a Git remote');
+  }
+
+  const changedPaths = capture('git', ['status', '--porcelain=v1', '--untracked-files=all'])
+    .split(/\r?\n/u)
+    .filter(Boolean)
+    .flatMap((line) => line.slice(3).split(' -> '))
+    .filter((path) => path !== '.harness-evals-reward.txt');
+  const disallowed = changedPaths.filter((path) => {
+    return !allowedSourcePrefixes.some((prefix) => path.startsWith(prefix));
+  });
+  if (disallowed.length > 0) {
+    throw new Error(`changes outside allowed application sources: ${disallowed.join(', ')}`);
   }
 }
 
-await main();
+function capture(command, args) {
+  const result = spawnSync(command, args, {
+    cwd: workspace,
+    encoding: 'utf8',
+    maxBuffer: 16 * 1024 * 1024,
+    timeout: 30_000,
+  });
+  if (result.error) throw result.error;
+  if (result.status !== 0) {
+    throw new Error(`${command} ${args.join(' ')} failed:\n${result.stderr || result.stdout}`);
+  }
+  return result.stdout;
+}
+
+function run(command, args, env = {}) {
+  const result = spawnSync(command, args, {
+    cwd: workspace,
+    env: { ...process.env, TMPDIR: tempDir, TMP: tempDir, TEMP: tempDir, ...env },
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+    timeout: 180_000,
+  });
+  if (result.stdout) process.stdout.write(result.stdout);
+  if (result.stderr) process.stderr.write(result.stderr);
+  if (result.error) throw result.error;
+  if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
+}

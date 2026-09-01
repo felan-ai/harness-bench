@@ -4,22 +4,75 @@ A/B comparison for the Codebase Memory (CBM) extension in Felan — the same
 prompt is run against Felan with CBM off (`felan-cbm-off`) and CBM on
 (`felan-cbm-on`), and the answers, tokens, cost, and latency are compared.
 
-The full benchmark plan lives in
-`bug-374-cbm-benchmark-plan.md` (in the `FelanAI` workspace, alongside
-`bug-374-codebase-memory-testing-summary.md` which is the motivating manual
-report). This directory implements only Day 1 of that plan — the fast Tier 0
-query suite. Tier 1–3 coding tasks (C1–C5) are planned but not yet built.
+This is the standing benchmark for the Codebase Memory extension. It is not
+tied to any one investigation: run it on every `codebase-memory-mcp` release,
+every `@felan-ai/ext-codebase-memory` bump, and any felan change that touches
+how the extension resolves or indexes a project root.
+
+This directory currently implements the fast Tier 0 query suite, in single-repo
+and multi-repo variants. Tier 1–3 coding tasks (C1–C5) are designed but not yet
+built. Background reading lives in the `FelanAI` workspace
+(`bug-374-cbm-benchmark-plan.md` for the case designs,
+`bug-374-codebase-memory-testing-summary.md` for the manual findings that
+motivated the multi-repo variant).
+
+## IMPORTANT: why these cases override `workspace.containerPath`
+
+`codebase-memory-mcp` 0.10.8 carries an internal denylist of "too broad" index
+roots, and **`/workspace` is on it**. Indexing any path mounted at `/workspace`
+fails with:
+
+```
+/workspace: path is too broad to index as one root; name a project directory below it
+```
+
+harness-evals mounts workspaces at `/workspace` by default, so every CBM run
+before 2026-09-01 silently produced **no index at all** — in both the
+single-repo and multi-repo suites. The `felan-cbm-on` arm still had the CBM
+tools registered, so it looked like it was working: it just burned tool calls
+on failed `index_repository` retries and then fell back to shell grep, doing
+exactly what the `felan-cbm-off` arm does. Any A/B number produced under that
+condition measures grep-vs-grep-plus-overhead, not CBM.
+
+The denylist is path-shaped, not content-shaped. Verified against 0.10.8 with
+identical two-sub-repo content at each path:
+
+| Root | Result |
+| --- | --- |
+| `/workspace` | **refused** — "too broad" |
+| `/srv/FelanAI` | indexed |
+| `/opt/proj/FelanAI` | indexed |
+| `/Users/yav/Projects/FelanAI` | indexed |
+| `/home/yav/Projects/FelanAI` | indexed |
+| `/root/Projects/FelanAI` | indexed |
+| `/a/b/c/d/FelanAI` | indexed |
+
+So every case in this family pins a realistic project path instead:
+
+- single-repo cases → `containerPath: /home/dev/Projects/felan`
+- multi-repo cases → `containerPath: /home/dev/Projects/FelanAI`
+
+`workspace.containerPath` is the mount target, the agent's cwd, and the
+verifier's cwd, so the prompt's answer-file path and `verify.mjs`'s
+`answerPath`/`rewardPath` must be kept in sync with it.
+
+**If you add a new CBM case, do not leave it at the default `/workspace`.**
+Confirm the index actually built by grepping the run's `records.jsonl` for
+`too broad` (expect zero) and for a `"project"` name in a
+`search_and_read_symbols` result.
+
 
 ## Layout
 
 ```text
 codebase-memory/
-  README.md                          # this file
-  query-find-definition/             # Q1: locate ProjectService definition
-  query-find-callers/                # Q2: list callers of ProjectService.gitRoot
-  query-structural-cross-ref/        # Q3: list classes whose ctor takes runtime: AgentRuntime
-  query-text-search/                 # Q4: find files that reference a SHA-256 literal
-  query-not-found/                   # Q5: honest not-found for a missing class
+  README.md                              # this file
+  query-find-definition-singlerepo/      # Q1: locate ProjectService definition
+  query-find-callers-singlerepo/         # Q2: list callers of ProjectService.gitRoot
+  query-structural-cross-ref-singlerepo/ # Q3: classes whose ctor takes runtime: AgentRuntime
+  query-text-search-singlerepo/          # Q4: files referencing a SHA-256 literal
+  query-not-found-singlerepo/            # Q5: honest not-found for a missing class
+  query-*-multirepo/                     # the same five, against a parent-of-repos workspace
 ```
 
 Every case has one `case.eval.yaml` and one `verifier/verify.mjs`.
@@ -79,15 +132,15 @@ identical between arms so the only meaningful difference is the CBM flag.
 
 | Case                              | Question                                                                                                                          | Predicted winner                                                     |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `cbm-q-find-definition`           | Where is the `ProjectService` class defined? Answer with a `file:line`.                                                           | Grep — simple lookup.                                                |
-| `cbm-q-find-callers`              | List every caller of `ProjectService.gitRoot` as `file:line`.                                                                     | CBM on precision (excludes the unrelated `apps/tui/src/memory/project.ts` mention); grep on speed. |
-| `cbm-q-structural-cross-ref`      | List every TypeScript class whose constructor takes `runtime: AgentRuntime`.                                                      | CBM if `search_and_read_symbols` filters constructors reliably; otherwise grep can match by text. |
-| `cbm-q-text-search`               | Find every file that references the SHA `2fdd4d…3475`. List paths only.                                                            | Grep — pure text search.                                             |
-| `cbm-q-not-found`                 | Find the class `SessionRunner`. (It doesn't exist in this repo.)                                                                  | Tie — measures whether the agent honestly reports a null result and how many tool calls it burns to reach it. |
+| `cbm-q-find-definition-singlerepo`           | Where is the `ProjectService` class defined? Answer with a `file:line`.                                                           | Grep — simple lookup.                                                |
+| `cbm-q-find-callers-singlerepo`              | List every caller of `ProjectService.gitRoot` as `file:line`.                                                                     | CBM on precision (excludes the unrelated `apps/tui/src/memory/project.ts` mention); grep on speed. |
+| `cbm-q-structural-cross-ref-singlerepo`      | List every TypeScript class whose constructor takes `runtime: AgentRuntime`.                                                      | CBM if `search_and_read_symbols` filters constructors reliably; otherwise grep can match by text. |
+| `cbm-q-text-search-singlerepo`               | Find every file that references the SHA `2fdd4d…3475`. List paths only.                                                            | Grep — pure text search.                                             |
+| `cbm-q-not-found-singlerepo`                 | Find the class `SessionRunner`. (It doesn't exist in this repo.)                                                                  | Tie — measures whether the agent honestly reports a null result and how many tool calls it burns to reach it. |
 
 ## Benchmark declaration
 
-The benchmark `codebase-memory-queries` (declared at the bottom of
+The benchmark `codebase-memory-queries-singlerepo` (declared at the bottom of
 `harness-evals.yaml`) runs all five cases against both arms, 3 trials per
 `(case, arm)` — 30 runs per run of the benchmark.
 
@@ -102,7 +155,7 @@ Run the benchmark with:
 ```bash
 bun run node_modules/harness-evals/dist/cli.js run \
   --config harness-evals.yaml \
-  --benchmark codebase-memory-queries
+  --benchmark codebase-memory-queries-singlerepo
 ```
 
 View the results:
@@ -110,7 +163,7 @@ View the results:
 ```bash
 bun run node_modules/harness-evals/dist/cli.js view \
   --config harness-evals.yaml \
-  --benchmark codebase-memory-queries \
+  --benchmark codebase-memory-queries-singlerepo \
   --open
 ```
 
@@ -121,7 +174,7 @@ When a new `codebase-memory-mcp` release ships:
 1. Bump `CBM_VERSION` and the two architecture SHAs in
    `evals/runtimes/felan-cbm/Dockerfile`.
 2. Rebuild the runtime: `bun run build:runtime felan-cbm`.
-3. Re-run `codebase-memory-queries`.
+3. Re-run `codebase-memory-queries-singlerepo`.
 
 When a new felan release ships with CBM changes:
 
@@ -132,3 +185,69 @@ When a new felan release ships with CBM changes:
    `evals/runtimes/felan-cbm/context/{.npmrc,pnpm-lock.yaml,pnpm-workspace.yaml}`
    from the target commit, and update `org.harness-bench.source-commit` and
    `org.harness-bench.dependency-lock-sha256` in the Dockerfile.
+
+---
+
+## Multi-repo variant (`*-multirepo`)
+
+The five `query-*-multirepo` cases ask the **same five questions** against a
+different workspace shape: a parent directory that is **not itself a Git
+repository**, holding two real repositories side by side.
+
+```text
+/workspace/                 # not a Git repo
+  felan/                    # felan @ 7ae8f94  (555 files)
+  felan-platform/           # felan-platform @ b0cec02  (2,426 files)
+```
+
+### Why
+
+`ProjectService.gitRoot()` (CBM extension 0.1.2) silently falls back to
+`runtime.cwd` when `git rev-parse --show-toplevel` fails, and `index()` passes
+that path straight to `index_repository` with no validation. Launched from a
+parent-of-repos directory, the extension therefore indexes the whole subtree as
+one project — confirmed in this fixture, where both repos land in a single
+project named `home-dev-Projects-FelanAI`.
+
+This variant measures what that costs in answer quality, tokens, and latency —
+how the extension behaves as workspace scope grows from one repository to
+several, against the same five questions.
+
+### Fixture
+
+`evals/fixtures/felan-multirepo/v1/source` — a checked-in `git archive` export
+of each pinned commit. `fixture.json` records the commits, file counts, and
+ground-truth notes. No file contents were modified.
+
+`.git` directories are not part of the fixture (harness-evals copies workspaces
+without Git metadata unless `workspace.git` is used). This does not affect the
+behavior under test: `ProjectService.gitRoot()` runs at `/workspace`, and
+`/workspace` is non-Git either way.
+
+`workspace.setup` runs `pnpm install --offline --frozen-lockfile` with
+`cwd: /workspace/felan` only. The runtime image's offline store is built from
+felan's lockfile, so felan's dependency tree matches the single-repo fixture
+exactly and the two benchmarks stay comparable. `felan-platform/` is left
+uninstalled.
+
+### Ground-truth deltas vs. the single-repo cases
+
+felan-platform was chosen partly because it does **not** collide with the query
+ground truth: it contains no `ProjectService`, no `gitRoot` reference, and no
+occurrence of the SHA-256 literal. Two things do change:
+
+| Case | Change |
+| --- | --- |
+| `find-definition`, `find-callers`, `text-search` | Verifiers now require the `felan/` sub-directory prefix on expected paths, so a bare repo-relative answer no longer passes. `find-callers`'s forbidden-match pattern stays un-prefixed so a bare false positive is still caught. |
+| `structural-cross-ref` | Unchanged. felan-platform adds `runtime: AgentRuntime` distractors (`apps/agent/src/agent-core.ts:137` plus docs) but no class whose constructor takes one, so the required set is still ProjectService / CbmClient / CacheManager. |
+| `not-found` | **Queries `WorkspaceReconciler` instead of `SessionRunner`.** `SessionRunner` *does* exist in felan-platform (`apps/agent/src/sessions/session-runner.ts:224`), so it is not a not-found question in this fixture. `WorkspaceReconciler` is absent from both repositories, preserving the case's semantics. |
+
+### Benchmark declaration
+
+`codebase-memory-queries-multirepo` in `../../../harness-evals.yaml` — same two
+arms, same gates and objective as `codebase-memory-queries-singlerepo`, `trials: 3`.
+
+```bash
+bunx harness-evals run --config harness-evals.yaml \
+  --benchmark codebase-memory-queries-multirepo --concurrency 3
+```

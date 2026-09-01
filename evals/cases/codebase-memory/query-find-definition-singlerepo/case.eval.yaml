@@ -1,9 +1,10 @@
-id: cbm-q-find-definition
-suite: codebase-memory-queries
+id: cbm-q-find-definition-singlerepo
+suite: codebase-memory-queries-singlerepo
 description: Compare Codebase Memory off vs on when locating the definition of the ProjectService class.
 image: harness-bench-felan-cbm-runtime:v1
 timeoutMs: 600000
 workspace:
+  containerPath: /home/dev/Projects/felan
   git:
     repository: https://github.com/felan-ai/felan.git
     commit: 7ae8f94e72095a8bc38bf62b902164d2717f3294
@@ -23,12 +24,12 @@ prompt: |
   give your best single answer — do not hedge.
 
   After answering, write only the file-path-and-line-number answer into
-  `/workspace/.harness-answer.txt`, with no other prose or code fences.
+  `/home/dev/Projects/felan/.harness-answer.txt`, with no other prose or code fences.
 verifier:
   command: node
   args: [/tests/verify.mjs]
-  cwd: /workspace
-  assetsDir: evals/cases/codebase-memory/query-find-definition/verifier
+  cwd: /home/dev/Projects/felan
+  assetsDir: evals/cases/codebase-memory/query-find-definition-singlerepo/verifier
   assetsTarget: /tests
   rewardFile: .harness-evals-reward.txt
   rewardFormat: text

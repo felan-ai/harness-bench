@@ -1,0 +1,40 @@
+id: cbm-q-structural-cross-ref-multirepo
+suite: codebase-memory-queries-multirepo
+description: Multi-repo variant — list TypeScript classes whose constructor takes a runtime AgentRuntime parameter across a parent-of-repos workspace.
+image: harness-bench-felan-cbm-runtime:v1
+timeoutMs: 600000
+workspace:
+  containerPath: /home/dev/Projects/FelanAI
+  fixture: evals/fixtures/felan-multirepo/v1/source
+  setup:
+    - command: pnpm
+      args: [install, --offline, --frozen-lockfile, --store-dir, /opt/harness-deps/felan-cbm-store]
+      cwd: /home/dev/Projects/FelanAI/felan
+      timeoutMs: 300000
+agents:
+  include:
+    - felan-cbm-off
+    - felan-cbm-on
+prompt: |
+  This workspace is a parent directory holding several separate repositories as
+  sub-directories. List every TypeScript class anywhere in the workspace whose
+  constructor accepts a parameter typed as `AgentRuntime` (either declared
+  inline like `constructor(private readonly runtime: AgentRuntime, …)` or in a
+  `constructor(runtime: AgentRuntime)` positional form). Include only classes
+  — not free functions, interface members, or type aliases.
+
+  Give the answer as a plain list of class names, one per line, sorted
+  alphabetically. Do not include commentary or file paths.
+
+  Write only that list of class names into `/home/dev/Projects/FelanAI/.harness-answer.txt`.
+verifier:
+  command: node
+  args: [/tests/verify.mjs]
+  cwd: /home/dev/Projects/FelanAI
+  assetsDir: evals/cases/codebase-memory/query-structural-cross-ref-multirepo/verifier
+  assetsTarget: /tests
+  rewardFile: .harness-evals-reward.txt
+  rewardFormat: text
+  timeoutMs: 60000
+  network:
+    mode: none

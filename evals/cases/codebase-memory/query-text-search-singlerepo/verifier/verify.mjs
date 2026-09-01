@@ -2,8 +2,8 @@
 // Reward 1.0 when both files that reference the SHA constant appear.
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const answerPath = '/workspace/.harness-answer.txt';
-const rewardPath = '/workspace/.harness-evals-reward.txt';
+const answerPath = '/home/dev/Projects/felan/.harness-answer.txt';
+const rewardPath = '/home/dev/Projects/felan/.harness-evals-reward.txt';
 
 // At commit 7ae8f94, exactly two files reference this SHA literal:
 //   packages/ext-codebase-memory/src/installer.ts

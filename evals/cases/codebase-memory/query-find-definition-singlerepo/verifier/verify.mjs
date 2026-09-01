@@ -2,8 +2,8 @@
 // Reward 1.0 when the answer names the ProjectService definition file.
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const answerPath = '/workspace/.harness-answer.txt';
-const rewardPath = '/workspace/.harness-evals-reward.txt';
+const answerPath = '/home/dev/Projects/felan/.harness-answer.txt';
+const rewardPath = '/home/dev/Projects/felan/.harness-evals-reward.txt';
 
 const expectedFile = /packages\/ext-codebase-memory\/src\/services\.ts/;
 // The class is defined at line 8 in commit 7ae8f94. Accept 7-9 to allow

@@ -444,16 +444,50 @@ visualization:
 benchmarks:
   # Fast Tier 0 query comparison — grades the agent's answer against a
   # deterministic rubric. Run on every codebase-memory-mcp version bump.
-  codebase-memory-queries:
+  codebase-memory-queries-singlerepo:
     revision: 1
-    label: Codebase Memory · queries
+    label: Codebase Memory · queries · single-repo
     description: Tier 0 query cases that grade Felan's answer with CBM off vs on.
     select:
-      suites: [codebase-memory-queries]
+      suites: [codebase-memory-queries-singlerepo]
     arms:
       baseline: felan-cbm-off
       candidate: felan-cbm-on
-    trials: 10
+    # Kept at 3 for milestone-1 parity with codebase-memory-queries-multirepo.
+    # Bump to 10 for the tighter single-repo baseline (milestone 2).
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 0.8
+    objective:
+      metric: cost.total
+      goal: minimize
+    aggregation:
+      trials: median
+      cases: macroMean
+    secondaryMetrics:
+      - duration.ms
+      - usage.promptTokens
+      - usage.outputTokens
+
+  # Multi-repo variant of the Tier 0 query comparison. Same five questions and
+  # the same two arms, but the workspace root is a parent-of-repos directory
+  # that is not itself a Git repository (felan/ + felan-platform/ side by side).
+  # Measures the cost of the extension's project-root fallback:
+  # ProjectService.gitRoot() falls back to runtime.cwd when the cwd is not a Git
+  # repository, so the extension indexes the whole parent subtree as one project.
+  # Quantifies what that does to answers, cost, and latency, and doubles as the
+  # regression test that indexing scope stays bounded.
+  codebase-memory-queries-multirepo:
+    revision: 1
+    label: Codebase Memory · queries · multi-repo
+    description: Tier 0 query cases run against a non-Git parent directory holding two real repositories.
+    select:
+      suites: [codebase-memory-queries-multirepo]
+    arms:
+      baseline: felan-cbm-off
+      candidate: felan-cbm-on
+    trials: 3
     qualityGates:
       - metric: quality.passRate
         min: 0.8

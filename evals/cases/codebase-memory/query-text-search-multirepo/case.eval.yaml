@@ -1,0 +1,39 @@
+id: cbm-q-text-search-multirepo
+suite: codebase-memory-queries-multirepo
+description: Multi-repo variant — locate every file that references a specific SHA-256 constant across a parent-of-repos workspace.
+image: harness-bench-felan-cbm-runtime:v1
+timeoutMs: 600000
+workspace:
+  containerPath: /home/dev/Projects/FelanAI
+  fixture: evals/fixtures/felan-multirepo/v1/source
+  setup:
+    - command: pnpm
+      args: [install, --offline, --frozen-lockfile, --store-dir, /opt/harness-deps/felan-cbm-store]
+      cwd: /home/dev/Projects/FelanAI/felan
+      timeoutMs: 300000
+agents:
+  include:
+    - felan-cbm-off
+    - felan-cbm-on
+prompt: |
+  This workspace is a parent directory holding several separate repositories as
+  sub-directories. Find every file anywhere in the workspace that references the
+  SHA-256 literal
+  `2fdd4d6563fc8e540bb32e233c5fdef22ecf05d7ebd5a80657cd4fec953b3475`.
+
+  Output only the file paths, relative to the workspace root (so each one starts
+  with the sub-directory name), one per line, sorted alphabetically. Do not
+  include line numbers, snippets, or commentary.
+
+  Write only that file-path list into `/home/dev/Projects/FelanAI/.harness-answer.txt`.
+verifier:
+  command: node
+  args: [/tests/verify.mjs]
+  cwd: /home/dev/Projects/FelanAI
+  assetsDir: evals/cases/codebase-memory/query-text-search-multirepo/verifier
+  assetsTarget: /tests
+  rewardFile: .harness-evals-reward.txt
+  rewardFormat: text
+  timeoutMs: 60000
+  network:
+    mode: none

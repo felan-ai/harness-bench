@@ -1,0 +1,39 @@
+id: cbm-q-find-definition-multirepo
+suite: codebase-memory-queries-multirepo
+description: Multi-repo variant — locate the definition of the ProjectService class in a parent-of-repos workspace.
+image: harness-bench-felan-cbm-runtime:v1
+timeoutMs: 600000
+workspace:
+  containerPath: /home/dev/Projects/FelanAI
+  fixture: evals/fixtures/felan-multirepo/v1/source
+  setup:
+    - command: pnpm
+      args: [install, --offline, --frozen-lockfile, --store-dir, /opt/harness-deps/felan-cbm-store]
+      cwd: /home/dev/Projects/FelanAI/felan
+      timeoutMs: 300000
+agents:
+  include:
+    - felan-cbm-off
+    - felan-cbm-on
+prompt: |
+  This workspace is a parent directory holding several separate repositories as
+  sub-directories. Where is the `ProjectService` class defined?
+
+  Answer with just the file path (relative to the workspace root, so it starts
+  with the sub-directory name) and the line number, in the format
+  `some-repo/packages/some/path.ts:LINE`. If you are unsure, still give your
+  best single answer — do not hedge.
+
+  After answering, write only the file-path-and-line-number answer into
+  `/home/dev/Projects/FelanAI/.harness-answer.txt`, with no other prose or code fences.
+verifier:
+  command: node
+  args: [/tests/verify.mjs]
+  cwd: /home/dev/Projects/FelanAI
+  assetsDir: evals/cases/codebase-memory/query-find-definition-multirepo/verifier
+  assetsTarget: /tests
+  rewardFile: .harness-evals-reward.txt
+  rewardFormat: text
+  timeoutMs: 60000
+  network:
+    mode: none

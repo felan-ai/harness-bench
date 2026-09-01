@@ -1,9 +1,10 @@
-id: cbm-q-text-search
-suite: codebase-memory-queries
+id: cbm-q-text-search-singlerepo
+suite: codebase-memory-queries-singlerepo
 description: Compare Codebase Memory off vs on when locating every file that references a specific SHA-256 constant.
 image: harness-bench-felan-cbm-runtime:v1
 timeoutMs: 600000
 workspace:
+  containerPath: /home/dev/Projects/felan
   git:
     repository: https://github.com/felan-ai/felan.git
     commit: 7ae8f94e72095a8bc38bf62b902164d2717f3294
@@ -22,12 +23,12 @@ prompt: |
   Output only the file paths, relative to the repository root, one per line,
   sorted alphabetically. Do not include line numbers, snippets, or commentary.
 
-  Write only that file-path list into `/workspace/.harness-answer.txt`.
+  Write only that file-path list into `/home/dev/Projects/felan/.harness-answer.txt`.
 verifier:
   command: node
   args: [/tests/verify.mjs]
-  cwd: /workspace
-  assetsDir: evals/cases/codebase-memory/query-text-search/verifier
+  cwd: /home/dev/Projects/felan
+  assetsDir: evals/cases/codebase-memory/query-text-search-singlerepo/verifier
   assetsTarget: /tests
   rewardFile: .harness-evals-reward.txt
   rewardFormat: text

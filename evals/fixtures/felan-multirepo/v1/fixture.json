@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "felan-multirepo-v1",
+  "description": "A parent-of-repos workspace: the root is NOT a Git repository, and two real repositories sit inside it as sibling sub-directories. Exercises the Codebase Memory extension's project-root resolution, where ProjectService.gitRoot() falls back to runtime.cwd and the extension indexes the whole parent subtree as one project.",
+  "layout": {
+    "felan": {
+      "repository": "https://github.com/felan-ai/felan.git",
+      "commit": "7ae8f94e72095a8bc38bf62b902164d2717f3294",
+      "fileCount": 555,
+      "note": "Same commit the single-repo codebase-memory-queries fixture pins, so the two benchmarks are directly comparable."
+    },
+    "felan-platform": {
+      "repository": "https://github.com/felan-ai/felan-platform.git",
+      "commit": "b0cec02ab0f48b38287aeec1e50b798acbaf2e17",
+      "fileCount": 2426,
+      "note": "origin/main tip at fixture build time. Chosen as the scope-inflating sibling: 4.4x felan's file count and no ProjectService / gitRoot / SHA-literal collisions with the query ground truth."
+    }
+  },
+  "sourceFileCount": 2981,
+  "excluded": [
+    ".git (harness-evals copies workspaces without Git metadata by default; the root being non-Git is what the fixture needs, and the sub-directories being non-Git does not change ProjectService.gitRoot()'s fallback, which runs at /workspace)",
+    "node_modules (installed by workspace.setup for felan/ only)",
+    "untracked and gitignored files (the fixture is a `git archive` export of each pinned commit)"
+  ],
+  "benchmarkChanges": [
+    "No file contents were modified. Each sub-directory is a verbatim `git archive` export of its pinned commit."
+  ],
+  "groundTruthNotes": [
+    "ProjectService is defined only in felan/packages/ext-codebase-memory/src/services.ts:8 \u2014 felan-platform has no ProjectService.",
+    "ProjectService.gitRoot() is called only at felan/packages/ext-codebase-memory/src/services.ts:34 and :81; felan/apps/tui/src/memory/project.ts holds the unrelated local `gitRoot` distractor.",
+    "The SHA-256 literal 2fdd4d\u20263475 appears only in felan/packages/ext-codebase-memory/{src/installer.ts,test/package.test.ts}.",
+    "felan-platform adds `runtime: AgentRuntime` distractors (apps/agent/src/agent-core.ts:137 plus docs) but no new class whose constructor takes one, so the structural-cross-ref ground truth is unchanged.",
+    "SessionRunner DOES exist in felan-platform (apps/agent/src/sessions/session-runner.ts:224), so the multi-repo not-found case queries WorkspaceReconciler instead, which is absent from both repositories."
+  ]
+}

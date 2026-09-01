@@ -2,8 +2,8 @@
 // Reward 1.0 when both real callers are named and no false positive appears.
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const answerPath = '/workspace/.harness-answer.txt';
-const rewardPath = '/workspace/.harness-evals-reward.txt';
+const answerPath = '/home/dev/Projects/felan/.harness-answer.txt';
+const rewardPath = '/home/dev/Projects/felan/.harness-evals-reward.txt';
 
 // Both real callers of ProjectService.gitRoot at commit 7ae8f94:
 //   packages/ext-codebase-memory/src/services.ts:34

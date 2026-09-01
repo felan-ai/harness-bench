@@ -3,3 +3,6 @@ node_modules/
 dist/
 *.log
 .env
+
+# Regenerate with scripts/build-multirepo-fixture.sh (~35 MB of vendored upstream source).
+evals/fixtures/felan-multirepo/v1/source/

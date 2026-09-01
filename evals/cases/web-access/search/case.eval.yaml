@@ -4,7 +4,7 @@ description: Compare extension-assisted discovery with shell-based public packag
 image: harness-bench-felan-runtime:v1
 workspace: { fixture: evals/fixtures/felan-adapter-smoke/v1/source }
 agents:
-  include: [felan-web-access-off, felan-web-access-on]
+  include: [felan-no-web-access, felan-web-access]
 prompt: |
   I'm checking whether Felan 0.18.2 will work in our CI environment. Can you
   look at the official npm registry metadata and tell me which version of

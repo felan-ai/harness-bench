@@ -3,19 +3,17 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join, resolve } from 'node:path';
 
-const args = process.argv.slice(2);
-const runtime = args[0];
-
-if (args.length !== 1 || !runtime || !/^[a-z0-9][a-z0-9-]*$/.test(runtime)) {
-  console.error('Usage: bun run build:runtime <runtime>');
+if (process.argv.length !== 2) {
+  console.error('Usage: bun run build:runtime');
   process.exit(1);
 }
 
 const projectRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const runtime = 'felan';
 const dockerfile = join('evals', 'runtimes', runtime, 'Dockerfile');
 
 if (!existsSync(join(projectRoot, dockerfile))) {
-  console.error(`Runtime "${runtime}" does not exist at ${dockerfile}`);
+  console.error(`Runtime Dockerfile does not exist at ${dockerfile}`);
   process.exit(1);
 }
 

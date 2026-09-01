@@ -52,7 +52,8 @@ lockfiles or configuration YAML to the test glob.
    verifier declaration in that case.
 4. Keep prompts implementation-neutral and grade equivalent observable behavior.
 5. Use explicit suites and stable case ids. Never silently change the meaning of
-   a published case; version its fixture or create a new case when its source changes.
+   a published case; pin a new Git commit, version its fixture, or create a new
+   case when its starting source changes.
 6. Keep comparison controls equivalent in prompt, starting workspace, verifier, attempts,
    timeout, concurrency, credentials, and runtime. Vary only the intended agent
    or feature settings.
@@ -62,6 +63,9 @@ for exploratory runs without duplicating the task.
 
 ## Fixtures
 
+- Prefer `workspace.git` with a credential-free public URL and full commit SHA
+  when a stable public repository can own the exact starting state. Use a local
+  fixture for authored or private snapshots that cannot live in such a repository.
 - Store shared snapshots under `evals/fixtures/<name>/<version>/source`.
 - The harness copies the source to a run-local writable workspace. Never directly
   mount the canonical fixture writable or let an agent edit it.
@@ -89,25 +93,26 @@ for exploratory runs without duplicating the task.
 
 ## Runtime images and workspace setup
 
-Use the harness-managed image by default. Add a custom image only when cases need
-large pinned dependencies, system packages, or a controlled toolchain.
+Use the harness-managed image by default. Cases that need pnpm, Git, or RTK share
+the single generic Felan runtime.
 
-- Scope images to a runtime/dependency profile, not an individual test. All Storzy
-  cases sharing its lockfile should reuse the same Storzy runtime.
-- Runtime images contain tools and immutable dependencies, not workspace source,
-  prompts, verifiers, credentials, or generated run output.
+- Runtime images contain reusable tools and system packages, not application
+  dependencies, workspace source, prompts, verifiers, credentials, or generated
+  run output. Do not create lockfile-specific or case-specific images.
 - Cases may use `workspace.git` to acquire an exact upstream commit on the host;
   source acquisition is not part of runtime image construction.
-- Pin base runtime and package-manager versions and install application dependencies
-  from a committed frozen lockfile.
-- Use `workspace.setup` argv commands to expose image-provided dependencies to the
-  copied workspace before its baseline snapshot. Setup runs offline and must not
-  fetch or mutate external state.
-- Bump the runtime or fixture version and update integrity labels when its lockfile or
-  dependency contract changes.
-- Pin Felan in `config.packageVersion` for reproducible historical runs. Omit
-  the field only when a profile deliberately exercises the latest npm release;
-  refresh that profile's managed image before a live comparison.
+- Pin base runtime, package-manager, and externally installed tool versions.
+- Install application dependencies during `workspace.setup` from the public npm
+  registry using the committed lockfile and the package manager's frozen-lockfile
+  mode. Opt the install command into `network.mode: default`; setup otherwise
+  remains network-disabled. Setup runs before the baseline snapshot.
+- Treat registry or setup failures as infrastructure failures, not agent-quality
+  results. A lockfile change does not require a runtime image change.
+- Profiles deliberately exercise the latest published Felan release. Omit
+  `config.packageVersion`, refresh the managed image before a live comparison,
+  and record the resolved release with the results. Keep
+  `docker.pullOnRefresh: false` while the managed base is the local generic
+  runtime; refresh must invalidate recipe layers without pulling that local tag.
 
 Keep package commands and supporting scripts reusable across cases. Pass runtime,
 case, suite, or agent names as arguments instead of adding one command per target.

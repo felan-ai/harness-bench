@@ -4,7 +4,7 @@ description: Compare stored-content lookup with shell filtering of a long file.
 image: harness-bench-felan-runtime:v1
 workspace: { fixture: evals/fixtures/felan-adapter-smoke/v1/source }
 agents:
-  include: [felan-web-access-off, felan-web-access-on]
+  include: [felan-no-web-access, felan-web-access]
 prompt: |
   Could you check this pinned Felan lockfile and tell me which versions of
   `web-streams-polyfill`, `which-typed-array`, and `wsl-utils` it contains?

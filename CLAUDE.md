@@ -27,7 +27,7 @@ work is tied to a Linear issue.
 bun run list
 bun run list:smoke
 bun run smoke                 # live provider call
-bun run build:runtime storzy
+bun run build:runtime
 bun run run --case prewalk-checkout --concurrency 1
 bun run view
 bun run run --case <id> --agents <agent>
@@ -47,5 +47,5 @@ evals/runtimes/<name>/Dockerfile
 
 The smoke-only and non-smoke configurations share the same local artifact and
 output roots. The smoke case is a plumbing check, not an all-enabled feature
-baseline. The Storzy runtime is shared by cases using the same fixture dependency
-lock; it does not contain the fixture source or own the Felan version.
+baseline. Dependency-bearing cases share one generic Felan runtime; workspace
+setup installs each case's committed lockfile from the npm registry.

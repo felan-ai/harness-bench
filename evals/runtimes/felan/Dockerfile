@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:22.20.0-trixie-slim@sha256:f3bca16c4b87ad0c7abfad97f6803898ee9b08a1f153a269140f0a08f50231d2 AS base
+FROM node:22.20.0-trixie-slim@sha256:f3bca16c4b87ad0c7abfad97f6803898ee9b08a1f153a269140f0a08f50231d2
 
 ARG PNPM_VERSION=9.15.5
 ARG RTK_VERSION=0.45.0
@@ -10,8 +10,6 @@ ARG CURL_VERSION=8.14.1-2+deb13u4
 ARG GIT_VERSION=1:2.47.3-0+deb13u1
 
 LABEL org.harness-bench.runtime="felan-v1"
-LABEL org.harness-bench.source-commit="104faa5559029c8be9e8a1eb504d87974a5864e9"
-LABEL org.harness-bench.dependency-lock-sha256="c66b8b536006ad83c9f571f9f2c14a623bb24d11fbc5e1e863b30b3c14831ba6"
 LABEL org.harness-bench.rtk-version="${RTK_VERSION}"
 
 ENV RTK_TELEMETRY_DISABLED=1
@@ -36,19 +34,6 @@ RUN curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
     /bin/sh /tmp/install-rtk.sh \
   && test "$(rtk --version)" = "rtk ${RTK_VERSION}" \
   && rm /tmp/install-rtk.sh
-
-FROM base AS dependency-cache
-
-WORKDIR /opt/harness-deps/felan
-COPY evals/runtimes/felan/context/.npmrc ./
-COPY evals/runtimes/felan/context/pnpm-lock.yaml ./
-COPY evals/runtimes/felan/context/pnpm-workspace.yaml ./
-RUN --mount=type=cache,id=harness-bench-felan-pnpm,target=/root/.local/share/pnpm/store \
-  pnpm fetch --frozen-lockfile --store-dir /opt/harness-deps/felan-store
-
-FROM base
-
-COPY --from=dependency-cache /opt/harness-deps/felan-store /opt/harness-deps/felan-store
 
 ENV SHELL=/bin/bash
 

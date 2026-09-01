@@ -12,6 +12,12 @@ The authored ID is grouping metadata, not a configuration fingerprint. Profiles
 are intentionally explicit rather than inherited, so their effective settings are
 visible in one place.
 
+Profiles install the latest published Felan release rather than setting
+`config.packageVersion`. Refresh the managed image before a live comparison and
+record the resolved release with its results. The main config disables
+refresh-time base pulls because dependency cases use a local generic runtime;
+managed recipe layers are still rebuilt without cache.
+
 Correctness is the primary outcome. Cost, token usage, and latency are useful
 only when compared against successful runs with equivalent controls.
 
@@ -25,15 +31,17 @@ evals/cases/<family>/<case>/verifier/      hidden grading assets
 evals/fixtures/<name>/<version>/source/    immutable local starting workspaces
 evals/fixtures/<name>/<version>/fixture.json
                                             fixture provenance and integrity
-evals/runtimes/<name>/Dockerfile           shared toolchain/dependency images
+evals/runtimes/felan/Dockerfile            shared Node, pnpm, Git, and RTK image
 scripts/                                   generic project maintenance tools
 .harness-evals/                            ignored runs, reports, and caches
 ```
 
 The harness copies a local source, fixture, or exact Git checkout into an
-isolated run workspace. Runtime images contain reusable tools and immutable
-dependencies, not the workspace source. Hidden verifier assets are mounted only
-for grading and are not exposed to the evaluated agent.
+isolated run workspace. The shared runtime contains reusable tools; workspace
+setup installs application dependencies online from committed frozen lockfiles.
+Hidden verifier assets are mounted only for grading and are not exposed to the
+evaluated agent. Public source-backed cases pin a full Git commit; local fixtures
+remain available for authored snapshots.
 
 See [`AGENTS.md`](./AGENTS.md) for the complete authoring, fixture, runtime,
 verifier, validation, and paid-run conventions.
@@ -62,20 +70,35 @@ unless replacing it is explicitly requested.
 ```bash
 bun run list                               # non-smoke configuration
 bun run list:smoke                         # smoke-only configuration
-bun run build:runtime <runtime-name>
+bun run build:runtime
 bun run run --case <case-id> --agents <agent-name> --concurrency 1 --attempts 1
 bun run smoke                              # live smoke run
 bun run view
+bun node_modules/harness-evals/dist/cli.js list --config harness-evals.yaml
+bun node_modules/harness-evals/dist/cli.js view --benchmark all --config harness-evals.yaml --no-open
+bun node_modules/harness-evals/dist/cli.js export --benchmark prewalk --format json --output prewalk.json --config harness-evals.yaml
 ```
 
 - `list` and `list:smoke` validate their configuration and discovery without
   making a model call.
-- `build:runtime` builds a named reusable Docker runtime.
+- `build:runtime` builds the shared Felan Docker runtime.
 - `run` executes the selected evaluation and may consume paid or subscription
   usage.
 - `smoke` executes the smoke-only configuration and may consume paid or
   subscription usage.
 - `view` opens the framework's built-in report.
+- Each declared benchmark compares exactly one baseline with one candidate.
+  The combined report shows the case-balanced average percentage gain and the
+  minimum-to-maximum case gain. Positive gain is better after accounting for
+  whether the objective is minimized or maximized. The concise benchmark uses
+  provider-reported `usage.outputTokens`; it does not estimate tokens from word
+  or character counts. Detail pages retain per-test and per-attempt status,
+  failed assertion IDs, verifier failures, and timeout categories separately
+  from the aggregate quality gate.
+- Prewalk and RTK each cover three shared coding tasks: the original benchmark
+  task, the other benchmark's task, and a historical memory-summary-links
+  regression pinned to its pre-fix Felan commit. The expanded matrix is 18
+  attempts per benchmark at three trials per case.
 
 Do not start a provider-backed run without explicit authorization.
 

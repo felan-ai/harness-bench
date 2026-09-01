@@ -2,15 +2,17 @@ id: rtk-felan-project-instructions
 suite: rtk
 description: Compare RTK disabled versus enabled while fixing a real historical Felan project-instructions regression.
 image: harness-bench-felan-runtime:v1
-timeoutMs: 900000
+timeoutMs: 1800000
 workspace:
   git:
     repository: https://github.com/felan-ai/felan.git
     commit: 104faa5559029c8be9e8a1eb504d87974a5864e9
   setup:
     - command: pnpm
-      args: [install, --offline, --frozen-lockfile, --store-dir, /opt/harness-deps/felan-store]
+      args: [install, --frozen-lockfile, --store-dir, /tmp/pnpm-store]
       timeoutMs: 300000
+      network:
+        mode: default
 agents:
   include:
     - felan-no-rtk-optimizer
@@ -38,6 +40,19 @@ prompt: |
   and resource-loader tests before finishing; unrelated host-process integration
   tests are outside this task. Summarize the implementation and verification.
 assert:
+  - id: prewalk-entered
+    type: toolCalled
+    name: enter_prewalk
+    isError: false
+    when:
+      agent: felan-all
+  - id: prewalk-disabled
+    type: toolCalled
+    name: enter_prewalk
+    min: 0
+    max: 0
+    when:
+      agent: felan-no-prewalk
   - id: source-changed
     type: workspaceDiff
     minChanged: 1

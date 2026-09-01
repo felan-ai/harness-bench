@@ -1,12 +1,17 @@
 id: prewalk-checkout
 suite: prewalk
 description: Compare Felan with and without Prewalk on a non-trivial authenticated checkout task.
-image: harness-bench-storzy-runtime:v1
+image: harness-bench-felan-runtime:v1
 workspace:
-  fixture: evals/fixtures/storzy/v1/source
+  git:
+    repository: https://github.com/bugzy-ai/storzy.git
+    commit: 9cb213463222732cb955067953220d665b2f561b
   setup:
-    - command: ln
-      args: [-s, /opt/harness-deps/storzy/node_modules, node_modules]
+    - command: pnpm
+      args: [install, --frozen-lockfile, --store-dir, /tmp/pnpm-store]
+      timeoutMs: 300000
+      network:
+        mode: default
 agents:
   include:
     - felan-no-prewalk

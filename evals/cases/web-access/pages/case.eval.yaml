@@ -4,7 +4,7 @@ description: Compare multi-page content fetching with curl-based retrieval.
 image: harness-bench-felan-runtime:v1
 workspace: { fixture: evals/fixtures/felan-adapter-smoke/v1/source }
 agents:
-  include: [felan-web-access-off, felan-web-access-on]
+  include: [felan-no-web-access, felan-web-access]
 prompt: |
   I'm reviewing the web-access package at a specific Felan commit. From the
   three files below, can you tell me the package version, the model-preview

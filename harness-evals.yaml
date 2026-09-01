@@ -6,6 +6,7 @@ tests:
   - evals/cases/rtk/**/*.eval.yaml
   - evals/cases/web-access/**/*.eval.yaml
   - evals/cases/repository-fetch/**/*.eval.yaml
+  - evals/cases/memory/**/*.eval.yaml
 
 # The smoke config uses these same roots so local history and reports stay unified.
 artifactRoot: .harness-evals/runs
@@ -19,6 +20,8 @@ docker:
   repoPath: /workspace
   home: /tmp/felan-home
   envAllowlist: []
+  # Dependency cases layer Felan over a local runtime tag that cannot be pulled.
+  pullOnRefresh: false
 
 agents:
   # Public reports group results by comparisonId. Keep an ID stable for the same
@@ -30,7 +33,7 @@ agents:
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: max
-    timeoutMs: 900000
+    timeoutMs: 1800000
     auth:
       type: oauth
     useCurrentConfig: false
@@ -52,7 +55,7 @@ agents:
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: max
-    timeoutMs: 900000
+    timeoutMs: 1800000
     auth:
       type: oauth
     useCurrentConfig: false
@@ -68,7 +71,7 @@ agents:
             targetModel: openai-codex/gpt-5.6-luna
             targetThinking: medium
             restorePlanner: true
-            entryApproval: always
+            entryApproval: allow
         felanTui:
           memoryProcessing: false
 
@@ -79,12 +82,11 @@ agents:
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: max
-    timeoutMs: 900000
+    timeoutMs: 1800000
     auth:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.17.1
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -100,12 +102,11 @@ agents:
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: max
-    timeoutMs: 900000
+    timeoutMs: 1800000
     auth:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.17.1
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -124,12 +125,11 @@ agents:
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: max
-    timeoutMs: 900000
+    timeoutMs: 1800000
     auth:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.17.1
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -151,12 +151,11 @@ agents:
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: max
-    timeoutMs: 900000
+    timeoutMs: 1800000
     auth:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.17.1
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -203,12 +202,11 @@ agents:
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: max
-    timeoutMs: 900000
+    timeoutMs: 1800000
     auth:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.15.2
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -241,12 +239,11 @@ agents:
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: max
-    timeoutMs: 900000
+    timeoutMs: 1800000
     auth:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.15.2
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -272,19 +269,18 @@ agents:
         felanTui:
           memoryProcessing: false
 
-  felan-web-access-off:
+  felan-no-web-access:
     adapter: felan
     label: Felan · web access off
-    comparisonId: felan-web-access-off
+    comparisonId: felan-no-web-access
     provider: openai-codex
     model: gpt-5.6-terra
     thinking: low
-    timeoutMs: 600000
+    timeoutMs: 1800000
     auth:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.18.2
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -310,19 +306,18 @@ agents:
         felanTui:
           memoryProcessing: false
 
-  felan-web-access-on:
+  felan-web-access:
     adapter: felan
     label: Felan · web access on
-    comparisonId: felan-web-access-on
+    comparisonId: felan-web-access
     provider: openai-codex
     model: gpt-5.6-terra
     thinking: low
-    timeoutMs: 600000
+    timeoutMs: 1800000
     auth:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.18.2
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -356,6 +351,61 @@ scoring:
     weight: 0
   judgeScore:
     weight: 0
+
+# Benchmark objectives are independent from the weighted score above. They
+# compare declared arms across all attempts and gate resource metrics on quality.
+benchmarks:
+  output-style-concise:
+    revision: 3
+    label: Concise output style
+    description: Minimize provider-reported output tokens without losing required information.
+    select:
+      suites: [output-style]
+    arms:
+      baseline: felan-no-output-style
+      candidate: felan-concise
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 1
+    objective:
+      metric: usage.outputTokens
+      goal: minimize
+    secondaryMetrics: [cost.total, usage.promptTokens, usage.requests, duration.ms]
+
+  prewalk:
+    revision: 4
+    label: Prewalk routing cost
+    select:
+      cases: [prewalk-checkout, rtk-felan-project-instructions, memory-summary-links]
+    arms:
+      baseline: felan-no-prewalk
+      candidate: felan-all
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 1
+    objective:
+      metric: cost.total
+      goal: minimize
+    secondaryMetrics: [usage.promptTokens, usage.outputTokens, usage.requests, duration.ms]
+
+  rtk:
+    revision: 4
+    label: RTK context reduction
+    select:
+      cases: [rtk-felan-project-instructions, prewalk-checkout, memory-summary-links]
+    arms:
+      baseline: felan-no-rtk-optimizer
+      candidate: felan-rtk-optimizer
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 1
+    objective:
+      metric: usage.promptTokens
+      goal: minimize
+    secondaryMetrics: [usage.uncachedInputTokens, usage.cacheReadInputTokens, usage.outputTokens, cost.total]
 
 visualization:
   enabled: true

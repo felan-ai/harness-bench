@@ -4,7 +4,7 @@ description: Compare repository extraction with git clone and shell search.
 image: harness-bench-felan-runtime:v1
 workspace: { fixture: evals/fixtures/felan-adapter-smoke/v1/source }
 agents:
-  include: [felan-web-access-off, felan-web-access-on]
+  include: [felan-no-web-access, felan-web-access]
 prompt: |
   I'm trying to understand a few limits in Felan's web-access package. Could
   you inspect this exact repository revision and find the package version, the

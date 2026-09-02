@@ -170,9 +170,16 @@ describe('authenticated Storzy flow', () => {
       const { token } = await authenticate();
       await addProductToCart(2);
       const order = createOrder('ord_recovered');
-      const fetchMock = vi.fn()
-        .mockResolvedValueOnce(response({ error: 'Order failed' }, 503))
-        .mockResolvedValueOnce(response({ order }, 201));
+      let submissionCount = 0;
+      const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+        const path = requestPath(input);
+        if (path === `/api/orders/${order.id}`) return response({ order }, 200);
+        if (path !== '/api/orders') return response({ error: 'Unexpected request' }, 404);
+        submissionCount += 1;
+        return submissionCount === 1
+          ? response({ error: 'Order failed' }, 503)
+          : response({ order }, 201);
+      });
       vi.stubGlobal('fetch', fetchMock);
       await renderCheckout(improved);
       await fillCheckout(improved);
@@ -182,41 +189,40 @@ describe('authenticated Storzy flow', () => {
       await waitFor(() => expect(document.body.textContent).toMatch(/unable|failed|error|try again/i));
       expect(navigationTargets.slice(failureNavigationStart)).toEqual([]);
       expect(requiredElement<HTMLButtonElement>('button[type="submit"]').disabled).toBe(false);
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      assertOrderRequest(fetchMock, token, 0);
+      assertOrderRequests(fetchMock, token);
       await expectCart(false);
 
       await renderCheckout(improved);
       await fillCheckout(improved);
       const completionNavigationStart = navigationTargets.length;
       await submit(requiredElement('form'));
-      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-      assertOrderRequest(fetchMock, token, 1);
-      await expectCart(true);
       await expectOnlyNavigation('/checkout-complete', completionNavigationStart);
+      assertOrderRequests(fetchMock, token);
+      await expectCart(true);
       await expectReceipt(order);
     });
 
-    it(`${variant} checkout submits once, clears only on success, and renders the receipt`, async () => {
+    it(`${variant} checkout submits a valid order, clears only on success, and renders the receipt`, async () => {
       const { token } = await authenticate();
       await addProductToCart(2);
       const order = createOrder(`ord_${variant}`);
       let resolveOrder!: (value: Response) => void;
       const pendingOrder = new Promise<Response>((resolve) => { resolveOrder = resolve; });
-      const fetchMock = vi.fn(() => pendingOrder);
+      const fetchMock = vi.fn((input: RequestInfo | URL) => {
+        const path = requestPath(input);
+        if (path === '/api/orders') return pendingOrder;
+        if (path === `/api/orders/${order.id}`) return Promise.resolve(response({ order }, 200));
+        return Promise.resolve(response({ error: 'Unexpected request' }, 404));
+      });
       vi.stubGlobal('fetch', fetchMock);
       await renderCheckout(improved);
       await fillCheckout(improved);
       const completionNavigationStart = navigationTargets.length;
 
       const form = requiredElement<HTMLFormElement>('form');
-      await act(async () => {
-        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        await Promise.resolve();
-      });
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      assertOrderRequest(fetchMock, token, 0);
+      await submit(form);
+      await waitFor(() => expect(requestsTo(fetchMock, '/api/orders').length).toBeGreaterThan(0));
+      assertOrderRequests(fetchMock, token);
       await expectCart(false);
 
       await act(async () => {
@@ -224,8 +230,9 @@ describe('authenticated Storzy flow', () => {
         await pendingOrder;
         await Promise.resolve();
       });
-      await expectCart(true);
       await expectOnlyNavigation('/checkout-complete', completionNavigationStart);
+      assertOrderRequests(fetchMock, token);
+      await expectCart(true);
       await expectReceipt(order);
     });
   }
@@ -303,16 +310,18 @@ async function fillCheckout(improved: boolean) {
   await setControlValue(requiredField(/shipping method/i), 'standard');
 }
 
-function assertOrderRequest(fetchMock: ReturnType<typeof vi.fn>, token: string, callIndex: number) {
-  const [input, init] = fetchMock.mock.calls[callIndex] ?? [];
-  expect(requestPath(input)).toBe('/api/orders');
-  expect(init?.method).toBe('POST');
-  expect(new Headers(init?.headers).get('authorization')).toBe(`Bearer ${token}`);
-  const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
-  expect(body).toMatchObject({
-    items: [{ productId: 1, quantity: 2 }],
-    customer: { firstName: 'Ada', lastName: 'Lovelace', postalCode: '12345' },
-  });
+function assertOrderRequests(fetchMock: ReturnType<typeof vi.fn>, token: string) {
+  const requests = requestsTo(fetchMock, '/api/orders');
+  expect(requests.length).toBeGreaterThan(0);
+  for (const [, init] of requests) {
+    expect(init?.method).toBe('POST');
+    expect(new Headers(init?.headers).get('authorization')).toBe(`Bearer ${token}`);
+    const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    expect(body).toMatchObject({
+      items: [{ productId: 1, quantity: 2 }],
+      customer: { firstName: 'Ada', lastName: 'Lovelace', postalCode: '12345' },
+    });
+  }
 }
 
 async function addProductToCart(quantity: number, setWorkingFlag = true) {

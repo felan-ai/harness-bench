@@ -124,8 +124,11 @@ bun node_modules/harness-evals/dist/cli.js reprocess --source prewalk=<batch-id>
   `enter_prewalk` call; a missing or failed entry is a failed attempt. The
   baseline must never call the tool. The matrix is 12 attempts at three trials
   per case.
-- RTK retains all three tasks and uses the same outcome-oriented prompts; its
-  matrix is 18 attempts at three trials per case.
+- RTK uses the project-instructions and checkout tasks with the same
+  outcome-oriented prompts. The open-ended `memory-summary-links` task remains
+  available as a regression eval but is excluded from this resource benchmark
+  because execution-path variance can dominate optimizer savings. The RTK
+  matrix is 12 attempts at three trials per case.
 Do not start a provider-backed run without explicit authorization.
 
 ## Reports and artifacts

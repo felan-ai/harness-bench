@@ -34,10 +34,29 @@ agents:
       useCurrentConfig: false
       settings:
         builtinExtensions:
-          memory: false
+          askUser: false
+          backgroundBash: false
           browser: false
-          webAccess: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
           prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: false
         felanTui:
           memoryProcessing: false
 

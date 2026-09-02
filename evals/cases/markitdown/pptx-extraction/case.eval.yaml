@@ -4,6 +4,12 @@ description: Compare cold extraction of facts spread across a PPTX deck.
 image: harness-bench-felan-runtime:v1
 workspace:
   fixture: evals/fixtures/markitdown/v1/source
+  setup:
+    - command: markitdown
+      args: [docs/northstar-launch.pptx]
+      timeoutMs: 60000
+      network:
+        mode: none
 agents:
   include: [felan-no-markitdown, felan-markitdown]
 prompt: |
@@ -21,6 +27,8 @@ assert:
     name: read
     min: 1
     argsContain: [docs/northstar-launch.pptx]
+    resultContains: ["<markitdown_conversion_diagnostic", docs/northstar-launch.pptx]
+    isError: false
     when:
       agent: felan-markitdown
   - { type: workspaceDiff, changedFiles: [] }

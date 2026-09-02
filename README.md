@@ -12,11 +12,12 @@ The authored ID is grouping metadata, not a configuration fingerprint. Profiles
 are intentionally explicit rather than inherited, so their effective settings are
 visible in one place.
 
-Profiles install the latest published Felan release rather than setting
-`config.packageVersion`. Refresh the managed image before a live comparison and
-record the resolved release with its results. The main config disables
-refresh-time base pulls because dependency cases use a local generic runtime;
-managed recipe layers are still rebuilt without cache.
+Profiles normally install the latest published Felan release rather than setting
+`config.packageVersion`; the MarkItDown benchmark documents its compatibility
+pin separately. Refresh the managed image before a live comparison and record
+the resolved release with its results. The main config disables refresh-time
+base pulls because dependency cases use a local generic runtime; managed recipe
+layers are still rebuilt without cache.
 
 Correctness is the primary outcome. Cost, token usage, and latency are useful
 only when compared against successful runs with equivalent controls.
@@ -31,7 +32,7 @@ evals/cases/<family>/<case>/verifier/      hidden grading assets
 evals/fixtures/<name>/<version>/source/    immutable local starting workspaces
 evals/fixtures/<name>/<version>/fixture.json
                                             fixture provenance and integrity
-evals/runtimes/felan/Dockerfile            shared Node, pnpm, Git, and RTK image
+evals/runtimes/felan/Dockerfile            shared Node, pnpm, Git, RTK, and MarkItDown image
 scripts/                                   generic project maintenance tools
 .harness-evals/                            ignored runs, reports, and caches
 ```
@@ -73,11 +74,11 @@ bun run list:smoke                         # smoke-only configuration
 bun run build:runtime
 bun run run --case <case-id> --agents <agent-name> --concurrency 1 --attempts 1
 bun run smoke                              # live smoke run
-bun run view
+bun run view                                # last invocation only
 bun node_modules/harness-evals/dist/cli.js list --config harness-evals.yaml
-bun node_modules/harness-evals/dist/cli.js view --benchmark all --config harness-evals.yaml --no-open
+bun node_modules/harness-evals/dist/cli.js view --benchmark all --config harness-evals.yaml --no-open # combined benchmarks
 bun node_modules/harness-evals/dist/cli.js export --benchmark prewalk --format json --output prewalk.json --config harness-evals.yaml
-bun scripts/reverify-retained.ts --source prewalk=<batch-id> --source rtk=<batch-id> --concurrency 3
+bun node_modules/harness-evals/dist/cli.js reprocess --source prewalk=<batch-id> --source rtk=<batch-id> --concurrency 1 --config harness-evals.yaml
 ```
 
 - `list` and `list:smoke` validate their configuration and discovery without
@@ -87,11 +88,21 @@ bun scripts/reverify-retained.ts --source prewalk=<batch-id> --source rtk=<batch
   usage.
 - `smoke` executes the smoke-only configuration and may consume paid or
   subscription usage.
-- `scripts/reverify-retained.ts` replays only current network-isolated verifiers
+- `harness-evals reprocess` replays only current network-isolated verifiers
   against explicitly selected retained workspaces. It creates separate,
-  non-publishable derived runs and never executes an agent or provider call.
-- `view` opens the framework's built-in report.
+  non-publishable derived runs, preserves source artifacts, and never executes
+  an agent or provider call. Use `--dry-run` to validate the matrix first.
+- `view` opens `.harness-evals/output/latest/`, which contains only the last
+  invocation. It is not the combined benchmark dashboard. Use
+  `view --benchmark all` to regenerate the dashboard at
+  `.harness-evals/output/benchmarks/index.html`.
 - Each declared benchmark compares exactly one baseline with one candidate.
+  Non-MarkItDown profiles share an explicit controlled baseline with Codex,
+  Tasks, and progressive Context enabled; unrelated built-ins stay disabled
+  unless they are the feature under test. MarkItDown retains its specialized
+  ordinary-`read` profile because Codex replaces that tool surface. Since Felan
+  enables newly registered built-ins by default, review and extend these maps
+  before running a newer release.
   The combined report shows the case-balanced average **raw percentage change**
   (`candidate - baseline`) and the minimum-to-maximum case change. Reductions
   retain a `−` sign and increases retain a `+` sign; green/red assessment is
@@ -103,22 +114,18 @@ bun scripts/reverify-retained.ts --source prewalk=<batch-id> --source rtk=<batch
   failed assertion IDs, verifier failures, and timeout categories separately
   from the aggregate quality gate.
 - The Prewalk benchmark compares organic routing with Prewalk disabled across
-  three shared coding tasks: the original benchmark task, the other benchmark's
-  task, and a historical memory-summary-links regression pinned to its pre-fix
-  Felan commit. Prompts describe outcomes and constraints without requesting
-  Prewalk or prescribing an implementation plan. Hidden verifiers exercise
-  observable behavior plus the documented source boundaries rather than a
-  required code shape. Every candidate attempt must make a successful
+  two coding tasks: the authenticated checkout task and a historical
+  memory-summary-links regression pinned to its pre-fix Felan commit. The
+  project-instructions task remains RTK-only because it did not reliably trigger
+  organic Prewalk entry. Prompts describe outcomes and constraints without
+  requesting Prewalk or prescribing an implementation plan. Hidden verifiers
+  exercise observable behavior plus the documented source boundaries rather than
+  a required code shape. Every candidate attempt must make a successful
   `enter_prewalk` call; a missing or failed entry is a failed attempt. The
-  baseline must never call the tool. The expanded matrix is 18 attempts at three
-  trials per case.
-- RTK covers the same three tasks and uses the same outcome-oriented prompts;
-  its matrix is also 18 attempts at three trials per case.
-- Web access compares the enabled and disabled extension across five
-  source-backed research tasks. Its primary objective is provider-reported
-  `cost.total`, gated on every attempt passing, for 30 attempts at three trials
+  baseline must never call the tool. The matrix is 12 attempts at three trials
   per case.
-
+- RTK retains all three tasks and uses the same outcome-oriented prompts; its
+  matrix is 18 attempts at three trials per case.
 Do not start a provider-backed run without explicit authorization.
 
 ## Reports and artifacts

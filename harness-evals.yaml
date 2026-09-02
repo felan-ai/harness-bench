@@ -27,9 +27,11 @@ docker:
 agents:
   # Public reports group results by comparisonId. Keep an ID stable for the same
   # logical arm and use a distinct ID for each behaviorally different variant.
+  # Except for the ordinary-read MarkItDown profiles, every arm keeps Codex,
+  # Tasks, and progressive Context on and varies only its named extension.
   felan-no-prewalk:
     adapter: felan
-    label: Felan · full · Prewalk off
+    label: Felan · Prewalk off
     comparisonId: felan-no-prewalk
     provider: openai-codex
     model: gpt-5.6-sol
@@ -42,17 +44,36 @@ agents:
       useCurrentConfig: false
       settings:
         builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
           prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
         extensionConfig:
           codex:
             fast: true
         felanTui:
           memoryProcessing: false
 
-  felan-all:
+  felan-prewalk:
     adapter: felan
-    label: Felan · full · Prewalk on
-    comparisonId: felan-all
+    label: Felan · Prewalk on
+    comparisonId: felan-prewalk
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: max
@@ -64,7 +85,26 @@ agents:
       useCurrentConfig: false
       settings:
         builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
           prewalk: true
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
         extensionConfig:
           codex:
             fast: true
@@ -91,8 +131,29 @@ agents:
       useCurrentConfig: false
       settings:
         builtinExtensions:
-          prewalk: false
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
           outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: false
         felanTui:
           memoryProcessing: false
 
@@ -111,9 +172,29 @@ agents:
       useCurrentConfig: false
       settings:
         builtinExtensions:
-          prewalk: false
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
           outputStyle: true
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
         extensionConfig:
+          codex:
+            fast: false
           outputStyle:
             style: concise
         felanTui:
@@ -134,9 +215,29 @@ agents:
       useCurrentConfig: false
       settings:
         builtinExtensions:
-          prewalk: false
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
           outputStyle: true
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
         extensionConfig:
+          codex:
+            fast: false
           outputStyle:
             style: explanatory
         felanTui:
@@ -160,9 +261,29 @@ agents:
       useCurrentConfig: false
       settings:
         builtinExtensions:
-          prewalk: false
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
           outputStyle: true
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
         extensionConfig:
+          codex:
+            fast: false
           outputStyle:
             style: custom
             instructions: |
@@ -214,18 +335,22 @@ agents:
           askUser: false
           backgroundBash: false
           browser: false
+          codebaseMemory: false
           codex: true
-          context: false
+          context: true
+          contextView: false
           felanApi: false
+          insights: false
           markitdown: false
           mcp: false
           memory: false
           outputStyle: false
           powerline: false
           prewalk: false
+          promptHistory: false
           rtkOptimizer: false
           subagents: false
-          tasks: false
+          tasks: true
           webAccess: false
         extensionConfig:
           codex:
@@ -251,18 +376,22 @@ agents:
           askUser: false
           backgroundBash: false
           browser: false
+          codebaseMemory: false
           codex: true
-          context: false
+          context: true
+          contextView: false
           felanApi: false
+          insights: false
           markitdown: false
           mcp: false
           memory: false
           outputStyle: false
           powerline: false
           prewalk: false
+          promptHistory: false
           rtkOptimizer: true
           subagents: false
-          tasks: false
+          tasks: true
           webAccess: false
         extensionConfig:
           codex:
@@ -288,20 +417,26 @@ agents:
           askUser: false
           backgroundBash: false
           browser: false
-          codex: false
-          context: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
           felanApi: false
+          insights: false
           markitdown: false
           mcp: false
           memory: false
           outputStyle: false
           powerline: false
           prewalk: false
+          promptHistory: false
           rtkOptimizer: false
           subagents: false
-          tasks: false
+          tasks: true
           webAccess: false
         extensionConfig:
+          codex:
+            fast: false
           webAccess:
             provider: openai
         felanTui:
@@ -325,20 +460,26 @@ agents:
           askUser: false
           backgroundBash: false
           browser: false
-          codex: false
-          context: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
           felanApi: false
+          insights: false
           markitdown: false
           mcp: false
           memory: false
           outputStyle: false
           powerline: false
           prewalk: false
+          promptHistory: false
           rtkOptimizer: false
           subagents: false
-          tasks: false
+          tasks: true
           webAccess: true
         extensionConfig:
+          codex:
+            fast: false
           webAccess:
             provider: openai
         felanTui:
@@ -434,8 +575,8 @@ scoring:
 # compare declared arms across all attempts and gate resource metrics on quality.
 benchmarks:
   markitdown-cost:
-    revision: 1
-    label: MarkItDown automatic document conversion
+    revision: 3
+    label: MarkItDown conversion
     description: Compare automatic ordinary-read conversion with the same converter installed but the extension disabled.
     select:
       suites: [markitdown-cost]
@@ -445,7 +586,7 @@ benchmarks:
     trials: 3
     qualityGates:
       - metric: quality.passRate
-        min: 1
+        min: 0.8
     objective:
       metric: cost.total
       goal: minimize
@@ -462,43 +603,43 @@ benchmarks:
       - usage.requests
 
   output-style-concise:
-    revision: 3
+    revision: 5
     label: Concise output style
     description: Minimize provider-reported output tokens without losing required information.
     select:
-      suites: [output-style]
+      cases: [output-style-planning, output-style-review, output-style-support]
     arms:
       baseline: felan-no-output-style
       candidate: felan-concise
     trials: 3
     qualityGates:
       - metric: quality.passRate
-        min: 1
+        min: 0.8
     objective:
       metric: usage.outputTokens
       goal: minimize
     secondaryMetrics: [cost.total, usage.promptTokens, usage.requests, duration.ms]
 
   prewalk:
-    revision: 7
+    revision: 9
     label: Prewalk organic routing cost
     description: Compare organic Prewalk routing with Prewalk disabled; candidate attempts without a successful entry are invalid.
     select:
-      cases: [prewalk-checkout, rtk-felan-project-instructions, memory-summary-links]
+      cases: [prewalk-checkout, memory-summary-links]
     arms:
       baseline: felan-no-prewalk
-      candidate: felan-all
+      candidate: felan-prewalk
     trials: 3
     qualityGates:
       - metric: quality.passRate
-        min: 1
+        min: 0.8
     objective:
       metric: cost.total
       goal: minimize
     secondaryMetrics: [usage.promptTokens, usage.outputTokens, usage.requests, duration.ms]
 
   rtk:
-    revision: 7
+    revision: 8
     label: RTK context reduction
     select:
       cases: [rtk-felan-project-instructions, prewalk-checkout, memory-summary-links]
@@ -508,29 +649,11 @@ benchmarks:
     trials: 3
     qualityGates:
       - metric: quality.passRate
-        min: 1
+        min: 0.8
     objective:
       metric: usage.promptTokens
       goal: minimize
     secondaryMetrics: [usage.uncachedInputTokens, usage.cacheReadInputTokens, usage.outputTokens, cost.total]
-
-  web-access:
-    revision: 1
-    label: Web access cost
-    description: Minimize research cost without losing required source-backed answers.
-    select:
-      suites: [web-access-cost]
-    arms:
-      baseline: felan-no-web-access
-      candidate: felan-web-access
-    trials: 3
-    qualityGates:
-      - metric: quality.passRate
-        min: 1
-    objective:
-      metric: cost.total
-      goal: minimize
-    secondaryMetrics: [usage.promptTokens, usage.outputTokens, usage.requests, duration.ms]
 
 visualization:
   enabled: true

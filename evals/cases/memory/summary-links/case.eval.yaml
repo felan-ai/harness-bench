@@ -19,7 +19,7 @@ image: harness-bench-felan-runtime:v1
 agents:
   include:
     - felan-no-prewalk
-    - felan-all
+    - felan-prewalk
 prompt: |
   Restore safe reading and projection of linked memory summaries in Felan.
 
@@ -51,7 +51,7 @@ assert:
     min: 1
     isError: false
     when:
-      agent: felan-all
+      agent: felan-prewalk
   - id: prewalk-disabled
     type: toolCalled
     name: enter_prewalk

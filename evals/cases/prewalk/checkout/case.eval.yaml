@@ -15,7 +15,7 @@ workspace:
 agents:
   include:
     - felan-no-prewalk
-    - felan-all
+    - felan-prewalk
 prompt: |
   Complete the authenticated checkout flow for this Storzy application.
 
@@ -45,7 +45,7 @@ assert:
     min: 1
     isError: false
     when:
-      agent: felan-all
+      agent: felan-prewalk
   - id: prewalk-disabled
     type: toolCalled
     name: enter_prewalk

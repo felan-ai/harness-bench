@@ -43,7 +43,7 @@ assert:
     min: 1
     isError: false
     when:
-      agent: felan-all
+      agent: felan-prewalk
   - id: prewalk-disabled
     type: toolCalled
     name: enter_prewalk

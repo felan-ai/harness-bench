@@ -6,7 +6,15 @@ const rewardPath = `${workspace}/.harness-evals-reward.txt`;
 const hiddenTest = `${workspace}/packages/agent-core/test/harness-project-instructions.test.ts`;
 const allowedSourcePrefix = 'packages/agent-core/src/';
 
+class InfrastructureFailure extends Error {
+  constructor(message) {
+    super(message);
+    this.exitCode = 137;
+  }
+}
+
 let passed = false;
+let infrastructureExitCode;
 try {
   verifyWorkspaceBoundary();
   await copyFile('/tests/project-instructions.test.ts', hiddenTest);
@@ -24,6 +32,7 @@ try {
   run('pnpm', ['--filter', '@felan-ai/agent-core', 'build']);
   passed = true;
 } catch (error) {
+  if (error instanceof InfrastructureFailure) infrastructureExitCode = error.exitCode;
   console.error(error instanceof Error ? error.message : String(error));
 } finally {
   await rm(hiddenTest, { force: true });
@@ -31,7 +40,7 @@ try {
 }
 
 console.log(passed ? '1' : '0');
-if (!passed) process.exitCode = 1;
+if (!passed) process.exitCode = infrastructureExitCode ?? 1;
 
 function verifyWorkspaceBoundary() {
   const head = capture('git', ['rev-parse', 'HEAD']).trim();
@@ -51,8 +60,10 @@ function verifyWorkspaceBoundary() {
     .filter(Boolean)
     .flatMap((line) => line.slice(3).split(' -> '));
 
-  if (changedPaths.length === 0) throw new Error('no implementation changes found');
-  const disallowed = changedPaths.filter((path) => !path.startsWith(allowedSourcePrefix));
+  const relevantPaths = changedPaths.filter((path) => path !== '.harness-evals-reward.txt');
+
+  if (relevantPaths.length === 0) throw new Error('no implementation changes found');
+  const disallowed = relevantPaths.filter((path) => !path.startsWith(allowedSourcePrefix));
   if (disallowed.length > 0) {
     throw new Error(`changes outside ${allowedSourcePrefix}: ${disallowed.join(', ')}`);
   }
@@ -82,5 +93,8 @@ function run(command, args) {
   if (result.stdout) process.stdout.write(result.stdout);
   if (result.stderr) process.stderr.write(result.stderr);
   if (result.error) throw result.error;
+  if (result.status === 137 || result.signal === 'SIGKILL') {
+    throw new InfrastructureFailure(`${command} ${args.join(' ')} exited with 137`);
+  }
   if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
 }

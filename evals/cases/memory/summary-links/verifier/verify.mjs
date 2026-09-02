@@ -9,6 +9,7 @@ const hiddenStoreTest = `${workspace}/apps/tui/test/harness-memory-store.test.ts
 const allowedPrefixes = ['packages/ext-memory/src/', 'apps/tui/src/memory/'];
 const failures = [];
 let rewardPathPrepared = false;
+let infrastructureExitCode;
 
 try {
   const rewardPathSafe = await prepareRewardPath();
@@ -53,7 +54,7 @@ if (failures.length > 0) {
   for (const failure of failures) console.error(`- ${failure}`);
 }
 console.log(failures.length === 0 ? '1' : '0');
-if (failures.length > 0) process.exitCode = 1;
+if (failures.length > 0) process.exitCode = infrastructureExitCode ?? 1;
 
 async function prepareHiddenTest(label, source, target) {
   try {
@@ -121,7 +122,9 @@ function checkCommand(label, command, args) {
   if (result.error) {
     recordFailure(label, result.error);
   } else if (result.status !== 0) {
-    failures.push(`${label}: ${command} ${args.join(' ')} exited with ${result.status}`);
+    const exitCode = result.status === 137 || result.signal === 'SIGKILL' ? 137 : result.status;
+    if (exitCode === 137) infrastructureExitCode = 137;
+    failures.push(`${label}: ${command} ${args.join(' ')} exited with ${exitCode}`);
   }
 }
 

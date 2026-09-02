@@ -11,8 +11,16 @@ const rewardPath = join(workspace, '.harness-evals-reward.txt');
 const expectedHead = '9cb213463222732cb955067953220d665b2f561b';
 const allowedSourcePrefixes = ['app/', 'components/', 'hooks/', 'lib/', 'styles/'];
 
+class InfrastructureFailure extends Error {
+  constructor(message) {
+    super(message);
+    this.exitCode = 137;
+  }
+}
+
 let passed = false;
 let rewardPathPrepared = false;
+let infrastructureExitCode;
 try {
   const rewardPathSafe = await prepareRewardPath();
   rewardPathPrepared = true;
@@ -46,6 +54,7 @@ try {
   ]);
   passed = true;
 } catch (error) {
+  if (error instanceof InfrastructureFailure) infrastructureExitCode = error.exitCode;
   console.error(error instanceof Error ? error.message : String(error));
 } finally {
   await Promise.all([
@@ -59,7 +68,7 @@ try {
 }
 
 console.log(passed ? '1' : '0');
-if (!passed) process.exitCode = 1;
+if (!passed) process.exitCode = infrastructureExitCode ?? 1;
 
 async function prepareRewardPath() {
   let safe = true;
@@ -136,5 +145,8 @@ function run(command, args, env = {}) {
   if (result.stdout) process.stdout.write(result.stdout);
   if (result.stderr) process.stderr.write(result.stderr);
   if (result.error) throw result.error;
+  if (result.status === 137 || result.signal === 'SIGKILL') {
+    throw new InfrastructureFailure(`${command} ${args.join(' ')} exited with 137`);
+  }
   if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
 }

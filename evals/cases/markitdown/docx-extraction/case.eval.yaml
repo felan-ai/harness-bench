@@ -4,6 +4,12 @@ description: Compare cold extraction of narrative facts from a DOCX document.
 image: harness-bench-felan-runtime:v1
 workspace:
   fixture: evals/fixtures/markitdown/v1/source
+  setup:
+    - command: markitdown
+      args: [docs/orion-service-brief.docx]
+      timeoutMs: 60000
+      network:
+        mode: none
 agents:
   include: [felan-no-markitdown, felan-markitdown]
 prompt: |
@@ -18,6 +24,8 @@ assert:
     name: read
     min: 1
     argsContain: [docs/orion-service-brief.docx]
+    resultContains: ["<markitdown_conversion_diagnostic", docs/orion-service-brief.docx]
+    isError: false
     when:
       agent: felan-markitdown
   - { type: workspaceDiff, changedFiles: [] }

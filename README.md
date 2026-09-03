@@ -103,16 +103,19 @@ bun node_modules/harness-evals/dist/cli.js reprocess --source prewalk=<batch-id>
   ordinary-`read` profile because Codex replaces that tool surface. Since Felan
   enables newly registered built-ins by default, review and extend these maps
   before running a newer release.
-  The combined report shows the case-balanced average **raw percentage change**
-  (`candidate - baseline`) and the minimum-to-maximum case change. Reductions
-  retain a `−` sign and increases retain a `+` sign; green/red assessment is
-  determined separately from the declared objective (`minimize` or `maximize`).
+  Every benchmark uses provider-reported `cost.total` as its primary minimized
+  objective. MarkItDown and RTK additionally minimize `usage.promptTokens`; the
+  concise output-style benchmark additionally minimizes `usage.outputTokens`.
+  The report's full metrics matrix also retains duration, cache, request,
+  quality, cost, token, and custom numeric metrics.
+  The combined report shows the case-balanced average goal-aware gain and the
+  minimum-to-maximum case range. Positive values move in the objective's desired
+  direction; quality-regressed movement is not credited as a gain.
   A quality-regressed comparison is marked ineligible and its resource change
-  is not credited as an improvement. The concise benchmark uses
-  provider-reported `usage.outputTokens`; it does not estimate tokens from word
-  or character counts. Detail pages retain per-test and per-attempt status,
-  failed assertion IDs, verifier failures, and timeout categories separately
-  from the aggregate quality gate.
+  is not credited as an improvement. Output-token metrics are provider-reported;
+  the benchmarks do not estimate tokens from word or character counts. Detail
+  pages retain per-test and per-attempt status, failed assertion IDs, verifier
+  failures, and timeout categories separately from the aggregate quality gate.
 - The Prewalk benchmark compares organic routing with Prewalk disabled across
   two coding tasks: the authenticated checkout task and a historical
   memory-summary-links regression pinned to its pre-fix Felan commit. The
@@ -129,6 +132,19 @@ bun node_modules/harness-evals/dist/cli.js reprocess --source prewalk=<batch-id>
   available as a regression eval but is excluded from this resource benchmark
   because execution-path variance can dominate optimizer savings. The RTK
   matrix is 12 attempts at three trials per case.
+- The Subagents benchmark gives Sol/max the single instruction `Explore this
+  repository.` against Felan revision
+  `5e67c921794c00ad23e0a223299a2a1fc8a0f3fd`. Its six-attempt matrix compares
+  `felan-no-subagents` with `felan-delegated-exploration`; the profiles are
+  identical apart from `builtinExtensions.subagents` being `false` or `true`.
+  A candidate attempt must organically make at least one successful `Agent`
+  call with `subagent_type: explore`; the bundled read-focused profile uses the
+  low model tier with thinking off. The control must make no `Agent` calls. The
+  benchmark minimizes `cost.total` and `usage.promptTokens`, retains output
+  tokens in the full metrics matrix, and uses three trials per arm with an 0.8
+  quality pass-rate gate. Current Felan headless telemetry reports only the root
+  session, so total cost and token conclusions require descendant-session usage
+  aggregation before a provider-backed result is treated as authoritative.
 Do not start a provider-backed run without explicit authorization.
 
 ## Reports and artifacts

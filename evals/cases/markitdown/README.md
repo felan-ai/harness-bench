@@ -51,10 +51,11 @@ bun run run --benchmark markitdown-cost --concurrency 1 --refresh-managed-image
 ## Metrics and interpretation
 
 `markitdown-cost` requires three attempts per case and arm, applies a `0.8`
-`quality.passRate` floor, minimizes median `cost.total`, and records duration,
-prompt/input cache, output-token, and request metrics. Built-in run artifacts
-also retain full tool calls and results, failed calls, retries, total tokens,
-workspace changes, verifier rewards, and end-to-end duration.
+`quality.passRate` floor, minimizes median `cost.total`, and uses prompt tokens
+as its secondary minimized objective. The full matrix also records duration and
+output-token metrics. Built-in run artifacts also retain full
+tool calls and results, failed calls, retries, total tokens, workspace changes,
+verifier rewards, and end-to-end duration.
 
 Inspect correctness before cost. Keep failed, timed-out, and incomplete attempts
 in the report. Compare each case separately before using the macro average:

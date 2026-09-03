@@ -8,6 +8,7 @@ tests:
   - evals/cases/web-access/**/*.eval.yaml
   - evals/cases/repository-fetch/**/*.eval.yaml
   - evals/cases/memory/**/*.eval.yaml
+  - evals/cases/subagents/**/*.eval.yaml
 
 # The smoke config uses these same roots so local history and reports stay unified.
 artifactRoot: .harness-evals/runs
@@ -317,6 +318,88 @@ agents:
         felanTui:
           memoryProcessing: false
 
+  felan-no-subagents:
+    adapter: felan
+    label: Felan · subagents off
+    comparisonId: felan-no-subagents
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 1800000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: true
+        felanTui:
+          memoryProcessing: false
+
+  felan-delegated-exploration:
+    adapter: felan
+    label: Felan · delegated exploration
+    comparisonId: felan-delegated-exploration
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 1800000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: true
+          tasks: true
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: true
+        felanTui:
+          memoryProcessing: false
+
   felan-no-rtk-optimizer:
     adapter: felan
     label: Felan · RTK optimizer off
@@ -574,8 +657,27 @@ scoring:
 # Benchmark objectives are independent from the weighted score above. They
 # compare declared arms across all attempts and gate resource metrics on quality.
 benchmarks:
-  markitdown-cost:
+  subagents:
     revision: 3
+    label: Subagents organic exploration
+    description: Compare organic repository exploration with and without read-focused subagents.
+    select:
+      cases: [subagents-codebase-exploration]
+    arms:
+      baseline: felan-no-subagents
+      candidate: felan-delegated-exploration
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 0.8
+    objective:
+      - metric: cost.total
+        goal: minimize
+      - metric: usage.promptTokens
+        goal: minimize
+
+  markitdown-cost:
+    revision: 5
     label: MarkItDown conversion
     description: Compare automatic ordinary-read conversion with the same converter installed but the extension disabled.
     select:
@@ -588,24 +690,18 @@ benchmarks:
       - metric: quality.passRate
         min: 0.8
     objective:
-      metric: cost.total
-      goal: minimize
+      - metric: cost.total
+        goal: minimize
+      - metric: usage.promptTokens
+        goal: minimize
     aggregation:
       trials: median
       cases: macroMean
-    secondaryMetrics:
-      - duration.ms
-      - usage.promptTokens
-      - usage.uncachedInputTokens
-      - usage.cacheReadInputTokens
-      - usage.cacheWriteInputTokens
-      - usage.outputTokens
-      - usage.requests
 
   output-style-concise:
-    revision: 5
+    revision: 7
     label: Concise output style
-    description: Minimize provider-reported output tokens without losing required information.
+    description: Compare concise output with output style disabled while preserving required information.
     select:
       cases: [output-style-planning, output-style-review, output-style-support]
     arms:
@@ -616,12 +712,13 @@ benchmarks:
       - metric: quality.passRate
         min: 0.8
     objective:
-      metric: usage.outputTokens
-      goal: minimize
-    secondaryMetrics: [cost.total, usage.promptTokens, usage.requests, duration.ms]
+      - metric: cost.total
+        goal: minimize
+      - metric: usage.outputTokens
+        goal: minimize
 
   prewalk:
-    revision: 10
+    revision: 11
     label: Prewalk organic routing cost
     description: Compare organic Prewalk routing with Prewalk disabled; candidate attempts without a successful entry are invalid.
     select:
@@ -634,12 +731,11 @@ benchmarks:
       - metric: quality.passRate
         min: 0.8
     objective:
-      metric: cost.total
-      goal: minimize
-    secondaryMetrics: [usage.promptTokens, usage.outputTokens, usage.requests, duration.ms]
+      - metric: cost.total
+        goal: minimize
 
   rtk:
-    revision: 10
+    revision: 12
     label: RTK context reduction
     select:
       cases: [rtk-felan-project-instructions, prewalk-checkout]
@@ -651,9 +747,10 @@ benchmarks:
       - metric: quality.passRate
         min: 0.8
     objective:
-      metric: usage.promptTokens
-      goal: minimize
-    secondaryMetrics: [usage.uncachedInputTokens, usage.cacheReadInputTokens, usage.outputTokens, cost.total]
+      - metric: cost.total
+        goal: minimize
+      - metric: usage.promptTokens
+        goal: minimize
 
 visualization:
   enabled: true

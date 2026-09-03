@@ -1,0 +1,62 @@
+[
+  {
+    "id": "contract-shape",
+    "area": "1-contract-and-host-boundary",
+    "patterns": ["FelanExtension", "extensions\\.ts"]
+  },
+  {
+    "id": "host-api",
+    "area": "1-contract-and-host-boundary",
+    "patterns": ["ExtensionAPI", "pi-coding-agent"]
+  },
+  {
+    "id": "binding",
+    "area": "2-loading-and-binding",
+    "patterns": ["(bindFelanExtension|InlineExtension)", "extensions\\.ts"]
+  },
+  {
+    "id": "loading",
+    "area": "2-loading-and-binding",
+    "patterns": ["loadFelanExtensions", "(import|duplicate)"]
+  },
+  {
+    "id": "config-fields",
+    "area": "3-declarative-config",
+    "patterns": ["configField", "extension-config\\.ts"]
+  },
+  {
+    "id": "config-resolution",
+    "area": "3-declarative-config",
+    "patterns": ["associateExtensionConfig", "(getExtensionConfigDefinition|WeakMap)"]
+  },
+  {
+    "id": "builtin-enablement",
+    "area": "4-builtin-enable-disable",
+    "patterns": ["isBuiltinExtensionEnabled", "settings\\.ts"]
+  },
+  {
+    "id": "builtin-consumption",
+    "area": "4-builtin-enable-disable",
+    "patterns": ["(resolveBuiltinExtensionPackages|dependencies\\.ts)"]
+  },
+  {
+    "id": "tool-registration",
+    "area": "5-tool-to-model-path",
+    "patterns": ["registerTool"]
+  },
+  {
+    "id": "capability-registration",
+    "area": "5-tool-to-model-path",
+    "patterns": ["registerCapability", "(CapabilityCollector|capabilities\\.ts)"]
+  },
+  {
+    "id": "worked-example",
+    "area": "6-worked-example",
+    "patterns": ["(ext-tasks|tasksExtension)", "(registerTool|TaskCreate)"]
+  },
+  {
+    "id": "exploration-breadth",
+    "area": "6-worked-example",
+    "patterns": ["__BREADTH__"]
+  }
+]

@@ -1,6 +1,7 @@
 version: 1
 
 tests:
+  - evals/cases/codebase-memory/**/*.eval.yaml
   - evals/cases/output-style/**/*.eval.yaml
   - evals/cases/prewalk/**/*.eval.yaml
   - evals/cases/rtk/**/*.eval.yaml
@@ -646,6 +647,94 @@ agents:
         felanTui:
           memoryProcessing: false
 
+  # Codebase Memory (CBM) A/B pair. Identical except builtinExtensions.codebaseMemory.
+  # felan 0.21.3 bundles @felan-ai/ext-codebase-memory 0.1.5, which hard-pins the
+  # codebase-memory-mcp binary at 0.10.8 (strict equality; a mismatch disables the
+  # extension nonfatally). The binary is baked into evals/runtimes/felan/Dockerfile.
+  felan-cbm-off:
+    adapter: felan
+    label: Felan · Codebase Memory off
+    comparisonId: felan-cbm-off
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: medium
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      packageVersion: 0.21.3
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: true
+        felanTui:
+          memoryProcessing: false
+
+  felan-cbm-on:
+    adapter: felan
+    label: Felan · Codebase Memory on
+    comparisonId: felan-cbm-on
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: medium
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      packageVersion: 0.21.3
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: true
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: true
+        felanTui:
+          memoryProcessing: false
+
 scoring:
   verifierReward:
     weight: 1
@@ -657,6 +746,33 @@ scoring:
 # Benchmark objectives are independent from the weighted score above. They
 # compare declared arms across all attempts and gate resource metrics on quality.
 benchmarks:
+  codebase-memory:
+    revision: 2
+    label: Codebase Memory retrieval cost
+    description: Compare Codebase Memory enabled against disabled on Felan-repository tasks that must locate and understand code, with or without changing it.
+    select:
+      suites: [codebase-memory]
+    arms:
+      baseline: felan-cbm-off
+      candidate: felan-cbm-on
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 0.8
+    objective:
+      - metric: cost.total
+        goal: minimize
+      # duration.stepsMs sums the agent steps only. The whole-run duration.ms
+      # also carries workspace setup (a networked pnpm install of the Felan
+      # tree), image probes and the verifier, whose variance would swamp the
+      # agent-speed signal this objective is after. Requires harness-evals
+      # 0.2.15 or newer.
+      - metric: duration.stepsMs
+        goal: minimize
+    aggregation:
+      trials: median
+      cases: macroMean
+
   subagents:
     revision: 3
     label: Subagents organic exploration

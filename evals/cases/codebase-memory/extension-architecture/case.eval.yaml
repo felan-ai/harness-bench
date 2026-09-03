@@ -1,0 +1,69 @@
+id: cbm-extension-architecture
+suite: codebase-memory
+description: Compare Codebase Memory disabled versus enabled on a read-only deep-dive into how Felan's extension system is designed and implemented.
+image: harness-bench-felan-runtime:v1
+timeoutMs: 900000
+workspace:
+  # codebase-memory-mcp refuses to index a root named /workspace, so pin a
+  # realistic project path. This is the agent cwd, the mount target, and the
+  # verifier cwd (src/adapters/felan.ts resolves cwd from containerPath).
+  containerPath: /home/dev/felan
+  git:
+    repository: https://github.com/felan-ai/felan.git
+    commit: e5867637569bd1c7ad08420b79ec4031a5733f57
+  # No setup step: this task is read-only comprehension, never a build or a
+  # test run. node_modules is unnecessary and would only slow every run down
+  # - Felan's own source names the host extension contract through type-only
+  # imports (see the prompt's host-boundary framing below), and
+  # codebase-memory-mcp indexes git-tracked source, not node_modules (which
+  # is gitignored either way).
+agents:
+  include:
+    - felan-cbm-off
+    - felan-cbm-on
+prompt: |
+  Explain how extensions are designed and implemented in Felan. Write your
+  analysis to EXTENSION-ARCHITECTURE.md at the repository root.
+
+  Focus on Felan's own layer under packages/ and apps/. Treat
+  @earendil-works/pi-coding-agent as the host boundary: describe what Felan
+  takes from it and extends, not how the host package implements it
+  internally - do not open node_modules.
+
+  Cover, citing concrete files, exported symbols, and at least one worked
+  example extension package:
+
+  1. The extension contract and the host API boundary - what a Felan
+     extension is, and what FelanExtensionAPI adds on top of the host
+     ExtensionAPI.
+  2. How an extension package is loaded and bound into a running session.
+  3. The declarative extension-configuration system - how a package declares
+     config fields and how a resolved config reaches the extension.
+  4. How a builtin extension is enabled or disabled, and where that decision
+     is read.
+  5. How a tool an extension registers actually reaches the model.
+  6. One concrete extension package, traced end to end through the points
+     above.
+
+  Keep the analysis under 1500 words. This is read-only: do not install
+  dependencies, run a build, run tests, or edit any file other than
+  EXTENSION-ARCHITECTURE.md.
+assert:
+  - id: report-written
+    type: workspaceDiff
+    addedFiles: [EXTENSION-ARCHITECTURE.md]
+    maxChanged: 1
+  - id: clean-tool-execution
+    type: noToolErrors
+    required: false
+verifier:
+  command: node
+  args: [/tests/verify.mjs]
+  cwd: /home/dev/felan
+  assetsDir: evals/cases/codebase-memory/extension-architecture/verifier
+  assetsTarget: /tests
+  rewardFile: .harness-evals-reward.txt
+  rewardFormat: text
+  timeoutMs: 120000
+  network:
+    mode: none

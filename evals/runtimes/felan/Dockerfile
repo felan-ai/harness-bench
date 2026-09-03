@@ -13,10 +13,19 @@ ARG CA_CERTIFICATES_VERSION=20250419
 ARG CURL_VERSION=8.14.1-2+deb13u4
 ARG GIT_VERSION=1:2.47.3-0+deb13u1
 
+# codebase-memory-mcp is hard-pinned by @felan-ai/ext-codebase-memory (strict
+# version equality). Bump CBM_VERSION and CBM_INSTALLER_{COMMIT,SHA256} together
+# from packages/ext-codebase-memory/src/{client,installer}.ts when re-benchmarking
+# a newer release, then rebuild this image.
+ARG CBM_VERSION=0.10.8
+ARG CBM_INSTALLER_COMMIT=46ae198fc11cda80e817acbc5f5908d7c2de7032
+ARG CBM_INSTALLER_SHA256=2fdd4d6563fc8e540bb32e233c5fdef22ecf05d7ebd5a80657cd4fec953b3475
+
 LABEL org.harness-bench.runtime="felan-v1"
 LABEL org.harness-bench.rtk-version="${RTK_VERSION}"
 LABEL org.harness-bench.markitdown-version="${MARKITDOWN_VERSION}"
 LABEL org.harness-bench.markitdown-requirements-sha256="${MARKITDOWN_REQUIREMENTS_SHA256}"
+LABEL org.harness-bench.cbm-version="${CBM_VERSION}"
 
 ENV RTK_TELEMETRY_DISABLED=1
 
@@ -50,6 +59,23 @@ RUN curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
     /bin/sh /tmp/install-rtk.sh \
   && test "$(rtk --version)" = "rtk ${RTK_VERSION}" \
   && rm /tmp/install-rtk.sh
+
+# Bake the pinned codebase-memory-mcp binary onto PATH so the felan-cbm-on
+# profile does not pay the installer cost at session start. The binary is inert
+# for every other case (they do not enable builtinExtensions.codebaseMemory).
+# This mirrors the extension's own install path: fetch the commit-pinned
+# install.sh, verify its digest, then let it download + checksum-verify the
+# release archive for the build architecture.
+RUN curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location \
+    --max-filesize 131072 \
+    "https://raw.githubusercontent.com/DeusData/codebase-memory-mcp/${CBM_INSTALLER_COMMIT}/install.sh" \
+    --output /tmp/install-cbm.sh \
+  && printf '%s  %s\n' "${CBM_INSTALLER_SHA256}" /tmp/install-cbm.sh \
+    | sha256sum --check --strict - \
+  && CBM_DOWNLOAD_URL="https://github.com/DeusData/codebase-memory-mcp/releases/download/v${CBM_VERSION}" \
+    /bin/bash /tmp/install-cbm.sh --dir /usr/local/bin --skip-config \
+  && test "$(codebase-memory-mcp --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)" = "${CBM_VERSION}" \
+  && rm -f /tmp/install-cbm.sh /usr/local/bin/install.sh
 
 ENV PATH="/opt/markitdown/bin:${PATH}" \
     SHELL=/bin/bash

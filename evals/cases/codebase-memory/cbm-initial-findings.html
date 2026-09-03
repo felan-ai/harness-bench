@@ -1,0 +1,1028 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap">
+<title>Does Codebase Memory Pay Off?</title>
+<style>
+  :root {
+    --ground: #f5f7f8;
+    --surface: #ffffff;
+    --panel: #eef1f3;
+    --ink: #161b22;
+    --muted: #5b6675;
+    --line: #e2e6ea;
+    --line-strong: #cbd1d8;
+    --accent: #1f625a;
+    --accent-ink: #16463f;
+    --accent-soft: #e2efec;
+    --pass: #3c7a4b;
+    --fail: #a9453b;
+    --warn: #8a6016;
+    --shadow: 0 1px 2px rgba(18,24,34,.05), 0 10px 30px rgba(18,24,34,.06);
+    --sans: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+    --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    --mono: 'IBM Plex Mono', 'SF Mono', ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0f131a;
+      --surface: #171c25;
+      --panel: #11161e;
+      --ink: #e6e9ef;
+      --muted: #98a2b1;
+      --line: #262d38;
+      --line-strong: #38404e;
+      --accent: #5cb3aa;
+      --accent-ink: #8fd0c8;
+      --accent-soft: #17322e;
+      --pass: #64b073;
+      --fail: #d76a5d;
+      --warn: #cb9646;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 12px 34px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0f131a;
+    --surface: #171c25;
+    --panel: #11161e;
+    --ink: #e6e9ef;
+    --muted: #98a2b1;
+    --line: #262d38;
+    --line-strong: #38404e;
+    --accent: #5cb3aa;
+    --accent-ink: #8fd0c8;
+    --accent-soft: #17322e;
+    --pass: #64b073;
+    --fail: #d76a5d;
+    --warn: #cb9646;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 12px 34px rgba(0,0,0,.4);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- top bar ---- */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--ground);
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar__inner {
+    max-width: 1000px;
+    margin-inline: auto;
+    padding: 12px 24px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .topbar__title {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: .04em;
+    color: var(--muted);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .topbar__nav {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .topbar__nav a {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .03em;
+    color: var(--muted);
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+  .topbar__nav a:hover { color: var(--accent-ink); }
+  @media (max-width: 760px) { .topbar__nav { display: none; } }
+
+  main { padding: 0 24px 120px; }
+
+  .block {
+    max-width: 680px;
+    margin-inline: auto;
+  }
+  .bleed {
+    width: min(94vw, 940px);
+    margin-inline: calc(50% - min(47vw, 470px));
+  }
+
+  /* ---- hero / verdict ---- */
+  .hero {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 72px 0 44px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin: 0 0 20px;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(2rem, 5.2vw, 3.15rem);
+    line-height: 1.08;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0 0 22px;
+    max-width: 16ch;
+  }
+  .standfirst {
+    font-size: 1.16rem;
+    color: var(--muted);
+    max-width: 54ch;
+    margin: 0 0 40px;
+  }
+  .standfirst strong { color: var(--ink); font-weight: 600; }
+
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  @media (max-width: 820px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  .kpi {
+    background: var(--surface);
+    padding: 18px 18px 16px;
+  }
+  .kpi__label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+  .kpi__value {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    font-weight: 500;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+    margin: 0 0 4px;
+  }
+  .kpi__note { font-family: var(--sans); font-size: 12.5px; color: var(--muted); }
+  .kpi__value.is-pass { color: var(--pass); }
+  .kpi__value.is-fail { color: var(--fail); }
+  .kpi__value.is-warn { color: var(--warn); }
+
+  /* ---- sections ---- */
+  section { padding-top: 68px; scroll-margin-top: 64px; }
+  .sec-head {
+    max-width: 680px;
+    margin: 0 auto 30px;
+  }
+  .sec-ord {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .1em;
+    color: var(--accent-ink);
+    display: block;
+    margin-bottom: 10px;
+  }
+  h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.9rem;
+    line-height: 1.15;
+    letter-spacing: -.012em;
+    text-wrap: balance;
+    margin: 0;
+  }
+  h3 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 1.06rem;
+    letter-spacing: .005em;
+    margin: 40px 0 14px;
+  }
+  p { margin: 0 0 18px; }
+  .block p:last-child { margin-bottom: 0; }
+  a { color: var(--accent-ink); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  .lede {
+    font-size: 1.12rem;
+    border-left: 2px solid var(--accent);
+    padding-left: 20px;
+    color: var(--ink);
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: .84em;
+    background: var(--panel);
+    padding: .12em .38em;
+    border-radius: 3px;
+  }
+
+  pre {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    margin: 0 0 20px;
+  }
+  pre .c { color: var(--muted); }
+  pre .g { color: var(--pass); }
+  pre .r { color: var(--fail); }
+
+  /* ---- tables ---- */
+  .tbl-wrap { overflow-x: auto; margin: 8px 0 8px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  caption {
+    caption-side: top;
+    text-align: left;
+    font-family: var(--sans);
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  th, td {
+    text-align: right;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  thead th {
+    font-weight: 500;
+    font-size: 10.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  tbody tr:hover td { background: color-mix(in srgb, var(--accent-soft) 40%, transparent); }
+  tfoot td {
+    border-bottom: none;
+    border-top: 1px solid var(--line-strong);
+    color: var(--muted);
+  }
+  .num-hi { color: var(--fail); font-weight: 500; }
+  .dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-right: 7px;
+    vertical-align: middle;
+  }
+  .dot--pass { background: var(--pass); }
+  .dot--fail { background: var(--fail); }
+
+  /* ---- chips ---- */
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 6px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .02em;
+    padding: 6px 11px;
+    border-radius: 3px;
+    border: 1px solid var(--line-strong);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chip::before {
+    content: "";
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted);
+  }
+  .chip--pass::before { background: var(--pass); }
+  .chip--fail::before { background: var(--fail); }
+  .chip--warn::before { background: var(--warn); }
+
+  /* ---- callout / bug cards ---- */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--warn);
+    border-radius: 4px;
+    padding: 22px 24px;
+    margin: 22px 0;
+  }
+  .callout--defect { border-left-color: var(--fail); }
+  .callout__tag {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 8px;
+  }
+  .callout h3 { margin: 0 0 12px; font-size: 1rem; }
+  .callout p { font-size: 15.5px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout ul { margin: 0; padding-left: 20px; font-size: 15.5px; }
+  .callout li { margin-bottom: 8px; }
+
+  /* ---- gain chart ---- */
+  .gain {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 26px 26px 20px;
+    margin: 20px 0;
+  }
+  .gain__legend {
+    font-family: var(--sans);
+    font-size: 12.5px;
+    color: var(--muted);
+    margin: 0 0 22px;
+  }
+  .gain-row { margin-bottom: 22px; }
+  .gain-row:last-of-type { margin-bottom: 6px; }
+  .gain-row__label {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .02em;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .gain-row__label .val { font-weight: 500; }
+  .track {
+    position: relative;
+    height: 30px;
+    background: var(--panel);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .track__zero {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 1px;
+    background: var(--line-strong);
+    left: 76.4%;
+  }
+  .track__fill {
+    position: absolute;
+    top: 6px; bottom: 6px;
+    border-radius: 1px;
+  }
+  .track__fill.is-worse { background: var(--fail); background: color-mix(in srgb, var(--fail) 80%, transparent); }
+  .track__fill.is-better { background: var(--pass); background: color-mix(in srgb, var(--pass) 80%, transparent); }
+  .track__band {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--warn) 42%, transparent) 0 5px,
+      transparent 5px 10px
+    );
+    border-left: 1px solid var(--warn);
+    border-right: 1px solid var(--warn);
+  }
+  .track__caption {
+    font-family: var(--sans);
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 7px;
+  }
+  .axis {
+    position: relative;
+    height: 16px;
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .axis span { position: absolute; transform: translateX(-50%); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .track__fill { animation: grow .7s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes grow { from { transform: scaleX(0); } }
+    .track__fill.is-worse { transform-origin: right; }
+    .track__fill.is-better { transform-origin: left; }
+  }
+
+  /* ---- misc ---- */
+  ul.plain { padding-left: 20px; }
+  ul.plain li { margin-bottom: 10px; }
+  .provenance {
+    max-width: 680px;
+    margin: 0 auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 6px 18px;
+  }
+  .provenance dt { color: var(--accent-ink); }
+  .provenance dd { margin: 0; }
+  hr.rule {
+    max-width: 1000px;
+    margin: 76px auto 0;
+    border: none;
+    border-top: 1px solid var(--line);
+  }
+  footer {
+    max-width: 680px;
+    margin: 0 auto;
+    padding-top: 60px;
+    font-family: var(--sans);
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  footer h3 { color: var(--ink); }
+  footer code { font-size: 12px; }
+
+  a:focus-visible, .topbar__nav a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  .foot-note { font-size: 13.5px; color: var(--muted); font-family: var(--sans); }
+  .u-tabular { font-variant-numeric: tabular-nums; }
+</style>
+
+<div class="topbar">
+  <div class="topbar__inner">
+    <span class="topbar__title">CBM Benchmark · harness-bench</span>
+    <nav class="topbar__nav">
+      <a href="#setup">Setup</a>
+      <a href="#phase1">Phase 1</a>
+      <a href="#rootcause">Root cause</a>
+      <a href="#defects">Defects</a>
+      <a href="#phase2">Phase 2</a>
+      <a href="#verdict">Verdict</a>
+    </nav>
+  </div>
+</div>
+
+<main>
+  <header class="hero">
+    <p class="eyebrow">Felan · Codebase Memory extension · A/B</p>
+    <h1>Does Codebase Memory pay off?</h1>
+    <p class="standfirst">
+      Two coding tasks, run with the <strong>Codebase Memory</strong> extension off and on,
+      everything else held identical. Each task's headline cost signal turned out to be an
+      <strong>incidental agent behaviour</strong> &mdash; an unfiltered <code>grep</code> in
+      Phase 1, build polling in Phase 2 &mdash; each worth more per run than CBM's own effect.
+      CBM's real intrinsic cost is about <strong>+11&ndash;20%</strong>, correctness is a
+      <strong>wash</strong>, and it earned no win even on the wide-traversal task.
+    </p>
+    <div class="kpis">
+      <div class="kpi">
+        <p class="kpi__label">Correctness</p>
+        <p class="kpi__value is-pass">tie</p>
+        <p class="kpi__note">3 / 3 per arm, both phases</p>
+      </div>
+      <div class="kpi">
+        <p class="kpi__label">Phase 1 cost gap (raw)</p>
+        <p class="kpi__value is-warn">+92%</p>
+        <p class="kpi__note">superseded &mdash; measurement artifact</p>
+      </div>
+      <div class="kpi">
+        <p class="kpi__label">CBM intrinsic overhead</p>
+        <p class="kpi__value">+11&ndash;20%</p>
+        <p class="kpi__note">controlled pair: +11%</p>
+      </div>
+      <div class="kpi">
+        <p class="kpi__label">Phase 2 · wide traversal</p>
+        <p class="kpi__value">parity</p>
+        <p class="kpi__note">raw cbm&#8209;on edge was build&#8209;polling</p>
+      </div>
+    </div>
+  </header>
+
+  <section id="setup">
+    <div class="sec-head">
+      <span class="sec-ord">01</span>
+      <h2>What was measured</h2>
+    </div>
+    <div class="block">
+      <p>
+        Codebase Memory (<code>@felan-ai/ext-codebase-memory</code>) is a proxy over the native
+        <code>codebase-memory-mcp</code> binary. It builds a structural graph of the repository at
+        session start and exposes symbol lookup, caller/impact queries, and indexed text search,
+        on the premise that this beats file-by-file <code>grep</code> and <code>read</code> on tasks
+        that traverse many files.
+      </p>
+      <p>
+        The benchmark runs one task at a time against two Felan profiles that differ by a single
+        flag. Prompt, starting workspace, model, thinking level, verifier, timeout and credentials
+        are all held constant.
+      </p>
+      <div class="tbl-wrap bleed">
+        <table>
+          <caption>Arms &mdash; declared in <code>harness-evals.yaml</code></caption>
+          <thead>
+            <tr><th>Setting</th><th>felan-cbm-off</th><th>felan-cbm-on</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>builtinExtensions.codebaseMemory</td><td>false</td><td class="num-hi">true</td></tr>
+            <tr><td>model</td><td>gpt-5.6-sol</td><td>gpt-5.6-sol</td></tr>
+            <tr><td>thinking</td><td>medium</td><td>medium</td></tr>
+            <tr><td>felan packageVersion</td><td>0.20.1</td><td>0.20.1</td></tr>
+            <tr><td>codebase-memory-mcp binary</td><td>&mdash;</td><td>0.10.8 (hard-pinned)</td></tr>
+            <tr><td>other builtins</td><td>all off except codex</td><td>all off except codex</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Provenance</h3>
+    </div>
+    <dl class="provenance">
+      <dt>Framework</dt><dd>harness-evals, ad-hoc <code>run --case &hellip; --agents &hellip;</code> (not a declared <code>benchmarks:</code> entry)</dd>
+      <dt>Phase 1 case</dt><dd><code>cbm-project-instructions</code> &mdash; base felan <code>104faa5</code></dd>
+      <dt>Phase 2 case</dt><dd><code>cbm-extension-config-scope</code> &mdash; base felan <code>51a18d8</code>, runtime <code>felan-scope:v1</code></dd>
+      <dt>Trials</dt><dd>3 per arm per phase, concurrency 1</dd>
+      <dt>Dates</dt><dd>2026-09-01 (Phase 1), 2026-09-02 (Phase 2 + root-cause)</dd>
+      <dt>Paid usage</dt><dd>&asymp; $9 Phase 1, &asymp; $17 Phase 2 (provider spend, approximate)</dd>
+    </dl>
+  </section>
+
+  <section id="phase1">
+    <div class="sec-head">
+      <span class="sec-ord">02</span>
+      <h2>Phase 1 &mdash; a localized task</h2>
+    </div>
+    <div class="block">
+      <p class="lede">
+        Objective: minimize cost at equal correctness. Hypothesis: on a single-package task
+        CBM should be neutral-to-negative &mdash; its tool schemas cost tokens every turn and it
+        indexes at session start.
+      </p>
+      <p>
+        The task is a real historical Felan regression: session creation must load the project's
+        root <code>AGENTS.md</code> / <code>CLAUDE.md</code> through <code>AgentRuntime</code> with
+        exact precedence and non-fatal rules. All edits land inside
+        <code>packages/agent-core/src</code>. It was chosen to prove the pipeline, not to
+        showcase CBM.
+      </p>
+      <div class="tbl-wrap bleed">
+        <table>
+          <caption>Trial observations &mdash; 3 per arm, <code>thinking: medium</code>. A separate <code>thinking: max</code> smoke run ($2.96) is excluded.</caption>
+          <thead>
+            <tr><th>Run</th><th>Verifier</th><th>Cost</th><th>Duration</th><th>Tokens</th><th>Tool rounds</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>off &middot; 1</td><td><span class="dot dot--pass"></span>pass</td><td>$0.452</td><td>222 s</td><td>257 k</td><td>13</td></tr>
+            <tr><td>off &middot; 2</td><td><span class="dot dot--pass"></span>pass</td><td>$0.762</td><td>366 s</td><td>448 k</td><td>16</td></tr>
+            <tr><td>off &middot; 3</td><td><span class="dot dot--pass"></span>pass</td><td>$0.899</td><td>274 s</td><td>775 k</td><td>15</td></tr>
+            <tr><td>on &middot; 1</td><td><span class="dot dot--pass"></span>pass</td><td>$0.847</td><td>338 s</td><td>678 k</td><td>16</td></tr>
+            <tr><td>on &middot; 2</td><td><span class="dot dot--pass"></span>pass</td><td class="num-hi">$1.464</td><td>249 s</td><td class="num-hi">1,249 k</td><td>17</td></tr>
+            <tr><td>on &middot; 3</td><td><span class="dot dot--pass"></span>pass</td><td class="num-hi">$1.713</td><td>318 s</td><td class="num-hi">1,540 k</td><td>19</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tbl-wrap bleed">
+        <table>
+          <caption>Reductions</caption>
+          <thead>
+            <tr><th>Metric</th><th>CBM off</th><th>CBM on</th><th>Delta</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Correctness</td><td>3 / 3</td><td>3 / 3</td><td>tie</td></tr>
+            <tr><td>Median cost</td><td>$0.762</td><td>$1.464</td><td class="num-hi">+92%</td></tr>
+            <tr><td>Mean cost</td><td>$0.704</td><td>$1.341</td><td class="num-hi">+90%</td></tr>
+            <tr><td>Mean duration</td><td>332 s</td><td>336 s</td><td>~tied</td></tr>
+            <tr><td>Median tokens</td><td>448 k</td><td>1,249 k</td><td class="num-hi">+178%</td></tr>
+            <tr><td>Mean tokens</td><td>493 k</td><td>1,156 k</td><td class="num-hi">+134%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="chips">
+        <span class="chip chip--pass">quality gate &middot; passRate &ge; 1.0 &middot; PASS</span>
+        <span class="chip chip--warn">objective &middot; cost &middot; candidate regressed</span>
+        <span class="chip chip--warn">n = 3 &middot; variance wide &middot; inconclusive</span>
+      </div>
+      <p style="margin-top:22px">
+        Read at face value this says &ldquo;CBM costs ~2&times; on a localized task.&rdquo; But
+        per-run cost on the CBM-on arm ranges <code>$0.85&ndash;$1.71</code>, and on CBM-off
+        <code>$0.45&ndash;$0.90</code>. At that spread a single tool call can swing a run. That is
+        the thread the next section pulls.
+      </p>
+    </div>
+  </section>
+
+  <section id="rootcause">
+    <div class="sec-head">
+      <span class="sec-ord">03</span>
+      <h2>Root cause &mdash; the gap is a <code>grep</code> accident</h2>
+    </div>
+    <div class="block">
+      <p class="foot-note" style="margin-bottom:22px">
+        Beyond the standard benchmark report. Offline analysis of the seven saved
+        <code>steps/run/stdout.log</code> streams: per-request <code>message.usage</code> for
+        billing, <code>tool_execution</code> args joined to results for payloads. Each tool result
+        weighted by how many later requests re-send it &mdash; what actually gets billed.
+      </p>
+      <p>
+        Cost on this task is 68&ndash;89% prompt-side. Output tokens and request counts are
+        near-identical across arms. <strong>The entire gap is context carried per request</strong>
+        &mdash; so the question is only: what enters the transcript and stays there?
+      </p>
+      <div class="tbl-wrap bleed">
+        <table>
+          <caption>Weighted token carry by category (<code>tokens &times; requests&#8209;remaining</code>). Cost is <strong>strictly monotonic in <code>node_modules/dist</code> carry across both arms</strong>.</caption>
+          <thead>
+            <tr><th>Run</th><th>Cost</th><th>Preamble</th><th>dist carry</th><th>repo source</th><th>CBM tools</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>off &middot; 1</td><td>$0.452</td><td>19,371</td><td>25,638</td><td>199,487</td><td>0</td></tr>
+            <tr><td>off &middot; 2</td><td>$0.762</td><td>28,176</td><td>58,741</td><td>311,591</td><td>0</td></tr>
+            <tr><td>off &middot; 3</td><td>$0.899</td><td>29,937</td><td class="num-hi">427,376</td><td>234,744</td><td>0</td></tr>
+            <tr><td>on &middot; 1</td><td>$0.847</td><td>43,130</td><td>124,508</td><td>291,395</td><td>136,309</td></tr>
+            <tr><td>on &middot; 2</td><td>$1.464</td><td>31,780</td><td class="num-hi">660,982</td><td>126,655</td><td>83,746</td></tr>
+            <tr><td>on &middot; 3</td><td>$1.713</td><td>38,590</td><td class="num-hi">820,177</td><td>209,444</td><td>146,914</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>The blob: <code>grep -R</code> over <code>dist/</code> matching source maps</h3>
+      <p>
+        Every run &mdash; all three CBM-off included &mdash; reads Pi's bundled
+        <code>node_modules/@earendil-works/pi-coding-agent/dist</code>, first touch at request
+        3&ndash;5 in both arms. The task requires it: the regression is about Pi's
+        <code>ResourceLoader</code>, which ships as bundled JS. What differs is only how the
+        <code>grep</code> was phrased.
+      </p>
+      <p>
+        <code>dist/</code> contains <code>.js.map</code> files. A source map is <strong>one line</strong>
+        holding the whole original source. <code>grep -R</code> prints whole matching lines;
+        <code>head -N</code> bounds lines, not bytes. Decomposing one CBM-on result:
+      </p>
+      <div class="tbl-wrap bleed">
+        <table>
+          <caption>on &middot; 2, request 6 &mdash; a single 120,310-byte <code>grep</code> result, 6 matched lines</caption>
+          <thead><tr><th>Matched file</th><th>Lines</th><th>Bytes</th></tr></thead>
+          <tbody>
+            <tr><td>dist/main.js.map</td><td>1</td><td>65,063</td></tr>
+            <tr><td>dist/cli/args.js.map</td><td>1</td><td>30,403</td></tr>
+            <tr><td>dist/cli/args.d.ts.map</td><td>1</td><td>21,943</td></tr>
+            <tr><td>dist/main.js + cli/args.js + cli/args.d.ts</td><td>3</td><td>319</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td>source maps</td><td>3</td><td>117,409 B &middot; 99.7%</td></tr>
+          </tfoot>
+        </table>
+      </div>
+      <p>The same run asking the same question two ways settles it:</p>
+      <pre><span class="c"># thinking:max smoke run, requests 5 then 6</span>
+grep -R -n -F 'Current working directory:' &lt;pkg&gt;                      <span class="r">&rarr; 120,577 B</span>
+grep -R -n --include='*.js' --exclude='*.map' -F 'Current working&hellip;'  <span class="g">&rarr;   1,066 B</span>  (113&times;)
+
+<span class="c"># CBM-on run 3, requests 6 then 7</span>
+grep -R -n "getAgentsFiles\|agentsFiles" dist | head -100             <span class="r">&rarr; 120,460 B</span>
+grep -R -n --include='*.js' --exclude='*.map' 'getAgentsFiles\|&hellip;'   <span class="g">&rarr;   2,398 B</span>  (50&times;)</pre>
+      <p>
+        Who restricted file types on the first attempt: <code>off&middot;1</code>,
+        <code>off&middot;2</code>, <code>on&middot;1</code>. Who did not: <code>off&middot;3</code>,
+        the smoke run, <code>on&middot;2</code>, <code>on&middot;3</code>.
+        <strong>1-in-3 CBM-off versus 3-in-4 CBM-on is a coin flip at this n.</strong> No CBM
+        mechanism was found behind it &mdash; failed CBM lookups send the agent to <code>sed</code>
+        on Felan source, which is cheap.
+      </p>
+      <p class="foot-note">
+        Not a truncation bug: <code>ext-codex</code>'s <code>truncateOutput</code> fired correctly
+        (301,314 &rarr; ~30,000 tokens). The lever is that the model may request
+        <code>max_output_tokens</code> up to a 4&nbsp;MiB ceiling, and these runs asked 20k&ndash;60k
+        on exactly the <code>dist</code> greps.
+      </p>
+      <h3>CBM's actual intrinsic overhead</h3>
+      <ul class="plain">
+        <li><strong>Fixed preamble: +509 tokens/request.</strong> The first-request prompt is
+          exactly 1,761 for every Phase-1 CBM-off run and 2,270 for every CBM-on run &mdash; 4 tool
+          schemas plus the capability paragraph. The <em>same +509 delta</em> holds in Phase 2 at a
+          higher baseline (2,331 / 2,840), a clean cross-check on the method. Over 14&ndash;19
+          requests: &lt;1% of the bill.</li>
+        <li><strong>Grep augmentation: negligible in Phase 1</strong> (4&ndash;10 results per
+          on-run, nearly all <code>results: 0</code>) &mdash; but <strong>material in Phase 2</strong>,
+          where the graph matches. See section 05.</li>
+        <li><strong>CBM payloads: 7&ndash;20% of prompt tokens.</strong> 6&ndash;10 calls per run,
+          7&ndash;10k raw tokens, but they land early and ride everything after &rarr; 84k&ndash;147k
+          carried. Almost all of it is <code>search_and_read_symbols</code> at 5&ndash;19&nbsp;KB
+          per call.</li>
+      </ul>
+      <p style="margin-top:18px">
+        Cleanest controlled pair, both blob-free: <code>on&middot;1</code> $0.847 versus
+        <code>off&middot;2</code> $0.762 &mdash; <strong>+11%</strong>.
+      </p>
+    </div>
+  </section>
+
+  <section id="defects">
+    <div class="sec-head">
+      <span class="sec-ord">04</span>
+      <h2>Extension defects found along the way</h2>
+    </div>
+    <div class="block">
+      <p>
+        All in Felan's <code>ext-codebase-memory</code>, none in <code>codebase-memory-mcp</code>
+        0.10.8 (verified against the real binary on a throwaway 2-file repo).
+      </p>
+      <div class="callout callout--defect">
+        <p class="callout__tag">Defect &middot; blocking</p>
+        <h3><code>read_symbol</code> returned source 0 times in 29 calls</h3>
+        <p>Across every CBM-on run in both phases (0 / 14 Phase 1, 0 / 15 Phase 2). Two
+          independent bugs in <code>services.ts</code>:</p>
+        <ul>
+          <li><strong>qualified_name path</strong> (8 calls, <code>candidates: []</code>): the
+            extension sends <code>qn_pattern</code>; the binary answers pattern queries with a
+            <em>grouped</em> envelope, not the <em>flat</em> one it returns for <code>query</code>.
+            <code>searchCandidates()</code> handles only the flat shape, so a real match
+            (<code>total: 1</code>) parses as zero.</li>
+          <li><strong>name + file_path path</strong> (6 calls, error despite
+            <code>candidates: 1</code>): the filter reads <code>candidate.file_path</code>, but the
+            column is <code>file</code> &mdash; the comparison is always false.</li>
+          <li>Masked by unit tests that stub <code>search_graph</code> in a shape the binary never
+            emits; the e2e test only asserts the tools are registered.</li>
+        </ul>
+        <p style="margin-top:12px">
+          Consequence: with <code>read_symbol</code> dead, <code>search_and_read_symbols</code>
+          (~15&nbsp;KB) is the only working read path where a targeted read would be ~1.4&nbsp;KB.
+          Fixing it should make CBM both useful <em>and</em> cheaper.
+        </p>
+      </div>
+      <div class="callout">
+        <p class="callout__tag">Defect &middot; minor</p>
+        <h3><code>search_and_read_symbols</code> returns a redundant candidate list</h3>
+        <p>
+          The full <code>search_graph</code> result (limit 20) is returned next to snippets for
+          only <code>read_limit</code> (default 6). Across 9 calls the candidate blocks total
+          26,260&nbsp;B, of which <strong>51% duplicates <code>symbols[].symbol</code> verbatim</strong>.
+          Small in absolute terms.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="phase2">
+    <div class="sec-head">
+      <span class="sec-ord">05</span>
+      <h2>Phase 2 &mdash; a wide-traversal task</h2>
+    </div>
+    <div class="block">
+      <p class="lede">
+        Same objective and arms. A synthetic fan-out refactor: add a required persistence
+        <code>scope</code> to Felan's declarative extension-config system &mdash; one interface
+        change in <code>agent-core</code>, a new <code>getPersistableExtensionConfig</code>, a
+        <code>settings.ts</code> consumer, and <code>scope</code> on ~50 <code>configField.*</code>
+        sites across 11 <code>ext-*</code> packages. This is the task CBM is supposed to help with.
+      </p>
+      <div class="tbl-wrap bleed">
+        <table>
+          <caption>Trial observations &mdash; original prompt</caption>
+          <thead>
+            <tr><th>Run</th><th>Verifier</th><th>Cost</th><th>Duration</th><th>Tokens</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>off &middot; 1</td><td><span class="dot dot--pass"></span>pass</td><td>$3.18</td><td>594 s</td><td>3.9 M</td></tr>
+            <tr><td>off &middot; 2</td><td><span class="dot dot--pass"></span>pass</td><td>$2.24</td><td>670 s</td><td>2.8 M</td></tr>
+            <tr><td>off &middot; 3</td><td><span class="dot dot--fail"></span>fail</td><td>$0.22</td><td>75 s</td><td>80 k</td></tr>
+            <tr><td>on &middot; 1</td><td><span class="dot dot--pass"></span>pass</td><td>$2.56</td><td>704 s</td><td>2.5 M</td></tr>
+            <tr><td>on &middot; 2</td><td><span class="dot dot--pass"></span>pass</td><td>$2.03</td><td>707 s</td><td>2.4 M</td></tr>
+            <tr><td>on &middot; 3</td><td><span class="dot dot--fail"></span>fail</td><td>$3.38</td><td>862 s</td><td>4.8 M</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Two failures, both real</h3>
+      <ul class="plain">
+        <li><strong><code>off&middot;3</code> &mdash; non-attempt.</strong> The agent read 17
+          things, then stopped and asked which feature to build, having parsed the prompt as
+          verification steps only. Zero edits. The other five agents understood it.</li>
+        <li><strong><code>on&middot;3</code> &mdash; wrong answer.</strong> Built cleanly but scoped
+          <code>configField.json</code> fields (<code>powerline.lines</code>,
+          <code>web-access.provider</code>&hellip;) as <code>user</code> instead of
+          <code>project</code> &mdash; missed one classification rule. 4 hidden tests failed.</li>
+      </ul>
+      <h3>Prompt tightened, failures replaced</h3>
+      <p>
+        The prompt got an imperative framing line, an explicit &ldquo;three parts, implement all
+        three,&rdquo; and a sharper statement of the classification rule. Verifier and reference
+        solution unchanged. One re-run per arm:
+      </p>
+      <div class="tbl-wrap bleed">
+        <table>
+          <caption>Re-runs &mdash; tightened prompt</caption>
+          <thead><tr><th>Run</th><th>Verifier</th><th>Cost</th><th>Duration</th><th>Tokens</th></tr></thead>
+          <tbody>
+            <tr><td>off &middot; re-run</td><td><span class="dot dot--pass"></span>pass</td><td>$1.53</td><td>554 s</td><td>1.46 M</td></tr>
+            <tr><td>on &middot; re-run</td><td><span class="dot dot--pass"></span>pass</td><td>$1.44</td><td>711 s</td><td>1.36 M</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Both failure modes gone. Both ~$1 cheaper than the original trials &mdash; the clearer prompt cut flailing on both arms.</p>
+      <div class="tbl-wrap bleed">
+        <table>
+          <caption>Reductions &mdash; n = 3 clean passes per arm (mixed prompt versions). Raw cost favours CBM-on &mdash; but see the confound below.</caption>
+          <thead><tr><th>Metric</th><th>CBM off</th><th>CBM on</th><th>Delta</th></tr></thead>
+          <tbody>
+            <tr><td>Correctness (clean)</td><td>3 / 3</td><td>3 / 3</td><td>tie</td></tr>
+            <tr><td>Median cost (raw)</td><td>$2.24</td><td>$2.03</td><td>&minus;9%</td></tr>
+            <tr><td>Median tokens (raw)</td><td>2.8 M</td><td>2.4 M</td><td>&minus;14%</td></tr>
+            <tr><td>Same-prompt pair, raw</td><td>$1.53</td><td>$1.44</td><td>&minus;6%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>The confound: build polling</h3>
+      <p>
+        <code>exec_command</code> takes a <code>yield_time_ms</code>. When a monorepo build
+        outlives it, the agent polls with <code>write_stdin</code> &mdash; and
+        <strong>every poll is a full request that re-sends the whole conversation</strong>. Every
+        poll in these runs waited on the same commands
+        (<code>pnpm --filter './packages/ext-*' build</code>, <code>agent-core build &amp;&amp; ext-* build</code>,
+        <code>felan build &amp;&amp; test</code>) in both arms. What differed was the slicing: all four
+        CBM-off runs polled at <code>yield_time_ms: 1000</code>; two of five CBM-on runs used
+        <code>30000</code> and barely polled.
+      </p>
+      <div class="tbl-wrap bleed">
+        <table>
+          <caption>Cost split &mdash; a request is a poll-turn if every tool call in it was <code>write_stdin</code>; that count is what maps to cost. Polling is 12&ndash;37% of a run's bill.</caption>
+          <thead><tr><th>Run</th><th>Prompt</th><th>Poll turns</th><th>Total</th><th>$ poll</th><th>$ work</th></tr></thead>
+          <tbody>
+            <tr><td>off &middot; a</td><td>orig</td><td>27</td><td>$3.88</td><td>$1.45</td><td>$2.42</td></tr>
+            <tr><td>off &middot; b</td><td>orig</td><td>26</td><td>$3.18</td><td>$1.30</td><td>$1.88</td></tr>
+            <tr><td>off &middot; c</td><td>orig</td><td>12</td><td>$2.24</td><td>$0.56</td><td>$1.68</td></tr>
+            <tr><td>off &middot; re-run</td><td>new</td><td>16</td><td>$1.53</td><td>$0.48</td><td>$1.06</td></tr>
+            <tr><td>on &middot; a</td><td>orig</td><td>3</td><td>$2.08</td><td>$0.27</td><td>$1.81</td></tr>
+            <tr><td>on &middot; b</td><td>orig</td><td>14</td><td>$2.56</td><td>$0.77</td><td>$1.79</td></tr>
+            <tr><td>on &middot; c</td><td>orig</td><td>10</td><td>$2.03</td><td>$0.45</td><td>$1.58</td></tr>
+            <tr><td>on &middot; re-run</td><td>new</td><td>3</td><td>$1.44</td><td>$0.09</td><td>$1.35</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><td>work-cost median</td><td>orig</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>off $1.88 &middot; on $1.79</td></tr>
+          </tfoot>
+        </table>
+      </div>
+      <p>
+        <strong>Work-cost only: original-prompt passes are off $1.88 vs on $1.79 &mdash; &minus;5%,
+        inside the spread. Tightened prompt (n = 1 each): off $1.06 vs on $1.35 &mdash; CBM-on is
+        +27% <em>more</em>.</strong> The raw ~10% CBM-on edge was the CBM-off runs spending 12&ndash;27
+        requests each on build polling, versus 3&ndash;14 for the passing CBM-on runs (the failed
+        CBM-on run polled 19). There is no CBM cost advantage here once polling is removed.
+      </p>
+      <p>
+        No exploration saving either. Raw bytes read are comparable (tightened prompt: off 39.6 k
+        tokens vs on 45.4 k, +15%). CBM shifts ~20% of the reading into structural queries and pays
+        it back in payloads &mdash; and here <strong>grep augmentation is material</strong>: the
+        graph matches, so every augmented <code>grep</code> returns 20 results at ~3 KB, the same
+        ~2,947-byte block repeating across 3&ndash;4 greps &mdash; 23 k&ndash;225 k carried tokens,
+        up to a third of CBM's footprint. Both arms still <code>cat</code> every
+        <code>ext-*/src/config.ts</code> in a shell loop (37&ndash;88 KB).
+      </p>
+      <div class="chips">
+        <span class="chip chip--pass">quality gate &middot; passRate &ge; 1.0 &middot; PASS (after re-run)</span>
+        <span class="chip chip--warn">matrix &middot; mixed prompt versions &middot; caveated</span>
+        <span class="chip chip--warn">raw cost confounded by build polling</span>
+      </div>
+      <p style="margin-top:22px">
+        <strong>Reading: parity, tipping slightly against CBM-on.</strong> The raw cost edge is an
+        artifact of how much each run polled its builds. On work-cost the arms are within noise on
+        the original prompt and CBM-on is worse on the tightened one. CBM did not earn a win even
+        on the task built to favour it.
+      </p>
+    </div>
+  </section>
+
+  <section id="verdict">
+    <div class="sec-head">
+      <span class="sec-ord">06</span>
+      <h2>What to conclude</h2>
+    </div>
+    <div class="block">
+      <div class="gain bleed">
+        <p class="gain__legend">
+          Direction-aware gain on the declared objective (minimize cost). Positive = Codebase
+          Memory is cheaper. Faint = raw headline; hatched = after removing that phase's confound.
+        </p>
+        <div class="gain-row">
+          <div class="gain-row__label"><span>Phase 1 &middot; localized</span><span class="val">raw &minus;92% &rarr; real &minus;11 to &minus;20%</span></div>
+          <div class="track">
+            <div class="track__zero"></div>
+            <div class="track__fill is-worse" style="left:11.6%;width:64.8%;opacity:.3"></div>
+            <div class="track__band" style="left:62.3%;width:6.4%" title="intrinsic overhead"></div>
+          </div>
+          <p class="track__caption">
+            Faint bar = raw &minus;92% median. Hatched = CBM's intrinsic overhead once the
+            <code>grep</code>/source-map blob is removed: <strong>&minus;11% to &minus;20%</strong>.
+          </p>
+        </div>
+        <div class="gain-row">
+          <div class="gain-row__label"><span>Phase 2 &middot; wide fan-out</span><span class="val">raw +9% &rarr; work &minus;27 to +5%</span></div>
+          <div class="track">
+            <div class="track__zero"></div>
+            <div class="track__fill is-better" style="left:76.4%;width:6.3%;opacity:.3"></div>
+            <div class="track__band" style="left:57.4%;width:22.5%" title="work-cost range, polling removed"></div>
+          </div>
+          <p class="track__caption">
+            Faint bar = raw +9% median &mdash; an artifact of CBM-off runs spending 12&ndash;27
+            requests each on build polling (3&ndash;14 for the passing CBM-on runs). Hatched =
+            work-cost with poll-turns removed: straddles zero, leans against CBM-on, n small.
+          </p>
+        </div>
+        <div class="axis">
+          <span style="left:6%">&minus;100%</span>
+          <span style="left:41.2%">&minus;50%</span>
+          <span style="left:76.4%">0</span>
+          <span style="left:94%">+25%</span>
+        </div>
+      </div>
+
+      <h3>The read</h3>
+      <ul class="plain">
+        <li><strong>Correctness is a wash.</strong> Every clean run in both phases produced a
+          correct solution. CBM neither helped nor hurt accuracy.</li>
+        <li><strong>Twice, the headline cost signal was an incidental agent behaviour, not CBM.</strong>
+          Phase 1: an unfiltered <code>grep</code> matching <code>.js.map</code> files
+          (~$0.5&ndash;1.5/run). Phase 2: 1-second build polling, each poll a full request
+          (~$0.3&ndash;1.5/run). Both larger than CBM's real effect in either direction.</li>
+        <li><strong>CBM's real intrinsic cost is small &mdash; about +11&ndash;20%.</strong>
+          Fixed preamble, plus <code>search_and_read_symbols</code> payloads that land early and
+          ride the whole transcript, plus &mdash; in Phase 2 &mdash; grep augmentation.</li>
+        <li><strong>No win on wide traversal.</strong> On work-cost (polling removed) the arms are
+          within noise on the original prompt and CBM-on is worse on the tightened one &mdash;
+          largely because <code>read_symbol</code> is broken, forcing the ~10&times; heavier
+          <code>search_and_read_symbols</code> as the only read path.</li>
+        <li><strong>At n = 3, this benchmark cannot resolve a 10&ndash;20% effect.</strong> The
+          incidental confounds are bigger than the thing being measured.</li>
+      </ul>
+
+      <h3>Recommendations</h3>
+      <ul class="plain">
+        <li><strong>Fix <code>read_symbol</code> first</strong>, then re-benchmark. The current
+          numbers measure a degraded extension.</li>
+        <li><strong>Neutralise both confounds:</strong> cap <code>exec_command</code> output
+          per line (a source-map line is 119 k chars) and enforce the token ceiling; fix
+          <code>yield_time_ms</code> for build commands, or exclude poll-turns from the cost
+          metric.</li>
+        <li><strong>Raise n or declare a formal <code>benchmarks:</code> entry</strong> before
+          quoting a headline effect size.</li>
+        <li>On today's evidence: <strong>CBM is cost-neutral-to-slightly-negative and
+          correctness-neutral</strong> &mdash; keep it off by default, and revisit only after the
+          read path is fixed.</li>
+      </ul>
+    </div>
+
+    <hr class="rule">
+    <footer>
+      <h3>Method &amp; caveats</h3>
+      <p>
+        This is <em>not</em> the framework's formal benchmark report. Runs were ad-hoc
+        <code>run --case &hellip; --agents &hellip;</code> invocations, not stamped to a declared
+        <code>benchmarks:</code> id, so they carry no definition digest and mix a
+        <code>thinking: max</code> smoke run, two Phase-2 prompt versions, and replaced failures.
+        Figures are one model (<code>gpt-5.6-sol</code>), <code>thinking: medium</code>,
+        single-repo, n = 3 per arm.
+      </p>
+      <p>
+        Root-cause analysis is offline transcript decomposition from saved
+        <code>steps/run/stdout.log</code> streams: per-request <code>message.usage</code> for
+        billing, tool args joined to results for payloads, each result weighted by
+        <code>tokens &times; requests-remaining</code>. A request is a poll-turn when every tool
+        call in it was <code>write_stdin</code>. Category sums land within ~3&ndash;25% of measured
+        prompt totals, so treat shares as approximate and ordering as solid. The Phase-2
+        poll-split analysis was cross-checked by a second independent pass.
+      </p>
+      <h3>Reproduce</h3>
+      <pre>bun run build:runtime felan
+bun run run --case cbm-project-instructions \
+  --agents felan-cbm-off,felan-cbm-on --concurrency 1 --attempts 3
+bun run run --case cbm-extension-config-scope \
+  --agents felan-cbm-off,felan-cbm-on --concurrency 1 --attempts 3
+bun run view</pre>
+      <p class="foot-note">
+        harness-bench &middot; codebase-memory case family. This is the rendered form of
+        <code>evals/cases/codebase-memory/cbm-initial-findings.md</code>; living case docs are in
+        that directory's <code>README.md</code>.
+      </p>
+    </footer>
+  </section>
+</main>

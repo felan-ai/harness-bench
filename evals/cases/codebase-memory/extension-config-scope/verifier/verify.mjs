@@ -1,6 +1,15 @@
 import { copyFile, rm, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 
+// Behaviour verifier, rtk/project-instructions template: check the workspace
+// boundary, drop hidden specs into the repo's own test trees, build the tui
+// dependency graph, then run the existing extension-config / settings tests
+// alongside the hidden specs. The hidden specs exercise observable behaviour
+// through the package's public seams (`defineExtensionConfig`,
+// `resolveExtensionConfigs`, `resolveExtensionConfigSettings`, the `*_CONFIG`
+// exports) plus the one contract the prompt names
+// (`getPersistableExtensionConfig`); they never assert on internal structure.
+
 const workspace = process.cwd();
 const BASE_COMMIT = '51a18d8f0c853a06867ddbd48046ad4a84307058';
 const rewardPath = `${workspace}/.harness-evals-reward.txt`;
@@ -25,7 +34,15 @@ const hidden = [
 // tree. Config, lockfiles, build wiring, docs, and history are out of bounds.
 const allowedPath = /^(packages\/[^/]+\/(src|test)\/|apps\/tui\/(src|test)\/)/u;
 
+class InfrastructureFailure extends Error {
+  constructor(message) {
+    super(message);
+    this.exitCode = 137;
+  }
+}
+
 let passed = false;
+let infrastructureExitCode;
 try {
   verifyWorkspaceBoundary();
 
@@ -52,6 +69,7 @@ try {
 
   passed = true;
 } catch (error) {
+  if (error instanceof InfrastructureFailure) infrastructureExitCode = error.exitCode;
   console.error(error instanceof Error ? error.message : String(error));
 } finally {
   for (const spec of hidden) await rm(spec.to, { force: true });
@@ -59,7 +77,7 @@ try {
 }
 
 console.log(passed ? '1' : '0');
-if (!passed) process.exitCode = 1;
+if (!passed) process.exitCode = infrastructureExitCode ?? 1;
 
 function verifyWorkspaceBoundary() {
   if (capture('git', ['rev-parse', 'HEAD']).trim() !== BASE_COMMIT) {
@@ -74,7 +92,8 @@ function verifyWorkspaceBoundary() {
   ])
     .split(/\r?\n/u)
     .filter(Boolean)
-    .flatMap((line) => line.slice(3).split(' -> '));
+    .flatMap((line) => line.slice(3).split(' -> '))
+    .filter((path) => path !== '.harness-evals-reward.txt');
 
   if (changedPaths.length === 0) throw new Error('no implementation changes found');
   const disallowed = changedPaths.filter((path) => !allowedPath.test(path));
@@ -107,5 +126,8 @@ function run(command, args, timeout = 180_000) {
   if (result.stdout) process.stdout.write(result.stdout);
   if (result.stderr) process.stderr.write(result.stderr);
   if (result.error) throw result.error;
+  if (result.status === 137 || result.signal === 'SIGKILL') {
+    throw new InfrastructureFailure(`${command} ${args.join(' ')} exited with 137`);
+  }
   if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} exited with ${result.status}`);
 }

@@ -1,0 +1,516 @@
+{
+  "schemaVersion": 1,
+  "studyId": "felan-extensions-2026-09",
+  "title": "Felan extension benchmark results \u2014 September 2026",
+  "status": "complete",
+  "methodology": {
+    "outcomes": "Cost and secondary outcomes use the trial median per case and the macro mean of case-level goal-aware percentage changes.",
+    "quality": "Quality is the candidate aggregate pass rate; baseline values and percentage-point changes remain available in the benchmark quality data.",
+    "overallScore": null
+  },
+  "primaryBenchmarks": [
+    {
+      "cohortId": "local-subagents",
+      "benchmarkId": "subagents",
+      "label": "Subagents organic exploration",
+      "evidenceRole": "primary",
+      "evidenceType": "recalculated-direct",
+      "status": "eligible",
+      "provider": [
+        "openai-codex"
+      ],
+      "model": [
+        "gpt-5.6-sol"
+      ],
+      "thinking": [
+        "max"
+      ],
+      "felanVersion": [
+        "0.21.1"
+      ],
+      "cases": [
+        "subagents-codebase-exploration"
+      ],
+      "trials": 3,
+      "aggregation": {
+        "trials": "median",
+        "cases": "macroMean"
+      },
+      "quality": {
+        "baseline": {
+          "runs": 3,
+          "validRuns": 3,
+          "passed": 3,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        },
+        "candidate": {
+          "runs": 3,
+          "validRuns": 3,
+          "passed": 3,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        }
+      },
+      "objectives": [
+        {
+          "metric": "cost.total",
+          "role": "primary",
+          "goal": "minimize",
+          "status": "recalculated",
+          "baselineValue": 1.2856670000000001,
+          "candidateValue": 0.9811268400000001,
+          "averageChangePercent": -23.68732805617629,
+          "averageGainPercent": 23.68732805617629,
+          "minGainPercent": 23.68732805617629,
+          "maxGainPercent": 23.68732805617629,
+          "comparedCases": 1,
+          "expectedCases": 1,
+          "evidence": "sources/provenance/subagents-cost-recalculation.json"
+        }
+      ],
+      "selectedBatchId": "20260903-052334-7809",
+      "sourceBatchId": "20260903-052334-7809",
+      "reverificationId": null,
+      "publicationEligible": true,
+      "notes": [
+        "Cost was recalculated by adding billed usage from all nine Luna child sessions to their corresponding root runs before aggregation.",
+        "The prompt-token secondary objective is omitted."
+      ],
+      "qualityComparison": {
+        "metric": "quality.passRate",
+        "baselineValue": 1.0,
+        "candidateValue": 1.0,
+        "changePercentagePoints": 0.0
+      },
+      "report": "benchmarks/subagents/results.html"
+    },
+    {
+      "cohortId": "local-markitdown-cost",
+      "benchmarkId": "markitdown-cost",
+      "label": "MarkItDown conversion",
+      "evidenceRole": "primary",
+      "evidenceType": "offline-reverification",
+      "status": "eligible",
+      "provider": [
+        "openai-codex"
+      ],
+      "model": [
+        "gpt-5.6-terra"
+      ],
+      "thinking": [
+        "low"
+      ],
+      "felanVersion": [
+        "0.19.0"
+      ],
+      "cases": [
+        "markitdown-document-configuration",
+        "markitdown-docx-extraction",
+        "markitdown-pptx-extraction",
+        "markitdown-xlsx-extraction"
+      ],
+      "trials": 3,
+      "aggregation": {
+        "trials": "median",
+        "cases": "macroMean"
+      },
+      "quality": {
+        "baseline": {
+          "runs": 12,
+          "validRuns": 12,
+          "passed": 12,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        },
+        "candidate": {
+          "runs": 12,
+          "validRuns": 12,
+          "passed": 12,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        }
+      },
+      "objectives": [
+        {
+          "metric": "cost.total",
+          "role": "primary",
+          "goal": "minimize",
+          "baselineValue": 0.013873299999999998,
+          "candidateValue": 0.0095683,
+          "averageChangePercent": -31.763528811240008,
+          "averageGainPercent": 31.763528811240008,
+          "minGainPercent": 18.485677936697634,
+          "maxGainPercent": 47.760325770796975,
+          "comparedCases": 4,
+          "expectedCases": 4
+        },
+        {
+          "metric": "usage.promptTokens",
+          "role": "secondary",
+          "goal": "minimize",
+          "baselineValue": 5392.25,
+          "candidateValue": 4650.75,
+          "averageChangePercent": -14.854257660239346,
+          "averageGainPercent": 14.854257660239346,
+          "minGainPercent": -6.4,
+          "maxGainPercent": 32.65392781316348,
+          "comparedCases": 4,
+          "expectedCases": 4
+        }
+      ],
+      "selectedBatchId": "20260903-045947-5857",
+      "sourceBatchId": "20260902-112808-33e8",
+      "reverificationId": "20260903-045947-56b5",
+      "publicationEligible": false,
+      "report": "benchmarks/markitdown-cost/results.html",
+      "json": "benchmarks/markitdown-cost/results.json",
+      "notes": [],
+      "qualityComparison": {
+        "metric": "quality.passRate",
+        "baselineValue": 1.0,
+        "candidateValue": 1.0,
+        "changePercentagePoints": 0.0
+      }
+    },
+    {
+      "cohortId": "local-output-style-concise",
+      "benchmarkId": "output-style-concise",
+      "label": "Concise output style",
+      "evidenceRole": "primary",
+      "evidenceType": "offline-reverification",
+      "status": "eligible",
+      "provider": [
+        "openai-codex"
+      ],
+      "model": [
+        "gpt-5.6-sol"
+      ],
+      "thinking": [
+        "max"
+      ],
+      "felanVersion": [
+        "0.20.2"
+      ],
+      "cases": [
+        "output-style-planning",
+        "output-style-review",
+        "output-style-support"
+      ],
+      "trials": 3,
+      "aggregation": {
+        "trials": "median",
+        "cases": "macroMean"
+      },
+      "quality": {
+        "baseline": {
+          "runs": 9,
+          "validRuns": 9,
+          "passed": 9,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        },
+        "candidate": {
+          "runs": 9,
+          "validRuns": 9,
+          "passed": 9,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        }
+      },
+      "objectives": [
+        {
+          "metric": "cost.total",
+          "role": "primary",
+          "goal": "minimize",
+          "baselineValue": 0.076516,
+          "candidateValue": 0.06541933333333333,
+          "averageChangePercent": -14.890486501973443,
+          "averageGainPercent": 14.890486501973443,
+          "minGainPercent": 6.985581490433768,
+          "maxGainPercent": 19.557637499242023,
+          "comparedCases": 3,
+          "expectedCases": 3
+        },
+        {
+          "metric": "usage.outputTokens",
+          "role": "secondary",
+          "goal": "minimize",
+          "baselineValue": 1395.6666666666667,
+          "candidateValue": 1166.6666666666667,
+          "averageChangePercent": -15.981398627528208,
+          "averageGainPercent": 15.981398627528208,
+          "minGainPercent": 12.088974854932303,
+          "maxGainPercent": 21.218074656188605,
+          "comparedCases": 3,
+          "expectedCases": 3
+        }
+      ],
+      "selectedBatchId": "20260903-045947-ba0e",
+      "sourceBatchId": "20260902-121757-89d1",
+      "reverificationId": "20260903-045947-56b5",
+      "publicationEligible": false,
+      "report": "benchmarks/output-style-concise/results.html",
+      "json": "benchmarks/output-style-concise/results.json",
+      "notes": [],
+      "qualityComparison": {
+        "metric": "quality.passRate",
+        "baselineValue": 1.0,
+        "candidateValue": 1.0,
+        "changePercentagePoints": 0.0
+      }
+    },
+    {
+      "cohortId": "local-prewalk",
+      "benchmarkId": "prewalk",
+      "label": "Prewalk organic routing cost",
+      "evidenceRole": "primary",
+      "evidenceType": "offline-reverification",
+      "status": "eligible",
+      "provider": [
+        "openai-codex"
+      ],
+      "model": [
+        "gpt-5.6-sol"
+      ],
+      "thinking": [
+        "max"
+      ],
+      "felanVersion": [
+        "0.20.2"
+      ],
+      "cases": [
+        "memory-summary-links",
+        "prewalk-checkout"
+      ],
+      "trials": 3,
+      "aggregation": {
+        "trials": "median",
+        "cases": "macroMean"
+      },
+      "quality": {
+        "baseline": {
+          "runs": 6,
+          "validRuns": 6,
+          "passed": 6,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        },
+        "candidate": {
+          "runs": 6,
+          "validRuns": 6,
+          "passed": 6,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        }
+      },
+      "objectives": [
+        {
+          "metric": "cost.total",
+          "role": "primary",
+          "goal": "minimize",
+          "baselineValue": 4.262124999999999,
+          "candidateValue": 1.449843,
+          "averageChangePercent": -57.56549245867434,
+          "averageGainPercent": 57.56549245867434,
+          "minGainPercent": 43.50744763963154,
+          "maxGainPercent": 71.62353727771713,
+          "comparedCases": 2,
+          "expectedCases": 2
+        }
+      ],
+      "selectedBatchId": "20260903-044517-8452",
+      "sourceBatchId": "20260902-121757-b16d",
+      "reverificationId": "20260903-044517-d1f1",
+      "publicationEligible": false,
+      "report": "benchmarks/prewalk/results.html",
+      "json": "benchmarks/prewalk/results.json",
+      "notes": [],
+      "qualityComparison": {
+        "metric": "quality.passRate",
+        "baselineValue": 1.0,
+        "candidateValue": 1.0,
+        "changePercentagePoints": 0.0
+      }
+    },
+    {
+      "cohortId": "local-rtk",
+      "benchmarkId": "rtk",
+      "label": "RTK context reduction",
+      "evidenceRole": "primary",
+      "evidenceType": "offline-reverification",
+      "status": "eligible-with-failure",
+      "provider": [
+        "openai-codex"
+      ],
+      "model": [
+        "gpt-5.6-sol"
+      ],
+      "thinking": [
+        "max"
+      ],
+      "felanVersion": [
+        "0.20.0"
+      ],
+      "cases": [
+        "prewalk-checkout",
+        "rtk-felan-project-instructions"
+      ],
+      "trials": 3,
+      "aggregation": {
+        "trials": "median",
+        "cases": "macroMean"
+      },
+      "quality": {
+        "baseline": {
+          "runs": 6,
+          "validRuns": 6,
+          "passed": 6,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        },
+        "candidate": {
+          "runs": 6,
+          "validRuns": 6,
+          "passed": 5,
+          "failed": 1,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 0.8333333333333334,
+              "pass": true
+            }
+          ]
+        }
+      },
+      "objectives": [
+        {
+          "metric": "cost.total",
+          "role": "primary",
+          "goal": "minimize",
+          "baselineValue": 3.1299044999999994,
+          "candidateValue": 2.2984535000000004,
+          "averageChangePercent": -24.12217601810633,
+          "averageGainPercent": 24.12217601810633,
+          "minGainPercent": 15.397141844201368,
+          "maxGainPercent": 32.84721019201129,
+          "comparedCases": 2,
+          "expectedCases": 2
+        },
+        {
+          "metric": "usage.promptTokens",
+          "role": "secondary",
+          "goal": "minimize",
+          "baselineValue": 3620221.5,
+          "candidateValue": 2151053.5,
+          "averageChangePercent": -34.42765636669536,
+          "averageGainPercent": 34.42765636669536,
+          "minGainPercent": 21.345442121159167,
+          "maxGainPercent": 47.50987061223156,
+          "comparedCases": 2,
+          "expectedCases": 2
+        }
+      ],
+      "selectedBatchId": "20260903-045947-e11d",
+      "sourceBatchId": "20260902-121847-5fa4",
+      "reverificationId": "20260903-045947-56b5",
+      "publicationEligible": false,
+      "report": "benchmarks/rtk/results.html",
+      "json": "benchmarks/rtk/results.json",
+      "notes": [
+        "One candidate attempt timed out; the configured quality gate still passed.",
+        "The displayed quality.passRate arm value of 1 is the macro mean of per-case trial medians; the aggregate candidate pass rate used by the gate is 5/6 (0.8333)."
+      ],
+      "qualityComparison": {
+        "metric": "quality.passRate",
+        "baselineValue": 1.0,
+        "candidateValue": 0.8333333333333334,
+        "changePercentagePoints": -16.666666666666664
+      }
+    }
+  ]
+}

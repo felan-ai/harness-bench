@@ -33,7 +33,7 @@ any Felan change to how the extension resolves or indexes a project root.
 
 ## Arms
 
-Both declared in `../../../harness-evals.yaml`, identical except one flag:
+Both declared in `../../../felan-extension-evals.yaml`, identical except one flag:
 
 | | `felan-cbm-off` | `felan-cbm-on` |
 | --- | --- | --- |

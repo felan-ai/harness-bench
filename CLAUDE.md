@@ -37,8 +37,8 @@ bun run view
 ## Layout
 
 ```text
-harness-evals.yaml
-harness-evals.smoke.yaml
+felan-extension-evals.yaml
+smoke-evals.yaml
 evals/cases/**/*.eval.yaml
 evals/fixtures/<name>/<version>/{fixture.json,source/}
 evals/runtimes/<name>/Dockerfile

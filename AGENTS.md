@@ -4,10 +4,14 @@ Read and follow [`CLAUDE.md`](./CLAUDE.md) for the full repository workflow and 
 
 ## Evaluation architecture
 
-Keep exactly two project configurations at the repository root:
+The root project configurations are named for their scope:
 
-- `harness-evals.yaml` owns the non-smoke benchmark suites and profiles.
-- `harness-evals.smoke.yaml` owns the isolated smoke case and profile.
+- `felan-extension-evals.yaml` owns the non-smoke benchmark suites and profiles.
+- `smoke-evals.yaml` owns the isolated smoke case and profile.
+
+The framework does not auto-discover the renamed main configuration, so invoke
+the CLI through the package scripts or pass the appropriate `--config` path
+explicitly.
 
 Keep every agent profile self-contained. Do not use agent `extends`; repeat the
 effective provider, model, thinking, timeout, auth, and adapter configuration so
@@ -30,8 +34,8 @@ grouping metadata, not a configuration fingerprint.
 Use these ownership boundaries:
 
 ```text
-harness-evals.yaml                         non-smoke project configuration
-harness-evals.smoke.yaml                   smoke-only project configuration
+felan-extension-evals.yaml                non-smoke project configuration
+smoke-evals.yaml                          smoke-only project configuration
 evals/cases/**/*.eval.yaml                 task and default agent matrix
 evals/cases/<family>/<case>/verifier/      hidden grading assets
 evals/fixtures/<name>/<version>/source/    immutable starting workspace

@@ -25,8 +25,8 @@ only when compared against successful runs with equivalent controls.
 ## Repository layout
 
 ```text
-harness-evals.yaml                         non-smoke suites and agent profiles
-harness-evals.smoke.yaml                   isolated smoke case and profile
+felan-extension-evals.yaml                non-smoke suites and agent profiles
+smoke-evals.yaml                          isolated smoke case and profile
 evals/cases/**/*.eval.yaml                 task definitions
 evals/cases/<family>/<case>/verifier/      hidden grading assets
 evals/fixtures/<name>/<version>/source/    immutable local starting workspaces
@@ -36,6 +36,10 @@ evals/runtimes/felan/Dockerfile            shared Node, pnpm, Git, RTK, and Mark
 scripts/                                   generic project maintenance tools
 .harness-evals/                            ignored runs, reports, and caches
 ```
+
+Because the framework does not auto-discover the renamed main configuration,
+use the package scripts below or pass `--config felan-extension-evals.yaml`
+explicitly when invoking the CLI directly.
 
 The harness copies a local source, fixture, or exact Git checkout into an
 isolated run workspace. The shared runtime contains reusable tools; workspace
@@ -75,10 +79,10 @@ bun run build:runtime
 bun run run --case <case-id> --agents <agent-name> --concurrency 1 --attempts 1
 bun run smoke                              # live smoke run
 bun run view                                # last invocation only
-bun node_modules/harness-evals/dist/cli.js list --config harness-evals.yaml
-bun node_modules/harness-evals/dist/cli.js view --benchmark all --config harness-evals.yaml --no-open # combined benchmarks
-bun node_modules/harness-evals/dist/cli.js export --benchmark prewalk --format json --output prewalk.json --config harness-evals.yaml
-bun node_modules/harness-evals/dist/cli.js reprocess --source prewalk=<batch-id> --source rtk=<batch-id> --concurrency 1 --config harness-evals.yaml
+bun node_modules/harness-evals/dist/cli.js list --config felan-extension-evals.yaml
+bun node_modules/harness-evals/dist/cli.js view --benchmark all --config felan-extension-evals.yaml --no-open # combined benchmarks
+bun node_modules/harness-evals/dist/cli.js export --benchmark prewalk --format json --output prewalk.json --config felan-extension-evals.yaml
+bun node_modules/harness-evals/dist/cli.js reprocess --source prewalk=<batch-id> --source rtk=<batch-id> --concurrency 1 --config felan-extension-evals.yaml
 ```
 
 - `list` and `list:smoke` validate their configuration and discovery without

@@ -82,7 +82,7 @@ separate authorization:
 
 ```bash
 bun run run --benchmark markitdown-cost --concurrency 1 --refresh-managed-image
-bun node_modules/harness-evals/dist/cli.js view --config harness-evals.yaml --benchmark markitdown-cost
+bun node_modules/harness-evals/dist/cli.js view --config felan-extension-evals.yaml --benchmark markitdown-cost
 ```
 
 Generated runs and reports stay under ignored `.harness-evals/` paths. Do not

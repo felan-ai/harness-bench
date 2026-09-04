@@ -25,84 +25,51 @@ agents:
     - felan-cbm-off
     - felan-cbm-on
 prompt: |
-  Implement the change described below in the Felan repository at your current
-  working directory. This is a coding task with a complete specification: edit
-  the source to make the change, then verify it. Do not stop to ask for
-  clarification - everything you need is in this prompt and the codebase.
+  Give Felan's declarative extension-configuration system a persistence
+  "scope" - every extension-config field should declare where its value is
+  allowed to live.
 
-  ## Goal
+  Required outcomes:
 
-  Give Felan's declarative extension-configuration system a persistence "scope".
-  After your change, every extension-config field declares where its value is
-  allowed to live:
+  - Every extension-config field carries a required scope: `user` (a
+    machine-wide preference), `project` (belongs with a repository and may be
+    committed), or `session` (only meaningful for the current run, never
+    written to disk). The scope is part of the field descriptor
+    `defineExtensionConfig` produces, and an `ExtensionConfigScope` type is
+    exported from `@felan-ai/agent-core` alongside the other extension-config
+    exports.
 
-  - `user`    - a machine-wide preference;
-  - `project` - belongs with a repository and may be committed to it;
-  - `session` - only meaningful for the current run and must never be persisted.
+  - Defining an extension config is rejected when a field's scope is missing or
+    invalid, or when a `sensitive` field is any scope other than `session` - a
+    secret must never be eligible for a user or project file. All existing
+    definition validation still applies.
 
-  There are three parts: a Core change in `packages/agent-core`, a Consumer
-  change in `apps/tui`, and a Fan-out change across every extension package.
-  Implement all three.
+  - A new exported `getPersistableExtensionConfig(definitions, overrides,
+    target)` resolves configuration exactly as `resolveExtensionConfigs` does,
+    then returns, per extension, only the fields whose scope equals `target`
+    (`user` or `project`) - never session-scoped fields - with its output
+    frozen the same way `resolveExtensionConfigs` freezes its own.
 
-  ## Core (packages/agent-core/src/extension-config.ts)
+  - When `settings.json`'s `extensionConfig` block sets a session-scoped field,
+    that field is ignored (left at its default, no override emitted) and a
+    warning naming the field records that it is session-scoped and cannot be
+    configured in settings.json. Every other settings behaviour is unchanged.
 
-  1. Add an exported type `ExtensionConfigScope = 'user' | 'project' | 'session'`
-     and a required `scope: ExtensionConfigScope` property on
-     `ExtensionConfigFieldOptions`. It must also be re-exported from the
-     package entry point alongside the other extension-config exports.
-  2. Definition validation must reject a field that has `sensitive: true` but a
-     `scope` other than `'session'` (a secret must never be written to a user or
-     project file). Keep the existing id/title/field/description/default checks.
-  3. Add an exported function
-     `getPersistableExtensionConfig(definitions, overrides, target)` where
-     `target` is `'user'` or `'project'`. It resolves the configuration exactly
-     like `resolveExtensionConfigs`, then returns, per extension, only the
-     fields whose `scope` equals `target`. `session`-scoped fields are never
-     included. The result is frozen the same way `resolveExtensionConfigs`
-     freezes its output.
+  - Every field of every builtin extension's configuration declares a scope,
+    assigned mechanically from attributes already on the field - never from its
+    name or meaning - by the first matching rule: `sensitive: true` ->
+    `session`; built with `configField.json(...)` -> `project`; otherwise ->
+    `user`.
 
-  ## Consumer (apps/tui/src/settings.ts)
+  Keep production changes inside `packages/*/src` and `apps/tui/src`; you may
+  update in-repo tests under `packages/*/test` and `apps/tui/test` that the new
+  required scope breaks. Do not change package versions, dependencies,
+  lockfiles, build configuration, or repository history, and do not create a
+  Git commit. `@felan-ai/agent-core` is consumed through its built `dist/`.
 
-  `resolveExtensionConfigSettings` reads `settings.json`'s `extensionConfig`
-  block. It must now ignore any configured field that is `session`-scoped,
-  adding the warning
-  `settings.json.extensionConfig.<id>.<field> is session-scoped and cannot be
-  configured in settings.json; ignoring it.` and leaving that field at its
-  default. All other behaviour (unknown-field warnings, validation warnings,
-  override ordering) is unchanged.
-
-  ## Fan-out (every extension that defines a config)
-
-  Add `scope` to every existing `configField.*` field definition across the
-  extension packages. The scope is decided mechanically, never from the field's
-  name or meaning. For each field, look at its `configField.*` call site and
-  apply the first rule that matches:
-
-  1. the options object passes `sensitive: true`         -> `scope: 'session'`
-  2. the field is built with `configField.json(...)`     -> `scope: 'project'`
-  3. anything else                                       -> `scope: 'user'`
-
-  Rule 2 keys off the constructor actually called - `configField.json` versus
-  `configField.string` / `.number` / `.boolean` / `.enum` - not the field name.
-  Inspect every call site individually; do not assume a package has no
-  `configField.json` fields without checking.
-
-  ## Constraints
-
-  Change only `packages/**/src`, `apps/tui/src`, and the corresponding test
-  directories (`packages/**/test`, `packages/**/src/__tests__`,
-  `apps/tui/test`). Do not change package versions, dependencies, lockfiles,
-  build config, or repository history, and do not create a Git commit. Update
-  any existing test that the change breaks and add coverage for the new scope
-  rules. `@felan-ai/agent-core` is consumed through its built `dist/`, so build
-  it before type-checking or testing the extensions. Before finishing, build
-  `@felan-ai/agent-core`, then build every extension package, then run the
-  Agent Core extension-config tests and the Felan TUI settings tests, and
-  type-check the Felan TUI. Summarize the implementation and verification.
-
-  Leave your changes applied in the working tree (uncommitted). Do not finish
-  until Core, Consumer, and Fan-out are all implemented and the builds and
-  tests above pass.
+  These are acceptance criteria and scope boundaries, not a prescribed
+  implementation plan. Determine the approach from the repository, verify the
+  relevant behaviour, and summarize the result.
 assert:
   - id: source-changed
     type: workspaceDiff

@@ -1,18 +1,20 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+
+// Loose directional verifier for a generic "explain the extension system"
+// prompt. There is no single correct explanation, so this is not a rubric - it
+// only checks the report engaged with the core of the system. Report quality is
+// validated by hand.
+//
+// reward = matched facts / total facts, or 0 below config.failBelow.
+// Hard gates: report exists, only EXTENSION-ARCHITECTURE.md changed, HEAD is the
+// pinned commit, word count >= config.minWords.
 
 const workspace = process.cwd();
 const rewardPath = `${workspace}/.harness-evals-reward.txt`;
 const reportPath = `${workspace}/EXTENSION-ARCHITECTURE.md`;
+const factsPath = '/tests/facts.json';
 const pinnedCommit = 'e5867637569bd1c7ad08420b79ec4031a5733f57';
-
-const MIN_WORDS = 150;
-const MIN_CITATIONS = 8;
-const CITATION_PATTERN = /\b(?:packages|apps)\/[A-Za-z0-9_.\-/]+\.(?:ts|tsx|md|json)\b/g;
-const BREADTH_PATTERN = /\bpackages\/ext-[a-z0-9-]+\b/gi;
-const MIN_BREADTH = 3;
 
 let reward = 0;
 let reason = '';
@@ -20,38 +22,29 @@ let reason = '';
 try {
   verifyWorkspaceBoundary();
 
-  const text = await readFile(reportPath, 'utf8');
+  const spec = JSON.parse(await readFile(factsPath, 'utf8'));
+  const cfg = spec.config ?? {};
+  const facts = spec.facts ?? [];
+
+  const text = (await readFile(reportPath, 'utf8')).replace(/\r\n/gu, '\n');
   const wordCount = text.trim().split(/\s+/u).filter(Boolean).length;
-  if (wordCount < MIN_WORDS) {
-    throw new Error(`report too short: ${wordCount} words (minimum ${MIN_WORDS})`);
+  if (wordCount < (cfg.minWords ?? 150)) {
+    throw new Error(`report too short: ${wordCount} words (minimum ${cfg.minWords ?? 150})`);
   }
 
-  const facts = JSON.parse(await readFile('/tests/facts.json', 'utf8'));
-  let matched = 0;
-  for (const fact of facts) {
-    if (fact.patterns.length === 1 && fact.patterns[0] === '__BREADTH__') {
-      const distinct = new Set((text.match(BREADTH_PATTERN) ?? []).map((s) => s.toLowerCase()));
-      if (distinct.size >= MIN_BREADTH) matched += 1;
-      continue;
-    }
-    const allMatch = fact.patterns.every((pattern) => new RegExp(pattern, 'iu').test(text));
-    if (allMatch) matched += 1;
-  }
-  const coverage = matched / facts.length;
+  const windowChars = cfg.windowChars ?? 1200;
+  const windowStep = cfg.windowStep ?? 300;
+  const results = facts.map((fact) => ({
+    id: fact.id,
+    pass: factSatisfied(text, fact, windowChars, windowStep),
+  }));
 
-  const citations = new Set(text.match(CITATION_PATTERN) ?? []);
-  const totalCited = citations.size;
-  let precision = 0;
-  if (totalCited >= MIN_CITATIONS) {
-    let existing = 0;
-    for (const citation of citations) {
-      if (existsSync(path.join(workspace, citation))) existing += 1;
-    }
-    precision = existing / totalCited;
-  }
+  const matched = results.filter((r) => r.pass).length;
+  const coverage = facts.length ? matched / facts.length : 0;
+  reward = coverage < (cfg.failBelow ?? 0) ? 0 : Math.round(coverage * 1000) / 1000;
 
-  reward = Math.round(coverage * precision * 1000) / 1000;
-  reason = `coverage=${matched}/${facts.length} precision=${totalCited >= MIN_CITATIONS ? `${Math.round(precision * totalCited)}/${totalCited}` : `below minimum (${totalCited}/${MIN_CITATIONS})`}`;
+  const missed = results.filter((r) => !r.pass).map((r) => r.id);
+  reason = `coverage=${matched}/${facts.length}${missed.length ? ` missed:[${missed.join(', ')}]` : ''}`;
 } catch (error) {
   reason = error instanceof Error ? error.message : String(error);
   reward = 0;
@@ -61,6 +54,22 @@ try {
 
 console.log(`${reward} (${reason})`);
 if (reward <= 0) process.exitCode = 1;
+
+// A fact passes if some sliding window matches every `all` pattern and no `none`
+// pattern.
+function factSatisfied(text, fact, windowChars, windowStep) {
+  const all = (fact.all ?? []).map((p) => new RegExp(p, 'iu'));
+  const none = (fact.none ?? []).map((p) => new RegExp(p, 'iu'));
+  if (all.length === 0) return false;
+  for (let start = 0; start < text.length; start += windowStep) {
+    const windowText = text.slice(start, start + windowChars);
+    if (all.every((re) => re.test(windowText)) && !none.some((re) => re.test(windowText))) {
+      return true;
+    }
+    if (start + windowChars >= text.length) break;
+  }
+  return false;
+}
 
 function verifyWorkspaceBoundary() {
   const head = capture('git', ['rev-parse', 'HEAD']).trim();
@@ -78,7 +87,8 @@ function verifyWorkspaceBoundary() {
   ])
     .split(/\r?\n/u)
     .filter(Boolean)
-    .flatMap((line) => line.slice(3).split(' -> '));
+    .flatMap((line) => line.slice(3).split(' -> '))
+    .filter((path) => path !== '.harness-evals-reward.txt');
 
   const disallowed = changedPaths.filter((changedPath) => changedPath !== 'EXTENSION-ARCHITECTURE.md');
   if (disallowed.length > 0) {

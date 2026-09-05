@@ -13,6 +13,6 @@
     "view": "bun node_modules/harness-evals/dist/cli.js view --config felan-extension-evals.yaml --latest --open"
   },
   "dependencies": {
-    "harness-evals": "^0.2.15"
+    "harness-evals": "^0.2.16"
   }
 }

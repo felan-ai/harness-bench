@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "id": "codebase-memory",
+  "benchmarkId": "codebase-memory",
+  "label": "Codebase Memory retrieval cost",
+  "status": "complete",
+  "publicationEligible": true,
+  "coverage": {
+    "cases": 2,
+    "runs": 12,
+    "trialsPerArmPerCase": 3,
+    "caseIds": [
+      "cbm-extension-architecture",
+      "cbm-extension-config-scope"
+    ]
+  },
+  "arms": {
+    "baseline": "felan-cbm-off",
+    "candidate": "felan-cbm-on"
+  },
+  "trialReducer": "median",
+  "caseEstimator": "ratioOfReducedSums",
+  "comparisons": {
+    "cost.total": {
+      "baselineReducedCaseSum": 4.308029000000001,
+      "candidateReducedCaseSum": 4.056997000000001,
+      "ratioOfReducedSumsGainPercent": 5.827073123231071,
+      "macroMeanCaseGainPercent": -1.4838712754683439,
+      "caseGainsPercent": [
+        -18.013738198418086,
+        15.045995647481398
+      ],
+      "rawAttemptTotalGainPercent": 2.96942155189131
+    },
+    "duration.stepsMs": {
+      "baselineReducedCaseSum": 1240975,
+      "candidateReducedCaseSum": 1163505,
+      "ratioOfReducedSumsGainPercent": 6.242672092507908,
+      "macroMeanCaseGainPercent": 4.763812922312719,
+      "caseGainsPercent": [
+        1.1681130061047387,
+        8.3595128385207
+      ],
+      "rawAttemptTotalGainPercent": 8.807968970134372
+    },
+    "usage.promptTokens": {
+      "baselineReducedCaseSum": 5017165,
+      "candidateReducedCaseSum": 4053749,
+      "ratioOfReducedSumsGainPercent": 19.202398167092372,
+      "macroMeanCaseGainPercent": 7.869247496878037,
+      "caseGainsPercent": [
+        -9.050772893436804,
+        24.789267887192878
+      ],
+      "rawAttemptTotalGainPercent": 11.123928075524885
+    },
+    "usage.outputTokens": {
+      "baselineReducedCaseSum": 24111,
+      "candidateReducedCaseSum": 23019,
+      "ratioOfReducedSumsGainPercent": 4.529053129277093,
+      "macroMeanCaseGainPercent": 4.149451160828822,
+      "caseGainsPercent": [
+        2.828541496915377,
+        5.470360824742268
+      ],
+      "rawAttemptTotalGainPercent": 4.546668353220616
+    },
+    "usage.totalTokens": {
+      "baselineReducedCaseSum": 5042479,
+      "candidateReducedCaseSum": 4076187,
+      "ratioOfReducedSumsGainPercent": 19.1630346898817,
+      "macroMeanCaseGainPercent": 7.94650559741003,
+      "caseGainsPercent": [
+        -8.84535853411172,
+        24.73836972893178
+      ],
+      "rawAttemptTotalGainPercent": 11.091435994165321
+    }
+  },
+  "cases": [
+    {
+      "caseId": "cbm-extension-architecture",
+      "sourceCommits": [
+        "e5867637569bd1c7ad08420b79ec4031a5733f57"
+      ],
+      "baseline": {
+        "reducedByMedian": {
+          "cost.total": 1.201322,
+          "duration.stepsMs": 365290,
+          "usage.promptTokens": 828316,
+          "usage.outputTokens": 8591,
+          "usage.totalTokens": 837117
+        },
+        "passRate": 1.0,
+        "meanVerifierReward": 1.0
+      },
+      "candidate": {
+        "reducedByMedian": {
+          "cost.total": 1.4177250000000001,
+          "duration.stepsMs": 361023,
+          "usage.promptTokens": 903285,
+          "usage.outputTokens": 8348,
+          "usage.totalTokens": 911163
+        },
+        "passRate": 1.0,
+        "meanVerifierReward": 0.9333333333333332
+      }
+    },
+    {
+      "caseId": "cbm-extension-config-scope",
+      "sourceCommits": [
+        "51a18d8f0c853a06867ddbd48046ad4a84307058"
+      ],
+      "baseline": {
+        "reducedByMedian": {
+          "cost.total": 3.106707000000001,
+          "duration.stepsMs": 875685,
+          "usage.promptTokens": 4188849,
+          "usage.outputTokens": 15520,
+          "usage.totalTokens": 4205362
+        },
+        "passRate": 1.0,
+        "meanVerifierReward": 1.0
+      },
+      "candidate": {
+        "reducedByMedian": {
+          "cost.total": 2.639272000000001,
+          "duration.stepsMs": 802482,
+          "usage.promptTokens": 3150464,
+          "usage.outputTokens": 14671,
+          "usage.totalTokens": 3165024
+        },
+        "passRate": 1.0,
+        "meanVerifierReward": 1.0
+      }
+    }
+  ],
+  "qualityDisclosure": {
+    "frameworkPassRate": "All 12 published attempts reported status passed and pass=true.",
+    "architectureCandidateVerifierRewards": [
+      1.0,
+      0.8,
+      1.0
+    ],
+    "architectureCandidateVerifierNote": "The 0.8 reward reported coverage 4/5 and missed tool-to-model-path.",
+    "configScopeVerifierRewards": {
+      "felan-cbm-off": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "felan-cbm-on": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "nonRequiredAssertionNote": "Architecture baseline runs recorded a non-required clean-tool-execution grep ENOENT; verifier rewards remained 1.0."
+  },
+  "evidence": "../../sources/provenance/codebase-memory.json",
+  "sourceBatchCoverage": {
+    "declaredCases": 3,
+    "declaredRuns": 18,
+    "retainedCases": 2,
+    "retainedRuns": 12,
+    "caseOutsidePublishedScope": "cbm-project-instructions"
+  }
+}

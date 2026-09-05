@@ -4,8 +4,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Felan extension benchmark results for September 2026.">
-  <title>Felan Extension Benchmark Results — September 2026</title>
+  <meta name="description" content="Across six controlled extension benchmarks, candidate configurations used 38.2% less AI model cost in aggregate.">
+  <title>Felan Extension Benchmarks — 38.2% Lower Aggregate AI Model Cost</title>
   <link rel="icon" href="assets/felan/felan-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/felan/styles.css">
   <style>
@@ -512,21 +512,22 @@
   <main class="shell">
     <section class="intro" aria-labelledby="page-title">
       <p class="overline">Extension Benchmark Study</p>
-      <h1 id="page-title">Felan Extension Benchmark Results</h1>
-      <p class="lede">Cost and token changes relative to each extension's baseline profile, alongside candidate quality
-        — reported only where the measurements are comparable.</p>
-      <p class="study-meta"><span>September 2026</span><span>5 extensions</span><span>Multi-trial study</span></p>
+      <h1 id="page-title">38.2% Lower Aggregate AI Model Cost</h1>
+      <p class="lede">Across six controlled extension benchmarks, candidate configurations used $12.7692 versus
+        $20.6628 for their baselines. Each extension was evaluated separately; this cost-weighted portfolio result
+        does not measure all extensions enabled together.</p>
+      <p class="study-meta"><span>September 2026</span><span>6 comparable extensions</span><span>Individual cost reductions: 5.8%–66.0%</span></p>
     </section>
 
     <section id="results" aria-labelledby="results-heading">
       <div class="section-heading">
         <h2 id="results-heading">Extension Results</h2>
-        <p>Quality is the candidate aggregate pass rate. Lower is better for cost and token measures.</p>
+        <p>Quality is the candidate aggregate pass rate. Lower is better for cost, token, and duration measures.</p>
       </div>
 
       <div class="table-card">
         <table>
-          <caption class="sr-only">Candidate quality, cost change, and secondary outcomes for five Felan extensions
+          <caption class="sr-only">Candidate quality, cost change, and secondary outcomes for six comparable Felan extensions
           </caption>
           <thead>
             <tr>
@@ -548,43 +549,54 @@
               <th scope="row"><a class="extension-link" href="benchmarks/markitdown-cost/results.html"
                   aria-label="View MarkItDown benchmark details">MarkItDown</a></th>
               <td data-label="Quality vs baseline"><span class="value">100%</span></td>
-              <td data-label="Cost vs baseline"><span class="value positive">31.8% lower</span></td>
-              <td data-label="Secondary result"><span class="value positive">14.9% fewer</span><span
+              <td data-label="Cost vs baseline"><span class="value positive">31.0% lower</span></td>
+              <td data-label="Secondary result"><span class="value positive">13.8% fewer</span><span
                   class="context">Prompt tokens</span></td>
             </tr>
             <tr>
               <th scope="row"><a class="extension-link" href="benchmarks/output-style-concise/results.html"
                   aria-label="View Concise Output benchmark details">Concise Output</a></th>
               <td data-label="Quality vs baseline"><span class="value">100%</span></td>
-              <td data-label="Cost vs baseline"><span class="value positive">14.9% lower</span></td>
-              <td data-label="Secondary result"><span class="value positive">16.0% fewer</span><span
+              <td data-label="Cost vs baseline"><span class="value positive">14.5% lower</span></td>
+              <td data-label="Secondary result"><span class="value positive">16.4% fewer</span><span
                   class="context">Output tokens</span></td>
             </tr>
             <tr>
               <th scope="row"><a class="extension-link" href="benchmarks/prewalk/results.html"
                   aria-label="View Prewalk benchmark details">Prewalk</a></th>
               <td data-label="Quality vs baseline"><span class="value">100%</span></td>
-              <td data-label="Cost vs baseline"><span class="value positive">57.6% lower</span></td>
+              <td data-label="Cost vs baseline"><span class="value positive">66.0% lower</span></td>
               <td data-label="Secondary result"><span class="value unavailable">—</span></td>
             </tr>
             <tr>
               <th scope="row"><a class="extension-link" href="benchmarks/rtk/results.html"
                   aria-label="View RTK benchmark details">RTK</a></th>
               <td data-label="Quality vs baseline"><span class="value">83.3%</span></td>
-              <td data-label="Cost vs baseline"><span class="value positive">24.1% lower</span></td>
-              <td data-label="Secondary result"><span class="value positive">34.4% fewer</span><span
+              <td data-label="Cost vs baseline"><span class="value positive">26.6% lower</span></td>
+              <td data-label="Secondary result"><span class="value positive">40.6% fewer</span><span
                   class="context">Prompt tokens</span></td>
+            </tr>
+            <tr>
+              <th scope="row"><a class="extension-link" href="benchmarks/codebase-memory/results.html"
+                  aria-label="View Codebase Memory benchmark details">Codebase Memory</a></th>
+              <td data-label="Quality vs baseline"><span class="value">100%</span></td>
+              <td data-label="Cost vs baseline"><span class="value positive">5.8% lower†</span></td>
+              <td data-label="Secondary result"><span class="value positive">6.2% shorter</span><span
+                  class="context">Agent-step duration</span></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <aside class="footnote" aria-label="Subagents measurement note">
+      <aside class="footnote" aria-label="Measurement notes">
         <span class="footnote-mark" aria-hidden="true">*</span>
         <p>Subagents cost was <a href="sources/provenance/subagents-cost-recalculation.json">recalculated</a> by adding
           billed usage from all nine child sessions to their parent runs before aggregation. The corrected candidate
           median is $0.9811 versus $1.2857 for the baseline — 23.7% lower. The prompt-token secondary metric remains
           omitted.</p>
+        <span class="footnote-mark" aria-hidden="true">†</span>
+        <p>The <a href="benchmarks/codebase-memory/results.html">Codebase Memory result</a> covers 12 published
+          attempts across two cases.</p>
       </aside>
     </section>
   </main>

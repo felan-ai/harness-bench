@@ -32,7 +32,7 @@
     ],
     "aggregation": {
       "trials": "median",
-      "cases": "macroMean"
+      "cases": "ratioOfReducedSums"
     }
   },
   "cases": [
@@ -2157,7 +2157,11 @@
     ],
     "metric": "cost.total",
     "goal": "minimize",
-    "role": "primary"
+    "role": "primary",
+    "baselineReducedSum": 6.259808999999999,
+    "candidateReducedSum": 4.596907000000001,
+    "aggregateChangePercent": -26.564740234086987,
+    "aggregateGainPercent": 26.564740234086987
   },
   "objectiveComparisons": [
     {
@@ -2343,7 +2347,11 @@
       ],
       "metric": "cost.total",
       "goal": "minimize",
-      "role": "primary"
+      "role": "primary",
+      "baselineReducedSum": 6.259808999999999,
+      "candidateReducedSum": 4.596907000000001,
+      "aggregateChangePercent": -26.564740234086987,
+      "aggregateGainPercent": 26.564740234086987
     },
     {
       "averageChangePercent": -34.42765636669536,
@@ -2528,11 +2536,16 @@
       ],
       "metric": "usage.promptTokens",
       "goal": "minimize",
-      "role": "secondary"
+      "role": "secondary",
+      "baselineReducedSum": 7240443,
+      "candidateReducedSum": 4302107,
+      "aggregateChangePercent": -40.582268239664344,
+      "aggregateGainPercent": 40.582268239664344
     }
   ],
   "warnings": [
-    "Candidate aggregate pass rate is 5/6 (0.8333); the displayed quality.passRate arm value of 1 is the macro mean of per-case trial medians."
+    "Candidate aggregate pass rate is 5/6 (0.8333); the displayed quality.passRate arm value of 1 is the macro mean of per-case trial medians.",
+    "Primary and secondary resource outcomes were recalculated with ratioOfReducedSums for this publication."
   ],
   "runCount": 12,
   "derivedRunCount": 12,
@@ -2555,5 +2568,11 @@
       "candidate": 1
     },
     "explanation": "Arm values use the benchmark trial/case reducers; quality gates use aggregate valid-attempt pass rate."
+  },
+  "publicationAggregation": {
+    "mode": "ratioOfReducedSums",
+    "source": "offline recalculation from retained report observations",
+    "sourceSha256Before": "760b96cc2e24e59acff3c7bef94deb05d651033c4f991e51cc56aed01c0b88f7",
+    "legacyDiagnostics": "average* and min/max* fields remain macro-mean case diagnostics"
   }
 }

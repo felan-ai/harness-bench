@@ -27,7 +27,7 @@
     "SHA256SUMS"
   ],
   "sourcePolicy": {
-    "sourceCopies": "Selected batch manifests, configuration, reverification manifests, and recalculation evidence are preserved under sources/; duplicate framework report copies are omitted.",
+    "sourceCopies": "Selected batch manifests, frozen configuration, aggregate configuration, reverification manifests, and recalculation evidence are preserved under sources/; duplicate framework report copies are omitted.",
     "excludedSensitiveArtifacts": [
       "credentials",
       "auth stores",
@@ -83,10 +83,26 @@
       "reverificationId": "20260903-045947-56b5",
       "evidenceType": "offline-reverification",
       "report": "benchmarks/rtk/results.json"
+    },
+    {
+      "benchmarkId": "codebase-memory",
+      "selectedBatchId": "20260904-124556-6ffe",
+      "sourceBatchId": "20260904-124556-6ffe",
+      "reverificationId": null,
+      "evidenceType": "derived-redacted-local-batch",
+      "report": "benchmarks/codebase-memory/results.json",
+      "evidence": "sources/provenance/codebase-memory.json",
+      "publicationScope": {
+        "cases": 2,
+        "runs": 12,
+        "trialsPerArmPerCase": 3
+      }
     }
   ],
   "knownLimitations": [
     "Subagents cost is a documented recalculation that adds billed child-session usage to the native parent-session totals.",
+    "Headline resource outcomes use ratioOfReducedSums: median trial value within each case, then a sum across cases. Macro-mean case gains and ranges remain diagnostics.",
+    "The published Codebase Memory result covers 12 retained attempts across two cases; the source batch manifest also declared a third case whose run directories were not supplied.",
     "RTK candidate aggregate quality is 83.3% (5/6); its detailed framework report also retains the reducer-derived arm value.",
     "Detailed benchmark CSV attempt rows omit the final empty column; the files remain parseable and the canonical top-level results.csv is rectangular."
   ],
@@ -165,8 +181,8 @@
     },
     {
       "path": "sources/provenance/selected-evidence.json",
-      "sha256": "b7711c9b71d6396e7006f15b093c0807e80c7a3ddce250bca074e087655fd990",
-      "bytes": 24804,
+      "sha256": "47ddbb50707f39b561ff8efc71c2cbee8db50f2b0e77807eba4c776d875b080d",
+      "bytes": 29625,
       "preservation": "derived-provenance-index"
     },
     {
@@ -174,6 +190,24 @@
       "sha256": "711b3265612210842bbdda9ff549a0de663d9693a8e4ef95006250b7dab600e3",
       "bytes": 7742,
       "preservation": "derived-cost-recalculation"
+    },
+    {
+      "path": "sources/provenance/aggregate-gain-recalculation.json",
+      "sha256": "16d0ba76a7c5819cf322f1084bbb81c8e8116f1818657c703a68225c6f89e7e0",
+      "bytes": 25208,
+      "preservation": "derived-aggregate-recalculation"
+    },
+    {
+      "path": "sources/provenance/codebase-memory.json",
+      "sha256": "edbde6763d972a366700d56174552fae76d9ea2a74d8e59f25d18f54ed791a25",
+      "bytes": 34080,
+      "preservation": "derived-published-evidence"
+    },
+    {
+      "path": "sources/provenance/project/felan-extension-evals-aggregate.yaml",
+      "sha256": "dd0016a08e30255826cbf724d4394d1a4a5855828e630a629035610ebb333ca9",
+      "bytes": 25022,
+      "preservation": "derived-aggregate-config"
     }
   ],
   "presentationAnnotations": [
@@ -188,6 +222,18 @@
       "scope": "Descendant-inclusive cost detail",
       "reason": "The native report omits child-session cost.",
       "report": "benchmarks/subagents/results.html"
+    },
+    {
+      "benchmarkId": "all-comparable",
+      "scope": "Headline aggregation",
+      "reason": "Primary and secondary additive resource outcomes use the ratio of median-reduced case sums; macro case gains remain diagnostics.",
+      "evidence": "sources/provenance/aggregate-gain-recalculation.json"
+    },
+    {
+      "benchmarkId": "codebase-memory",
+      "scope": "Published evidence scope",
+      "reason": "The final current result covers 12 retained attempts across two cases; raw source-batch coverage remains in provenance.",
+      "report": "benchmarks/codebase-memory/results.html"
     }
   ],
   "designSystem": {
@@ -228,5 +274,30 @@
     "target": "felan-ai/felan README",
     "linkBase": "https://felan-ai.github.io/harness-bench/results/2026-09-felan-extensions/",
     "requires": "GitHub Pages publishing the harness-bench main branch from the repository root"
-  }
+  },
+  "publicationAggregation": {
+    "mode": "ratioOfReducedSums",
+    "trials": "median",
+    "evidence": "sources/provenance/aggregate-gain-recalculation.json",
+    "activeConfig": "sources/provenance/project/felan-extension-evals-aggregate.yaml",
+    "legacyDiagnostics": "Macro mean case-level gains and ranges remain in detailed report JSON.",
+    "scope": "Six primary benchmark comparisons"
+  },
+  "derivedReports": [
+    "benchmarks/markitdown-cost/results.json",
+    "benchmarks/markitdown-cost/results.csv",
+    "benchmarks/markitdown-cost/results.html",
+    "benchmarks/output-style-concise/results.json",
+    "benchmarks/output-style-concise/results.csv",
+    "benchmarks/output-style-concise/results.html",
+    "benchmarks/prewalk/results.json",
+    "benchmarks/prewalk/results.csv",
+    "benchmarks/prewalk/results.html",
+    "benchmarks/rtk/results.json",
+    "benchmarks/rtk/results.csv",
+    "benchmarks/rtk/results.html",
+    "benchmarks/codebase-memory/results.json",
+    "benchmarks/codebase-memory/results.csv",
+    "benchmarks/codebase-memory/results.html"
+  ]
 }

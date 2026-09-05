@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "kind": "selected-benchmark-evidence",
   "selection": {
-    "description": "Exact source dashboard selected for the September 2026 Felan extension study.",
+    "description": "Selected retained evidence for the September 2026 Felan extension study; Codebase Memory uses the separately supplied 20260904-124556-6ffe batch.",
     "dashboardSourceRelativePath": ".harness-evals/output/benchmarks/index.html",
     "dashboardSha256": "18104bbc1e5e64a7ec8a4e909713dff86d257a5a4c57c3172c948ea068b1a0f6",
     "dashboardObservedMtime": "2026-09-03T05:38:08.844948+00:00"
@@ -581,6 +581,131 @@
         "startedAt": "2026-09-03T04:59:47.196Z",
         "completedAt": "2026-09-03T05:02:11.143Z"
       }
+    },
+    {
+      "id": "codebase-memory",
+      "label": "Codebase Memory retrieval cost",
+      "evidenceType": "derived-redacted-local-batch",
+      "selectedBatchId": "20260904-124556-6ffe",
+      "sourceBatchId": "20260904-124556-6ffe",
+      "reverificationId": null,
+      "publicationEligible": true,
+      "sourceBenchmark": {
+        "id": "codebase-memory",
+        "revision": 3,
+        "digest": "b2df3463b963f3d36003bc48391eef139fd32e9dfa6a1a9ab51f45441398d0d6"
+      },
+      "targetBenchmark": {
+        "id": "codebase-memory",
+        "revision": 4,
+        "digest": "06b431978ea0ecdd3bcebc97715fb073aa7c727a39b3026c0c9bf9859be8a3d6"
+      },
+      "provider": [
+        "openai-codex"
+      ],
+      "model": [
+        "gpt-5.6-sol"
+      ],
+      "thinking": [
+        "medium"
+      ],
+      "felanVersion": [
+        "0.21.11"
+      ],
+      "selectedRunIds": [
+        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-45-56-901Z-0",
+        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-51-58-947Z-1",
+        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-58-08-372Z-2",
+        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-04-27-913Z-3",
+        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-10-44-911Z-4",
+        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-16-50-044Z-5",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-20-05-757Z-6",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-37-12-857Z-7",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-53-00-314Z-8",
+        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-07-29-236Z-9",
+        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-21-11-934Z-10",
+        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-37-38-933Z-11"
+      ],
+      "sourceRunIds": [
+        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-45-56-901Z-0",
+        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-51-58-947Z-1",
+        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-58-08-372Z-2",
+        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-04-27-913Z-3",
+        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-10-44-911Z-4",
+        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-16-50-044Z-5",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-20-05-757Z-6",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-37-12-857Z-7",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-53-00-314Z-8",
+        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-07-29-236Z-9",
+        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-21-11-934Z-10",
+        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-37-38-933Z-11"
+      ],
+      "quality": {
+        "baseline": {
+          "runs": 6,
+          "validRuns": 6,
+          "passed": 6,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        },
+        "candidate": {
+          "runs": 6,
+          "validRuns": 6,
+          "passed": 6,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        }
+      },
+      "report": {
+        "sourceRelativePath": "sources/provenance/codebase-memory.json",
+        "runCount": 12,
+        "derivedRunCount": 12,
+        "publishedRelativePath": "benchmarks/codebase-memory/results.html",
+        "sourceSha256": "edbde6763d972a366700d56174552fae76d9ea2a74d8e59f25d18f54ed791a25"
+      },
+      "batch": {
+        "status": "completed",
+        "expectedRunCount": 12,
+        "actualRunCount": 12,
+        "sourceManifestDeclaredRunCount": 18,
+        "startedAt": "2026-09-04T12:45:56.897Z",
+        "completedAt": "2026-09-04T15:32:46.890Z"
+      },
+      "publicationScope": {
+        "status": "final",
+        "caseCount": 2,
+        "runCount": 12,
+        "trialsPerArmPerCase": 3,
+        "caseIds": [
+          "cbm-extension-architecture",
+          "cbm-extension-config-scope"
+        ]
+      }
     }
-  ]
+  ],
+  "publicationAggregation": {
+    "mode": "ratioOfReducedSums",
+    "trials": "median",
+    "evidenceRelativePath": "sources/provenance/aggregate-gain-recalculation.json",
+    "scope": "Six benchmark primary/secondary additive resource objectives",
+    "macroDiagnostics": "Retained as case-level average/min/max fields."
+  }
 }

@@ -34,7 +34,7 @@
     ],
     "aggregation": {
       "trials": "median",
-      "cases": "macroMean"
+      "cases": "ratioOfReducedSums"
     }
   },
   "cases": [
@@ -2946,7 +2946,11 @@
     ],
     "metric": "cost.total",
     "goal": "minimize",
-    "role": "primary"
+    "role": "primary",
+    "baselineReducedSum": 0.229548,
+    "candidateReducedSum": 0.196258,
+    "aggregateChangePercent": -14.502413438583659,
+    "aggregateGainPercent": 14.502413438583659
   },
   "objectiveComparisons": [
     {
@@ -3196,7 +3200,11 @@
       ],
       "metric": "cost.total",
       "goal": "minimize",
-      "role": "primary"
+      "role": "primary",
+      "baselineReducedSum": 0.229548,
+      "candidateReducedSum": 0.196258,
+      "aggregateChangePercent": -14.502413438583659,
+      "aggregateGainPercent": 14.502413438583659
     },
     {
       "averageChangePercent": -15.981398627528208,
@@ -3445,10 +3453,22 @@
       ],
       "metric": "usage.outputTokens",
       "goal": "minimize",
-      "role": "secondary"
+      "role": "secondary",
+      "baselineReducedSum": 4187,
+      "candidateReducedSum": 3500,
+      "aggregateChangePercent": -16.40792930499164,
+      "aggregateGainPercent": 16.40792930499164
     }
   ],
-  "warnings": [],
+  "warnings": [
+    "Primary and secondary resource outcomes were recalculated with ratioOfReducedSums for this publication."
+  ],
   "runCount": 18,
-  "derivedRunCount": 18
+  "derivedRunCount": 18,
+  "publicationAggregation": {
+    "mode": "ratioOfReducedSums",
+    "source": "offline recalculation from retained report observations",
+    "sourceSha256Before": "0f44fb5f500ede4a5cc92abd4bfae0a130b123be4e3ba839399ce7ce3a1aaad3",
+    "legacyDiagnostics": "average* and min/max* fields remain macro-mean case diagnostics"
+  }
 }

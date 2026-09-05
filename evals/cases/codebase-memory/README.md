@@ -38,12 +38,13 @@ Both declared in `../../../felan-extension-evals.yaml`, identical except one fla
 | | `felan-cbm-off` | `felan-cbm-on` |
 | --- | --- | --- |
 | `builtinExtensions.codebaseMemory` | `false` | `true` |
-| everything else | `codex`, `context`, `tasks` on, all 17 other builtins explicitly `false`; `gpt-5.6-sol`; `thinking: medium`; `packageVersion: 0.21.3`; `timeoutMs: 900000` | same |
+| everything else | `codex`, `context`, `tasks` on, all 18 other builtins explicitly `false`; `gpt-5.6-sol`; `thinking: medium`; `packageVersion: 0.21.11`; `timeoutMs: 900000` | same |
 
-Both profiles enumerate all 20 builtin extensions felan 0.21.3 ships. felan
+Both profiles enumerate all 21 builtin extensions felan 0.21.11 ships. felan
 treats an omitted key as enabled (`isBuiltinExtensionEnabled` returns true
 unless the value is exactly `false`), so listing every key is what keeps the
-baseline from silently picking up extensions on a felan bump.
+baseline from silently picking up extensions on a felan bump - e.g. `sessionTitle`,
+added in 0.21.11, is explicitly `false` in both profiles.
 
 ## Runtime and pinned versions
 
@@ -59,9 +60,16 @@ would silently turn `felan-cbm-on` into `felan-cbm-off`. Current chain:
 
 | Layer | Version |
 | --- | --- |
-| `@felan-ai/felan` | 0.21.3 |
-| bundled `@felan-ai/ext-codebase-memory` | 0.1.5 |
+| `@felan-ai/felan` | 0.21.11 |
+| bundled `@felan-ai/ext-codebase-memory` | 0.1.7 |
 | required `codebase-memory-mcp` binary | 0.10.8 |
+
+0.1.7 lands the fixes the rev-2 root-cause analysis pointed to: `read_symbol`
+both-shapes (#34), stale-refresh guard (#37), auto-index path validation (#31),
+and the big one - `search_and_read_symbols` compact return shape + parallel
+snippet reads (#40), which drop the full candidate list and the per-candidate
+duplication that dominated CBM-on's carried-context cost. The binary is
+unchanged, so **no Dockerfile / image rebuild** - only `packageVersion` moves.
 
 To re-benchmark a newer binary: bump `CBM_VERSION` / `CBM_INSTALLER_COMMIT` /
 `CBM_INSTALLER_SHA256` in the Dockerfile (values come from
@@ -113,32 +121,41 @@ verbatim (only `process.cwd()` differs). `verifier/verify.mjs`:
 
 Reference fix: src-only slice of felan commit `eaad893`.
 
-**`extension-config-scope`** (`verifier/verify.mjs`): boundary check → build the
-whole tui dependency graph (`pnpm --filter @felan-ai/felan... build`) → run the
-`agent-core` extension-config tests + a hidden unit spec → run the `apps/tui`
-`settings.test.ts` + a hidden classification spec (imports all 11 built configs
-and recomputes the rule) + a hidden `settings.ts` scope spec.
-`reference-solution.patch` is the validated known-good diff (17 files); applied
-to `51a18d8` it builds and every spec passes.
+**`extension-config-scope`** (`verifier/verify.mjs`, rtk/project-instructions
+template): boundary check → build the whole tui dependency graph
+(`pnpm --filter @felan-ai/felan... build`) → run the `agent-core`
+extension-config tests + a hidden behaviour spec → run the `apps/tui`
+`settings.test.ts` + a hidden classification spec + a hidden settings-scope
+spec. Infra kills (exit 137 / SIGKILL) surface as an infrastructure failure,
+not a task failure. The prompt is behavioural acceptance criteria, not an
+implementation plan; the hidden specs assert observable behaviour through the
+package's public seams — `defineExtensionConfig` and the resolved field
+descriptor, `resolveExtensionConfigs`, `resolveExtensionConfigSettings`, the
+`*_CONFIG` exports — plus the one contract the prompt names,
+`getPersistableExtensionConfig(definitions, overrides, target)`. The
+classification spec recomputes the `sensitive→session / json→project / else→user`
+rule from attributes already on each field, so it accepts any consistent
+application of the rule. `reference-solution.patch` is the validated known-good
+diff (17 files); applied to `51a18d8` it builds and every spec passes.
+*(Reference re-validation pending after this rewrite — the settings-scope spec
+was switched from `WEB_ACCESS_CONFIG` to a synthetic definition.)*
 
-**`extension-architecture`** (`verifier/verify.mjs`): boundary check — pinned
-commit, no remote, no changed path other than `EXTENSION-ARCHITECTURE.md` —
-then grades the report itself against a hidden `verifier/facts.json`
-checklist (12 facts spanning the prompt's six areas; each fact requires all
-of its case-insensitive regex patterns, anchored on a real exported symbol
-plus a real path fragment, to appear somewhere in the text). `coverage =
-factsMatched / 12`. Separately, every `packages/…`/`apps/…`-shaped path cited
-anywhere in the report is checked against the workspace with `fs.existsSync`;
-`precision = existingCited / totalCited`, forced to `0` below a minimum
-citation count (8) so a vague report can't earn credit, and this is what
-catches a plausible-sounding but fabricated citation that coverage alone
-would miss. `reward = coverage × precision`. Verified locally against a
-`e586763` checkout: a hand-written correct report scores `1` (12/12,
-9/9 citations resolve); an empty/placeholder report scores `0` (below the
-150-word floor); a report with fabricated file paths scores `0` (citations
-resolve below the minimum, even where wording partially matches facts); and
-a source edit outside `EXTENSION-ARCHITECTURE.md` is rejected at the
-boundary check.
+**`extension-architecture`** (`verifier/verify.mjs`): the prompt is a generic
+"explain how extensions work" - there is no single correct explanation, so this
+is a **loose directional check, not a rubric**. Report quality is validated by
+hand. Boundary check (pinned commit, no remote, only `EXTENSION-ARCHITECTURE.md`
+changed) + a 150-word floor, then `reward = matched / 5` over five facts in
+`verifier/facts.json`, each a claim every accurate explanation contains (the
+host boundary; an extension is a function taking `pi`; packages are loaded and
+bound into a session; resolved config reaches the extension as `pi.config`; a
+registered tool reaches the model via the host's `registerTool`). A fact counts
+only when its patterns co-occur inside one sliding window and no `none` pattern
+(a misconception) appears there. `reward` is `0` below `failBelow` (0.6, i.e. a
+report engaging with fewer than 3 of the 5). Against the 12 completed
+2026-09-03/04 reports (both arms), all score `1.0` - which matches the
+hand read that both arms produce accurate reports. The citation-count and
+`__BREADTH__` gates were removed: the generic prompt no longer asks for
+citations or a worked example, so they only produced false negatives.
 
 ## `extension-config-scope` — case design
 
@@ -183,20 +200,19 @@ statement of rule 2. Verifier and `reference-solution.patch` unchanged.
 Both edit-task cases above ended up with their cost signal dominated by
 incidental agent behaviour rather than CBM's own effect (see
 [Findings](#findings)). That confound — an unfiltered `grep`/`exec_command`
-hit against `.js.map` build artifacts — is fixed upstream as of felan `0.21.3`
-(`@felan-ai/ext-codex@0.3.2` bundles PR #36's line-length and token-ceiling
-clamp on `exec_command` output). `extension-architecture` is built to isolate
+hit against `.js.map` build artifacts — is fixed upstream (`@felan-ai/ext-codex`
+bundles PR #36's line-length and token-ceiling clamp on `exec_command` output),
+so the 0.21.11 runtime carries it. `extension-architecture` is built to isolate
 CBM's other claimed strength instead: **comprehension**, not editing. It is
 read-only — explain how Felan's extension system works, write the analysis to
 `EXTENSION-ARCHITECTURE.md`, touch nothing else — so there is no build and no
 test run to contribute noise of its own.
 
-**Base commit:** `e586763`, the commit tagged `0.21.3` on `felan-ai/felan@main`.
-Chosen so the felan CLI version doing the exploring (`packageVersion: 0.21.3`
-on both arms) matches the code being explored, and so the workspace already
-carries both the `exec_command` clamp and the CBM `read_symbol` envelope fix
-(`d02dcd6`). Confirmed identical to `extension-config-scope`'s `51a18d8` in
-every file this case's prompt and facts touch.
+**Base commit:** `e586763` (felan `0.21.3`). This is the workspace the agent
+explores; it is independent of `packageVersion` (the felan CLI running the
+agent, now `0.21.11`). Kept at `0.21.3` because the case's facts were written
+against this snapshot; it is identical to `extension-config-scope`'s `51a18d8`
+in every file this case's prompt and facts touch.
 
 **No `pnpm install`.** Unlike the other two cases, this workspace has no
 `setup:` step. The task never builds or runs anything, and the two things

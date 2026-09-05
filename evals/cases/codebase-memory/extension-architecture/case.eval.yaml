@@ -30,22 +30,7 @@ prompt: |
   takes from it and extends, not how the host package implements it
   internally - do not open node_modules.
 
-  Cover, citing concrete files, exported symbols, and at least one worked
-  example extension package:
-
-  1. The extension contract and the host API boundary - what a Felan
-     extension is, and what FelanExtensionAPI adds on top of the host
-     ExtensionAPI.
-  2. How an extension package is loaded and bound into a running session.
-  3. The declarative extension-configuration system - how a package declares
-     config fields and how a resolved config reaches the extension.
-  4. How a builtin extension is enabled or disabled, and where that decision
-     is read.
-  5. How a tool an extension registers actually reaches the model.
-  6. One concrete extension package, traced end to end through the points
-     above.
-
-  Keep the analysis under 1500 words. This is read-only: do not install
+  This is read-only: do not install
   dependencies, run a build, run tests, or edit any file other than
   EXTENSION-ARCHITECTURE.md.
 assert:

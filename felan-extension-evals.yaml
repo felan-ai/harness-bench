@@ -648,7 +648,7 @@ agents:
           memoryProcessing: false
 
   # Codebase Memory (CBM) A/B pair. Identical except builtinExtensions.codebaseMemory.
-  # felan 0.21.3 bundles @felan-ai/ext-codebase-memory 0.1.5, which hard-pins the
+  # felan 0.21.11 bundles @felan-ai/ext-codebase-memory 0.1.7, which hard-pins the
   # codebase-memory-mcp binary at 0.10.8 (strict equality; a mismatch disables the
   # extension nonfatally). The binary is baked into evals/runtimes/felan/Dockerfile.
   felan-cbm-off:
@@ -663,7 +663,7 @@ agents:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.21.3
+      packageVersion: 0.21.11
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -684,6 +684,7 @@ agents:
           prewalk: false
           promptHistory: false
           rtkOptimizer: false
+          sessionTitle: false
           subagents: false
           tasks: true
           webAccess: false
@@ -705,7 +706,7 @@ agents:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.21.3
+      packageVersion: 0.21.11
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -726,6 +727,7 @@ agents:
           prewalk: false
           promptHistory: false
           rtkOptimizer: false
+          sessionTitle: false
           subagents: false
           tasks: true
           webAccess: false
@@ -747,7 +749,7 @@ scoring:
 # compare declared arms across all attempts and gate resource metrics on quality.
 benchmarks:
   codebase-memory:
-    revision: 4
+    revision: 5
     label: Codebase Memory retrieval cost
     description: Compare Codebase Memory enabled against disabled on Felan-repository tasks that must locate and understand code, with or without changing it.
     select:

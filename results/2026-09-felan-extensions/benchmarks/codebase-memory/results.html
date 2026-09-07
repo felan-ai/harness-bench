@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Two-case Codebase Memory benchmark result.">
+  <meta name="description" content="Three-case Codebase Memory benchmark result.">
   <title>Codebase Memory Benchmark Result</title>
   <link rel="icon" href="../../assets/felan/felan-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../../assets/felan/styles.css">
@@ -240,29 +240,29 @@
     <header>
       <p class="overline">Extension Benchmark Result</p>
       <h1>Codebase Memory</h1>
-      <p class="lede">A two-case Codebase Memory comparison using the ratio of median case costs.</p>
+      <p class="lede">A three-case Codebase Memory comparison using the ratio of median-reduced case costs.</p>
     </header>
 
     <aside class="scope-note" aria-label="Evidence scope">
-      <p><strong>Published scope:</strong> 12 attempts across Extension architecture and Extension config scope.</p>
-      <p>The source batch manifest also listed Project Instructions, whose run directories were not supplied and are outside this result's published scope.</p>
+      <p><strong>Published scope:</strong> all 18 attempts across Extension architecture, Extension config scope, and Project instructions.</p>
+      <p>The exact source <code>harness-evals.yaml</code> was not supplied; the source benchmark revision and digest are retained in the provenance.</p>
     </aside>
 
     <div class="summary-grid" aria-label="Codebase Memory summary">
       <article class="metric-card">
         <span class="metric-label">Cost vs baseline</span>
-        <strong class="metric-value positive">5.8% lower</strong>
-        <span class="metric-context">$4.3080 baseline → $4.0570 candidate</span>
+        <strong class="metric-value positive">5.2% lower</strong>
+        <span class="metric-context">$5.2750 baseline → $5.0009 candidate</span>
       </article>
       <article class="metric-card">
         <span class="metric-label">Agent-step duration</span>
-        <strong class="metric-value positive">6.2% shorter</strong>
-        <span class="metric-context">1,240,975 ms baseline → 1,163,505 ms candidate</span>
+        <strong class="metric-value positive">3.0% shorter</strong>
+        <span class="metric-context">1,594,397 ms baseline → 1,546,213 ms candidate</span>
       </article>
       <article class="metric-card">
         <span class="metric-label">Framework pass rate</span>
         <strong class="metric-value">100%</strong>
-        <span class="metric-context">12 of 12 published attempts passed</span>
+        <span class="metric-context">18 of 18 published attempts passed</span>
       </article>
     </div>
 
@@ -281,19 +281,21 @@
           <tbody>
             <tr><td>Extension architecture</td><td>$1.2013</td><td>$1.4177</td><td>18.0% higher</td></tr>
             <tr><td>Extension config scope</td><td>$3.1067</td><td>$2.6393</td><td class="positive">15.0% lower</td></tr>
+            <tr><td>Project instructions</td><td>$0.9669</td><td>$0.9439</td><td class="positive">2.4% lower</td></tr>
           </tbody>
         </table>
       </div>
       <aside class="note">
-        <p><strong>Aggregate cost result:</strong> $4.3080 − $4.0570 = $0.2510 lower, or <strong>5.8% lower</strong> when the two reduced case values are summed.</p>
-        <p>The equal-case macro mean is <strong>1.5% higher</strong>; that diagnostic gives each case equal weight and is not the headline estimator here.</p>
+        <p><strong>Aggregate cost result:</strong> $5.2750 − $5.0009 = $0.2740 lower, or <strong>5.2% lower</strong> when the three reduced case values are summed.</p>
+        <p>The equal-case macro mean is <strong>0.2% higher</strong>, and the raw-attempt total is <strong>1.3% higher</strong>. These diagnostics are not the headline estimator, which uses the median trial per case followed by the ratio of reduced sums.</p>
       </aside>
     </section>
 
     <section aria-labelledby="quality-heading">
       <h2 id="quality-heading">Quality and evidence notes</h2>
       <aside class="note">
-        <p>All 12 published attempts reported framework status <strong>passed</strong>. One Codebase Memory-on architecture attempt received verifier reward <strong>0.8</strong> (coverage 4/5; missed <code>tool-to-model-path</code>); the other verifier rewards were 1.0.</p>
+        <p>All 18 published attempts reported framework status <strong>passed</strong>. One Codebase Memory-on architecture attempt received verifier reward <strong>0.8</strong> (coverage 4/5; missed <code>tool-to-model-path</code>); the other 17 verifier rewards were 1.0.</p>
+        <p>All six architecture attempts recorded a non-required <code>clean-tool-execution</code> failure, primarily <code>grep</code> ENOENT; these failures did not affect framework pass status.</p>
         <p><a href="../../sources/provenance/codebase-memory.json">View redacted evidence and source hashes</a> · <a href="results.json">JSON</a> · <a href="results.csv">CSV</a></p>
       </aside>
     </section>

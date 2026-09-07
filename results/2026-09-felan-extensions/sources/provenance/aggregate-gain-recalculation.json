@@ -651,10 +651,10 @@
     {
       "benchmarkId": "codebase-memory",
       "sourceEvidence": "sources/provenance/codebase-memory.json",
-      "sourceSha256": "edbde6763d972a366700d56174552fae76d9ea2a74d8e59f25d18f54ed791a25",
+      "sourceSha256": "ff4570487872a01dc315cea42d17311703791b1a4c9cfc3083eed099d02d2ce3",
       "originalDefinition": {
         "trials": "median",
-        "cases": "two retained cases from source batch",
+        "cases": "three cases from complete source batch",
         "metrics": [
           "cost.total",
           "duration.stepsMs"
@@ -684,13 +684,20 @@
               "candidateReducedValue": 2.639272000000001,
               "caseChangePercent": -15.045995647481398,
               "caseGainPercent": 15.045995647481398
+            },
+            {
+              "caseId": "cbm-project-instructions",
+              "baselineReducedValue": 0.9669319999999999,
+              "candidateReducedValue": 0.9439329999999998,
+              "caseChangePercent": -2.378554024481567,
+              "caseGainPercent": 2.378554024481567
             }
           ],
-          "baselineReducedSum": 4.308029000000001,
-          "candidateReducedSum": 4.056997000000001,
-          "aggregateChangePercent": -5.827073123231071,
-          "aggregateGainPercent": 5.827073123231071,
-          "macroMeanCaseGainPercent": -1.4838712754683439,
+          "baselineReducedSum": 5.274961000000001,
+          "candidateReducedSum": 5.000930000000001,
+          "aggregateChangePercent": -5.194938882012585,
+          "aggregateGainPercent": 5.194938882012585,
+          "macroMeanCaseGainPercent": -0.1963961754850403,
           "macroMinCaseGainPercent": -18.013738198418086,
           "macroMaxCaseGainPercent": 15.045995647481398
         },
@@ -713,14 +720,21 @@
               "candidateReducedValue": 802482,
               "caseChangePercent": -8.3595128385207,
               "caseGainPercent": 8.3595128385207
+            },
+            {
+              "caseId": "cbm-project-instructions",
+              "baselineReducedValue": 353422,
+              "candidateReducedValue": 382708,
+              "caseChangePercent": 8.28641114588226,
+              "caseGainPercent": -8.28641114588226
             }
           ],
-          "baselineReducedSum": 1240975,
-          "candidateReducedSum": 1163505,
-          "aggregateChangePercent": -6.242672092507908,
-          "aggregateGainPercent": 6.242672092507908,
-          "macroMeanCaseGainPercent": 4.763812922312719,
-          "macroMinCaseGainPercent": 1.1681130061047387,
+          "baselineReducedSum": 1594397,
+          "candidateReducedSum": 1546213,
+          "aggregateChangePercent": -3.0220829567541836,
+          "aggregateGainPercent": 3.0220829567541836,
+          "macroMeanCaseGainPercent": 0.413738232914393,
+          "macroMinCaseGainPercent": -8.28641114588226,
           "macroMaxCaseGainPercent": 8.3595128385207
         }
       ]

@@ -27,7 +27,7 @@
     "SHA256SUMS"
   ],
   "sourcePolicy": {
-    "sourceCopies": "Selected batch manifests, frozen configuration, aggregate configuration, reverification manifests, and recalculation evidence are preserved under sources/; duplicate framework report copies are omitted.",
+    "sourceCopies": "Selected batch manifest, redacted source evidence, frozen configuration, aggregate configuration, reverification manifests, and recalculation evidence are preserved under sources/; duplicate framework report copies are omitted.",
     "excludedSensitiveArtifacts": [
       "credentials",
       "auth stores",
@@ -93,8 +93,8 @@
       "report": "benchmarks/codebase-memory/results.json",
       "evidence": "sources/provenance/codebase-memory.json",
       "publicationScope": {
-        "cases": 2,
-        "runs": 12,
+        "cases": 3,
+        "runs": 18,
         "trialsPerArmPerCase": 3
       }
     }
@@ -102,11 +102,17 @@
   "knownLimitations": [
     "Subagents cost is a documented recalculation that adds billed child-session usage to the native parent-session totals.",
     "Headline resource outcomes use ratioOfReducedSums: median trial value within each case, then a sum across cases. Macro-mean case gains and ranges remain diagnostics.",
-    "The published Codebase Memory result covers 12 retained attempts across two cases; the source batch manifest also declared a third case whose run directories were not supplied.",
+    "The Codebase Memory result covers all 18 retained attempts across three cases; its exact source harness-evals.yaml was not supplied.",
     "RTK candidate aggregate quality is 83.3% (5/6); its detailed framework report also retains the reducer-derived arm value.",
     "Detailed benchmark CSV attempt rows omit the final empty column; the files remain parseable and the canonical top-level results.csv is rectangular."
   ],
   "sourceFiles": [
+    {
+      "path": "sources/provenance/aggregate-gain-recalculation.json",
+      "sha256": "4f7f7942521e128f177c5e20400a6d577d92a06665cfc1256c2f630b61567d7c",
+      "bytes": 25793,
+      "preservation": "derived-aggregate-recalculation"
+    },
     {
       "path": "sources/provenance/batches/20260902-112808-33e8.json",
       "sha256": "bfea0be5ec9eeae3f81153c4ec137e7f3263f655270f2d8ea0253b6d048b2d0b",
@@ -162,6 +168,24 @@
       "preservation": "byte-preserved-copy"
     },
     {
+      "path": "sources/provenance/batches/20260904-124556-6ffe.json",
+      "sha256": "2beacb30dfaaf8d10ad13c1dacb873d41919a48ce4059a7853a85455b2538c6e",
+      "bytes": 1897,
+      "preservation": "byte-preserved-copy"
+    },
+    {
+      "path": "sources/provenance/codebase-memory.json",
+      "sha256": "ff4570487872a01dc315cea42d17311703791b1a4c9cfc3083eed099d02d2ce3",
+      "bytes": 48140,
+      "preservation": "derived-published-evidence"
+    },
+    {
+      "path": "sources/provenance/project/felan-extension-evals-aggregate.yaml",
+      "sha256": "dd0016a08e30255826cbf724d4394d1a4a5855828e630a629035610ebb333ca9",
+      "bytes": 25022,
+      "preservation": "derived-aggregate-config"
+    },
+    {
       "path": "sources/provenance/project/felan-extension-evals.yaml",
       "sha256": "7a847181e54b618d92aa672bf7a5a6c29eceecacda0af7c4600ddbdfd600c170",
       "bytes": 24724,
@@ -181,8 +205,8 @@
     },
     {
       "path": "sources/provenance/selected-evidence.json",
-      "sha256": "47ddbb50707f39b561ff8efc71c2cbee8db50f2b0e77807eba4c776d875b080d",
-      "bytes": 29625,
+      "sha256": "907bff8d1db75bb5bc0ad42d32ca8cbabc27bcb142b9fe0f2caa0da3dab95076",
+      "bytes": 30593,
       "preservation": "derived-provenance-index"
     },
     {
@@ -190,24 +214,6 @@
       "sha256": "711b3265612210842bbdda9ff549a0de663d9693a8e4ef95006250b7dab600e3",
       "bytes": 7742,
       "preservation": "derived-cost-recalculation"
-    },
-    {
-      "path": "sources/provenance/aggregate-gain-recalculation.json",
-      "sha256": "16d0ba76a7c5819cf322f1084bbb81c8e8116f1818657c703a68225c6f89e7e0",
-      "bytes": 25208,
-      "preservation": "derived-aggregate-recalculation"
-    },
-    {
-      "path": "sources/provenance/codebase-memory.json",
-      "sha256": "edbde6763d972a366700d56174552fae76d9ea2a74d8e59f25d18f54ed791a25",
-      "bytes": 34080,
-      "preservation": "derived-published-evidence"
-    },
-    {
-      "path": "sources/provenance/project/felan-extension-evals-aggregate.yaml",
-      "sha256": "dd0016a08e30255826cbf724d4394d1a4a5855828e630a629035610ebb333ca9",
-      "bytes": 25022,
-      "preservation": "derived-aggregate-config"
     }
   ],
   "presentationAnnotations": [
@@ -232,7 +238,7 @@
     {
       "benchmarkId": "codebase-memory",
       "scope": "Published evidence scope",
-      "reason": "The final current result covers 12 retained attempts across two cases; raw source-batch coverage remains in provenance.",
+      "reason": "The final current result covers all 18 retained attempts across three cases; raw sensitive run artifacts remain excluded.",
       "report": "benchmarks/codebase-memory/results.html"
     }
   ],

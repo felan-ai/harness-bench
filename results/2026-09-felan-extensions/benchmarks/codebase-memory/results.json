@@ -6,12 +6,13 @@
   "status": "complete",
   "publicationEligible": true,
   "coverage": {
-    "cases": 2,
-    "runs": 12,
+    "cases": 3,
+    "runs": 18,
     "trialsPerArmPerCase": 3,
     "caseIds": [
       "cbm-extension-architecture",
-      "cbm-extension-config-scope"
+      "cbm-extension-config-scope",
+      "cbm-project-instructions"
     ]
   },
   "arms": {
@@ -22,59 +23,64 @@
   "caseEstimator": "ratioOfReducedSums",
   "comparisons": {
     "cost.total": {
-      "baselineReducedCaseSum": 4.308029000000001,
-      "candidateReducedCaseSum": 4.056997000000001,
-      "ratioOfReducedSumsGainPercent": 5.827073123231071,
-      "macroMeanCaseGainPercent": -1.4838712754683439,
+      "baselineReducedCaseSum": 5.274961000000001,
+      "candidateReducedCaseSum": 5.000930000000001,
+      "ratioOfReducedSumsGainPercent": 5.194938882012585,
+      "macroMeanCaseGainPercent": -0.1963961754850403,
       "caseGainsPercent": [
         -18.013738198418086,
-        15.045995647481398
+        15.045995647481398,
+        2.378554024481567
       ],
-      "rawAttemptTotalGainPercent": 2.96942155189131
+      "rawAttemptTotalGainPercent": -1.2858637153061812
     },
     "duration.stepsMs": {
-      "baselineReducedCaseSum": 1240975,
-      "candidateReducedCaseSum": 1163505,
-      "ratioOfReducedSumsGainPercent": 6.242672092507908,
-      "macroMeanCaseGainPercent": 4.763812922312719,
+      "baselineReducedCaseSum": 1594397,
+      "candidateReducedCaseSum": 1546213,
+      "ratioOfReducedSumsGainPercent": 3.0220829567541836,
+      "macroMeanCaseGainPercent": 0.413738232914393,
       "caseGainsPercent": [
         1.1681130061047387,
-        8.3595128385207
+        8.3595128385207,
+        -8.28641114588226
       ],
-      "rawAttemptTotalGainPercent": 8.807968970134372
+      "rawAttemptTotalGainPercent": 4.201261741781832
     },
     "usage.promptTokens": {
-      "baselineReducedCaseSum": 5017165,
-      "candidateReducedCaseSum": 4053749,
-      "ratioOfReducedSumsGainPercent": 19.202398167092372,
-      "macroMeanCaseGainPercent": 7.869247496878037,
+      "baselineReducedCaseSum": 5902049,
+      "candidateReducedCaseSum": 4979128,
+      "ratioOfReducedSumsGainPercent": 15.637298165433734,
+      "macroMeanCaseGainPercent": 3.7207296489539305,
       "caseGainsPercent": [
         -9.050772893436804,
-        24.789267887192878
+        24.789267887192878,
+        -4.576306046894282
       ],
-      "rawAttemptTotalGainPercent": 11.123928075524885
+      "rawAttemptTotalGainPercent": 6.961148281971704
     },
     "usage.outputTokens": {
-      "baselineReducedCaseSum": 24111,
-      "candidateReducedCaseSum": 23019,
-      "ratioOfReducedSumsGainPercent": 4.529053129277093,
-      "macroMeanCaseGainPercent": 4.149451160828822,
+      "baselineReducedCaseSum": 31511,
+      "candidateReducedCaseSum": 30598,
+      "ratioOfReducedSumsGainPercent": 2.8974009076195615,
+      "macroMeanCaseGainPercent": 1.9599944675795753,
       "caseGainsPercent": [
         2.828541496915377,
-        5.470360824742268
+        5.470360824742268,
+        -2.418918918918919
       ],
-      "rawAttemptTotalGainPercent": 4.546668353220616
+      "rawAttemptTotalGainPercent": 1.2403519188211798
     },
     "usage.totalTokens": {
-      "baselineReducedCaseSum": 5042479,
-      "candidateReducedCaseSum": 4076187,
-      "ratioOfReducedSumsGainPercent": 19.1630346898817,
-      "macroMeanCaseGainPercent": 7.94650559741003,
+      "baselineReducedCaseSum": 5934763,
+      "candidateReducedCaseSum": 5008727,
+      "ratioOfReducedSumsGainPercent": 15.603588551050818,
+      "macroMeanCaseGainPercent": 3.793814376349093,
       "caseGainsPercent": [
         -8.84535853411172,
-        24.73836972893178
+        24.73836972893178,
+        -4.511568065772781
       ],
-      "rawAttemptTotalGainPercent": 11.091435994165321
+      "rawAttemptTotalGainPercent": 6.9296409113431325
     }
   },
   "cases": [
@@ -133,10 +139,38 @@
         "passRate": 1.0,
         "meanVerifierReward": 1.0
       }
+    },
+    {
+      "caseId": "cbm-project-instructions",
+      "sourceCommits": [
+        "104faa5559029c8be9e8a1eb504d87974a5864e9"
+      ],
+      "baseline": {
+        "reducedByMedian": {
+          "cost.total": 0.9669319999999999,
+          "duration.stepsMs": 353422,
+          "usage.promptTokens": 884884,
+          "usage.outputTokens": 7400,
+          "usage.totalTokens": 892284
+        },
+        "passRate": 1.0,
+        "meanVerifierReward": 1
+      },
+      "candidate": {
+        "reducedByMedian": {
+          "cost.total": 0.9439329999999998,
+          "duration.stepsMs": 382708,
+          "usage.promptTokens": 925379,
+          "usage.outputTokens": 7579,
+          "usage.totalTokens": 932540
+        },
+        "passRate": 1.0,
+        "meanVerifierReward": 1
+      }
     }
   ],
   "qualityDisclosure": {
-    "frameworkPassRate": "All 12 published attempts reported status passed and pass=true.",
+    "frameworkPassRate": "All 18 published attempts reported status passed and pass=true.",
     "architectureCandidateVerifierRewards": [
       1.0,
       0.8,
@@ -155,14 +189,26 @@
         1.0
       ]
     },
-    "nonRequiredAssertionNote": "Architecture baseline runs recorded a non-required clean-tool-execution grep ENOENT; verifier rewards remained 1.0."
+    "projectInstructionsVerifierRewards": {
+      "felan-cbm-off": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "felan-cbm-on": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "nonRequiredAssertionNote": "All six architecture attempts recorded a non-required clean-tool-execution failure, primarily grep ENOENT; these failures did not affect framework pass status."
   },
   "evidence": "../../sources/provenance/codebase-memory.json",
   "sourceBatchCoverage": {
     "declaredCases": 3,
     "declaredRuns": 18,
-    "retainedCases": 2,
-    "retainedRuns": 12,
-    "caseOutsidePublishedScope": "cbm-project-instructions"
+    "retainedCases": 3,
+    "retainedRuns": 18,
+    "complete": true
   }
 }

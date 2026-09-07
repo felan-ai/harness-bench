@@ -624,7 +624,13 @@
         "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-53-00-314Z-8",
         "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-07-29-236Z-9",
         "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-21-11-934Z-10",
-        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-37-38-933Z-11"
+        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-37-38-933Z-11",
+        "cbm-project-instructions-felan-cbm-off-2026-09-04T14-52-13-277Z-12",
+        "cbm-project-instructions-felan-cbm-off-2026-09-04T14-58-41-496Z-13",
+        "cbm-project-instructions-felan-cbm-off-2026-09-04T15-04-01-556Z-14",
+        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-11-28-612Z-15",
+        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-18-55-726Z-16",
+        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-25-58-176Z-17"
       ],
       "sourceRunIds": [
         "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-45-56-901Z-0",
@@ -638,13 +644,19 @@
         "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-53-00-314Z-8",
         "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-07-29-236Z-9",
         "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-21-11-934Z-10",
-        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-37-38-933Z-11"
+        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-37-38-933Z-11",
+        "cbm-project-instructions-felan-cbm-off-2026-09-04T14-52-13-277Z-12",
+        "cbm-project-instructions-felan-cbm-off-2026-09-04T14-58-41-496Z-13",
+        "cbm-project-instructions-felan-cbm-off-2026-09-04T15-04-01-556Z-14",
+        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-11-28-612Z-15",
+        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-18-55-726Z-16",
+        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-25-58-176Z-17"
       ],
       "quality": {
         "baseline": {
-          "runs": 6,
-          "validRuns": 6,
-          "passed": 6,
+          "runs": 9,
+          "validRuns": 9,
+          "passed": 9,
           "failed": 0,
           "invalid": 0,
           "state": "eligible",
@@ -658,9 +670,9 @@
           ]
         },
         "candidate": {
-          "runs": 6,
-          "validRuns": 6,
-          "passed": 6,
+          "runs": 9,
+          "validRuns": 9,
+          "passed": 9,
           "failed": 0,
           "invalid": 0,
           "state": "eligible",
@@ -676,27 +688,28 @@
       },
       "report": {
         "sourceRelativePath": "sources/provenance/codebase-memory.json",
-        "runCount": 12,
-        "derivedRunCount": 12,
+        "runCount": 18,
+        "derivedRunCount": 18,
         "publishedRelativePath": "benchmarks/codebase-memory/results.html",
-        "sourceSha256": "edbde6763d972a366700d56174552fae76d9ea2a74d8e59f25d18f54ed791a25"
+        "sourceSha256": "ff4570487872a01dc315cea42d17311703791b1a4c9cfc3083eed099d02d2ce3"
       },
       "batch": {
         "status": "completed",
-        "expectedRunCount": 12,
-        "actualRunCount": 12,
+        "expectedRunCount": 18,
+        "actualRunCount": 18,
         "sourceManifestDeclaredRunCount": 18,
         "startedAt": "2026-09-04T12:45:56.897Z",
         "completedAt": "2026-09-04T15:32:46.890Z"
       },
       "publicationScope": {
         "status": "final",
-        "caseCount": 2,
-        "runCount": 12,
+        "caseCount": 3,
+        "runCount": 18,
         "trialsPerArmPerCase": 3,
         "caseIds": [
           "cbm-extension-architecture",
-          "cbm-extension-config-scope"
+          "cbm-extension-config-scope",
+          "cbm-project-instructions"
         ]
       }
     }

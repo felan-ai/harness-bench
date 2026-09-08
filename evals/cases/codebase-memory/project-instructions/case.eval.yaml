@@ -20,7 +20,9 @@ workspace:
 agents:
   include:
     - felan-cbm-off
-    - felan-cbm-on
+    - felan-cbm-curated
+    - felan-cbm-direct
+    - felan-cbm-single-proxy
 prompt: |
   Fix Felan's root project-instructions regression.
 

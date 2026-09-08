@@ -23,7 +23,9 @@ workspace:
 agents:
   include:
     - felan-cbm-off
-    - felan-cbm-on
+    - felan-cbm-curated
+    - felan-cbm-direct
+    - felan-cbm-single-proxy
 prompt: |
   Give Felan's declarative extension-configuration system a persistence
   "scope" - every extension-config field should declare where its value is

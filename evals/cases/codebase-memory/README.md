@@ -1,11 +1,10 @@
 # codebase-memory case family
 
-A/B comparison for Felan's **Codebase Memory (CBM)** extension
-(`@felan-ai/ext-codebase-memory`, a proxy over the native `codebase-memory-mcp`
-binary). The same task is run against Felan with CBM off (`felan-cbm-off`) and
-CBM on (`felan-cbm-on`); everything else — model, thinking level, prompt,
-starting workspace, verifier, timeout, auth — is held identical, so the only
-variable is the extension.
+Pairwise comparisons for Felan's **Codebase Memory (CBM)** extension
+(`@felan-ai/ext-codebase-memory`) and its native `codebase-memory-mcp` backend.
+Each task runs with CBM off plus three enabled surfaces: curated, direct, and
+single-proxy. Everything else — model, thinking level, prompt, starting
+workspace, verifier, timeout, auth — is held identical.
 
 **Hypothesis.** CBM's structural graph (symbol lookup, callers, cross-file
 impact) should reduce tokens and dead-end tool calls on tasks that force the
@@ -29,54 +28,61 @@ any Felan change to how the extension resolves or indexes a project root.
 | --- | --- | --- |
 | `project-instructions` | Fix a real historical Felan regression — session creation must load root `AGENTS.md`/`CLAUDE.md` via `AgentRuntime` with exact precedence and nonfatal rules. Confined to `packages/agent-core/src`. | Moderate, single-package. Chosen to prove the pipeline, not to showcase CBM. |
 | `extension-config-scope` | Add a required persistence `scope` (`user`/`project`/`session`) to Felan's declarative extension-config system: one interface change in `agent-core`, a new `getPersistableExtensionConfig`, a `settings.ts` consumer change, and `scope` on all ~50 `configField.*` sites across 11 `ext-*` packages. | High, cross-package fan-out — the case built to give CBM its best shot. |
-| `extension-architecture` | Read-only deep-dive: explain how Felan's extension system is designed and implemented (contract, loading, declarative config, builtin enable/disable, tool-to-model path, one worked example), written to `EXTENSION-ARCHITECTURE.md`. No edits, no build, no tests — graded by a hidden fact-coverage × citation-precision checklist instead of a build/test verifier. | High, comprehension-only across `packages/` and `apps/` — isolates CBM's retrieval value from edit/build noise entirely. |
+| `extension-architecture` | Read-only deep-dive: explain how Felan's extension system is designed and implemented (contract, loading, declarative config, builtin enable/disable, tool-to-model path, one worked example), written to `EXTENSION-ARCHITECTURE.md`. No edits, no build, no tests — graded by a hidden five-fact directional check instead of a build/test verifier. | High, comprehension-only across `packages/` and `apps/` — isolates CBM's retrieval value from edit/build noise entirely. |
 
 ## Arms
 
-Both declared in `../../../felan-extension-evals.yaml`, identical except one flag:
+All four profiles are declared in `../../../felan-extension-evals.yaml`:
 
-| | `felan-cbm-off` | `felan-cbm-on` |
+| Profile | Extension enabled | `extensionConfig.codebaseMemory.mode` |
 | --- | --- | --- |
-| `builtinExtensions.codebaseMemory` | `false` | `true` |
-| everything else | `codex`, `context`, `tasks` on, all 18 other builtins explicitly `false`; `gpt-5.6-sol`; `thinking: medium`; `packageVersion: 0.21.11`; `timeoutMs: 900000` | same |
+| `felan-cbm-off` | `false` | omitted |
+| `felan-cbm-curated` | `true` | `curated` |
+| `felan-cbm-direct` | `true` | `direct` |
+| `felan-cbm-single-proxy` | `true` | `proxy` |
 
-Both profiles enumerate all 21 builtin extensions felan 0.21.11 ships. felan
+All profiles enumerate the builtin extensions Felan ships. Felan
 treats an omitted key as enabled (`isBuiltinExtensionEnabled` returns true
 unless the value is exactly `false`), so listing every key is what keeps the
-baseline from silently picking up extensions on a felan bump - e.g. `sessionTitle`,
-added in 0.21.11, is explicitly `false` in both profiles.
+baseline from silently picking up extensions on a Felan bump — e.g. `sessionTitle`,
+added in 0.21.11, is explicitly `false` in all four profiles. The profiles use
+`gpt-5.6-sol`, `thinking: medium`, and `timeoutMs: 900000`.
 
 ## Runtime and pinned versions
 
 Cases use `harness-bench-felan-runtime:v1` (`evals/runtimes/felan/Dockerfile`).
-That image now bakes the `codebase-memory-mcp` binary onto `PATH` so
-`felan-cbm-on` does not pay the installer cost at session start. The binary is
+That image bakes the `codebase-memory-mcp` binary onto `PATH` so enabled arms do
+not pay the installer cost at session start. The binary is
 inert for every other case (they do not enable `codebaseMemory`).
 
 The binary version is **not a free choice** — `@felan-ai/ext-codebase-memory`
 hard-pins it with a strict equality check (`client.ts`: `CODEBASE_MEMORY_VERSION`).
 A mismatch makes the extension register no tools and disable nonfatally, which
-would silently turn `felan-cbm-on` into `felan-cbm-off`. Current chain:
+would silently turn an enabled arm into the off arm. Current chain:
 
 | Layer | Version |
 | --- | --- |
-| `@felan-ai/felan` | 0.21.11 |
-| bundled `@felan-ai/ext-codebase-memory` | 0.1.7 |
+| `@felan-ai/felan` | 0.23.2 |
+| bundled `@felan-ai/ext-codebase-memory` | 0.3.1 |
 | required `codebase-memory-mcp` binary | 0.10.8 |
 
-0.1.7 lands the fixes the rev-2 root-cause analysis pointed to: `read_symbol`
+0.1.7 landed the fixes the rev-2 root-cause analysis pointed to: `read_symbol`
 both-shapes (#34), stale-refresh guard (#37), auto-index path validation (#31),
 and the big one - `search_and_read_symbols` compact return shape + parallel
 snippet reads (#40), which drop the full candidate list and the per-candidate
 duplication that dominated CBM-on's carried-context cost. The binary is
 unchanged, so **no Dockerfile / image rebuild** - only `packageVersion` moves.
+0.3.0 added the `curated` / `direct` / `proxy` model-surface modes and completed
+#40 (the per-symbol `symbols[].symbol` metadata is gone). 0.3.1 makes the
+proxy mode's per-command argument schemas visible to the model; without it the
+proxy arm fails validation on most calls and measures nothing.
 
 To re-benchmark a newer binary: bump `CBM_VERSION` / `CBM_INSTALLER_COMMIT` /
 `CBM_INSTALLER_SHA256` in the Dockerfile (values come from
 `packages/ext-codebase-memory/src/{client,installer}.ts` in the felan repo at the
 target release), rebuild with `bun run build:runtime`, re-run.
 
-Both cases share `harness-bench-felan-runtime:v1`. The runtime bakes no pnpm
+All cases share `harness-bench-felan-runtime:v1`. The runtime bakes no pnpm
 store, so each case's `setup` installs its own commit's lockfile from the npm
 registry with `network.mode: default`.
 
@@ -105,7 +111,7 @@ visible to the agent. The untouched fixture must score `0`; a separately
 prepared known-good implementation must score `1` (both verified per case).
 `project-instructions` and `extension-config-scope` write a binary reward
 (build + tests pass, or they don't); `extension-architecture` writes a
-continuous `0..1` reward (fact coverage × citation precision), since its task
+continuous `0..1` reward (fact coverage over five facts), since its task
 has no build or test suite to run.
 
 **`project-instructions`** reuses the `rtk/project-instructions` verifier
@@ -202,7 +208,7 @@ incidental agent behaviour rather than CBM's own effect (see
 [Findings](#findings)). That confound — an unfiltered `grep`/`exec_command`
 hit against `.js.map` build artifacts — is fixed upstream (`@felan-ai/ext-codex`
 bundles PR #36's line-length and token-ceiling clamp on `exec_command` output),
-so the 0.21.11 runtime carries it. `extension-architecture` is built to isolate
+so the 0.23.2 runtime carries it. `extension-architecture` is built to isolate
 CBM's other claimed strength instead: **comprehension**, not editing. It is
 read-only — explain how Felan's extension system works, write the analysis to
 `EXTENSION-ARCHITECTURE.md`, touch nothing else — so there is no build and no
@@ -210,7 +216,7 @@ test run to contribute noise of its own.
 
 **Base commit:** `e586763` (felan `0.21.3`). This is the workspace the agent
 explores; it is independent of `packageVersion` (the felan CLI running the
-agent, now `0.21.11`). Kept at `0.21.3` because the case's facts were written
+agent, now `0.23.2`). Kept at `0.21.3` because the case's facts were written
 against this snapshot; it is identical to `extension-config-scope`'s `51a18d8`
 in every file this case's prompt and facts touch.
 
@@ -223,14 +229,13 @@ every reference to it in Felan's own source is a named type-only import
 (hence the prompt's "treat the host package as a boundary" framing); and CBM
 indexes git-tracked source via `gitRoot()`, not import resolution through
 `node_modules`, which is gitignored anyway. Skipping it also removes a
-networked install per run × 2 arms × 3 trials.
+networked install per run × 4 arms × 3 trials.
 
 **Grading.** No build or test suite exists to grade against, so
-`verifier/facts.json` is a hidden 12-fact checklist instead (see
-[How grading works](#how-grading-works)): coverage catches missing areas,
-and a separate citation-existence check across every `packages/…`/`apps/…`
-path the report cites — independent of which facts it happens to satisfy —
-catches fabricated ones. Facts are anchored on symbols and paths verified
+`verifier/facts.json` is a hidden five-fact directional check instead (see
+[How grading works](#how-grading-works)): `reward = matched / 5`, `0` below
+`failBelow` 0.6. The citation-count and `__BREADTH__` gates were removed with
+the generic prompt rewrite. Facts are anchored on symbols and paths verified
 against `e586763` directly (`packages/agent-core/src/{extensions,
 extension-config,capabilities}.ts`, `apps/tui/src/{settings,dependencies}.ts`,
 `packages/ext-tasks/src/index.ts`), not assumed from memory of the general
@@ -243,21 +248,24 @@ bun run build:runtime                # once, or after a version bump
 bun run list                         # sanity-check discovery
 
 bun run run --case cbm-project-instructions \
-  --agents felan-cbm-off,felan-cbm-on --concurrency 1 --attempts 3
+  --agents felan-cbm-off,felan-cbm-curated,felan-cbm-direct,felan-cbm-single-proxy \
+  --concurrency 1 --attempts 3
 
 bun run run --case cbm-extension-config-scope \
-  --agents felan-cbm-off,felan-cbm-on --concurrency 1 --attempts 3
+  --agents felan-cbm-off,felan-cbm-curated,felan-cbm-direct,felan-cbm-single-proxy \
+  --concurrency 1 --attempts 3
 
 bun run run --case cbm-extension-architecture \
-  --agents felan-cbm-off,felan-cbm-on --concurrency 1 --attempts 3
+  --agents felan-cbm-off,felan-cbm-curated,felan-cbm-direct,felan-cbm-single-proxy \
+  --concurrency 1 --attempts 3
 
 bun run view
 ```
 
-Runs are ad-hoc `run --case … --agents …` invocations — there is no declared
-`benchmarks:` entry yet. Add one (and re-run as a stamped batch) before quoting a
-headline effect size; see the findings snapshot for why the current numbers
-cannot resolve a 10–20% effect at n = 3.
+The configuration declares separate off-vs-curated, off-vs-direct, and
+off-vs-single-proxy benchmark comparisons. Run the relevant benchmark after
+the runtime image is available; do not quote a headline effect size before a
+stamped multi-trial batch completes.
 
 ## Findings
 

@@ -20,7 +20,9 @@ workspace:
 agents:
   include:
     - felan-cbm-off
-    - felan-cbm-on
+    - felan-cbm-curated
+    - felan-cbm-direct
+    - felan-cbm-single-proxy
 prompt: |
   Explain how extensions are designed and implemented in Felan. Write your
   analysis to EXTENSION-ARCHITECTURE.md at the repository root.

@@ -647,8 +647,9 @@ agents:
         felanTui:
           memoryProcessing: false
 
-  # Codebase Memory (CBM) A/B pair. Identical except builtinExtensions.codebaseMemory.
-  # felan 0.21.11 bundles @felan-ai/ext-codebase-memory 0.1.7, which hard-pins the
+  # Codebase Memory profiles. The curated profile is the existing model surface;
+  # direct and single-proxy are experimental alternatives.
+  # felan 0.23.2 bundles @felan-ai/ext-codebase-memory 0.3.1, which hard-pins the
   # codebase-memory-mcp binary at 0.10.8 (strict equality; a mismatch disables the
   # extension nonfatally). The binary is baked into evals/runtimes/felan/Dockerfile.
   felan-cbm-off:
@@ -663,7 +664,7 @@ agents:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.21.11
+      packageVersion: 0.23.2
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -694,10 +695,10 @@ agents:
         felanTui:
           memoryProcessing: false
 
-  felan-cbm-on:
+  felan-cbm-curated:
     adapter: felan
-    label: Felan · Codebase Memory on
-    comparisonId: felan-cbm-on
+    label: Felan · Codebase Memory curated
+    comparisonId: felan-cbm-curated
     provider: openai-codex
     model: gpt-5.6-sol
     thinking: medium
@@ -706,7 +707,7 @@ agents:
       type: oauth
     useCurrentConfig: false
     config:
-      packageVersion: 0.21.11
+      packageVersion: 0.23.2
       useCurrentConfig: false
       settings:
         builtinExtensions:
@@ -734,6 +735,98 @@ agents:
         extensionConfig:
           codex:
             fast: true
+          codebaseMemory:
+            mode: curated
+        felanTui:
+          memoryProcessing: false
+
+  felan-cbm-direct:
+    adapter: felan
+    label: Felan · Codebase Memory direct tools
+    comparisonId: felan-cbm-direct
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: medium
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      packageVersion: 0.23.2
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: true
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          sessionTitle: false
+          subagents: false
+          tasks: true
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: true
+          codebaseMemory:
+            mode: direct
+        felanTui:
+          memoryProcessing: false
+
+  felan-cbm-single-proxy:
+    adapter: felan
+    label: Felan · Codebase Memory single proxy
+    comparisonId: felan-cbm-single-proxy
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: medium
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      packageVersion: 0.23.2
+      useCurrentConfig: false
+      settings:
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: true
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          rtkOptimizer: false
+          sessionTitle: false
+          subagents: false
+          tasks: true
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: true
+          codebaseMemory:
+            mode: proxy
         felanTui:
           memoryProcessing: false
 
@@ -749,14 +842,14 @@ scoring:
 # compare declared arms across all attempts and gate resource metrics on quality.
 benchmarks:
   codebase-memory:
-    revision: 5
+    revision: 6
     label: Codebase Memory retrieval cost
     description: Compare Codebase Memory enabled against disabled on Felan-repository tasks that must locate and understand code, with or without changing it.
     select:
       suites: [codebase-memory]
     arms:
       baseline: felan-cbm-off
-      candidate: felan-cbm-on
+      candidate: felan-cbm-curated
     trials: 3
     qualityGates:
       - metric: quality.passRate
@@ -769,6 +862,44 @@ benchmarks:
       # tree), image probes and the verifier, whose variance would swamp the
       # agent-speed signal this objective is after. Requires harness-evals
       # 0.2.15 or newer.
+      - metric: duration.stepsMs
+        goal: minimize
+
+  codebase-memory-direct:
+    revision: 2
+    label: Codebase Memory direct tool surface
+    description: Compare direct 1:1 Codebase Memory tools against Codebase Memory off on the same Felan-repository tasks.
+    select:
+      suites: [codebase-memory]
+    arms:
+      baseline: felan-cbm-off
+      candidate: felan-cbm-direct
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 0.8
+    objective:
+      - metric: cost.total
+        goal: minimize
+      - metric: duration.stepsMs
+        goal: minimize
+
+  codebase-memory-single-proxy:
+    revision: 2
+    label: Codebase Memory single proxy surface
+    description: Compare the single-proxy Codebase Memory tool against Codebase Memory off on the same Felan-repository tasks.
+    select:
+      suites: [codebase-memory]
+    arms:
+      baseline: felan-cbm-off
+      candidate: felan-cbm-single-proxy
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 0.8
+    objective:
+      - metric: cost.total
+        goal: minimize
       - metric: duration.stepsMs
         goal: minimize
     aggregation:

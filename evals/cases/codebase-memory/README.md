@@ -272,6 +272,9 @@ stamped multi-trial batch completes.
 | Date | Doc | Summary |
 | --- | --- | --- |
 | 2026-09-01 / -02 | [`cbm-initial-findings.md`](./cbm-initial-findings.md) · `cbm-initial-findings.html` | First exploratory runs, both cases, n = 3/arm. Correctness a wash. Both phases' headline cost signal turned out to be an incidental agent behaviour (Phase 1: an unfiltered `grep` matching `.js.map` source maps; Phase 2: 1-second build polling), each worth more per run than CBM's own effect. Best estimate of CBM's intrinsic cost: **+11–20% on a localized task, no measurable benefit on a wide fan-out**. |
+| 2026-09-03 / -04 | [`cbm-v1-rootcause-2026-09-04.md`](./cbm-v1-rootcause-2026-09-04.md) | Root-cause pass over the first stamped batches, run against the **original descriptive prompts** and the 12-fact × citation-precision architecture verifier. CBM-on lost on cost in both showcase cases (architecture **+16.1%**, config-scope **+8.2%**). Traced the loss to direct CBM payload carry, over-fetch in `search_and_read_symbols`, and low-hit grep augmentation. |
+| 2026-09-04 | [`cbm-v2-rootcause-2026-09-04.md`](./cbm-v2-rootcause-2026-09-04.md) | First batch on the **behavioural prompts and loose 5-fact verifier** (felan 0.21.11 / CBM 0.1.7). Architecture still lost (**+18.0%**); config-scope flipped to a win (**−15.0%**) by cutting raw `exec_command` payload. Confirmed #40's compact return shape, with `symbols[].symbol` metadata still riding along. |
+| 2026-09-08 | [`cbm-v3-tool-modes-2026-09-08.md`](./cbm-v3-tool-modes-2026-09-08.md) | Four-arm comparison of the `curated` / `direct` / `proxy` surfaces on the v2 tasks (felan 0.23.2 / CBM 0.3.1), prompts hash-matched to v2. **Curated is the conservative cost choice, direct the latency-oriented one**; neither dominates. Proxy still hits schema failures despite 0.3.1's field-name discovery. Much of the coding-cost delta tracks build polling, not navigation. |
 
 **What the initial runs changed:**
 

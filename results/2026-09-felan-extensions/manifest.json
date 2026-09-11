@@ -86,10 +86,10 @@
     },
     {
       "benchmarkId": "codebase-memory",
-      "selectedBatchId": "20260904-124556-6ffe",
-      "sourceBatchId": "20260904-124556-6ffe",
+      "selectedBatchId": "20260908-090907-5a66,20260908-114759-951e,20260909-123711-ff11",
+      "sourceBatchId": "20260908-090907-5a66,20260908-114759-951e,20260909-123711-ff11",
       "reverificationId": null,
-      "evidenceType": "derived-redacted-local-batch",
+      "evidenceType": "derived-local-case-batches",
       "report": "benchmarks/codebase-memory/results.json",
       "evidence": "sources/provenance/codebase-memory.json",
       "publicationScope": {
@@ -102,15 +102,15 @@
   "knownLimitations": [
     "Subagents cost is a documented recalculation that adds billed child-session usage to the native parent-session totals.",
     "Headline resource outcomes use ratioOfReducedSums: median trial value within each case, then a sum across cases. Macro-mean case gains and ranges remain diagnostics.",
-    "The Codebase Memory result covers all 18 retained attempts across three cases; its exact source harness-evals.yaml was not supplied.",
+    "The Codebase Memory result covers all 18 off and on attempts across three cases from three separately launched --case batches on Felan 0.23.2; runs carry no benchmark stamp and figures are recomputed from recorded run metrics.",
     "RTK candidate aggregate quality is 83.3% (5/6); its detailed framework report also retains the reducer-derived arm value.",
     "Detailed benchmark CSV attempt rows omit the final empty column; the files remain parseable and the canonical top-level results.csv is rectangular."
   ],
   "sourceFiles": [
     {
       "path": "sources/provenance/aggregate-gain-recalculation.json",
-      "sha256": "4f7f7942521e128f177c5e20400a6d577d92a06665cfc1256c2f630b61567d7c",
-      "bytes": 25793,
+      "sha256": "b4d4046603aba67f9d00f9fd57b0e956d4eb2984265674454af118e0fb181935",
+      "bytes": 25760,
       "preservation": "derived-aggregate-recalculation"
     },
     {
@@ -168,15 +168,27 @@
       "preservation": "byte-preserved-copy"
     },
     {
-      "path": "sources/provenance/batches/20260904-124556-6ffe.json",
-      "sha256": "2beacb30dfaaf8d10ad13c1dacb873d41919a48ce4059a7853a85455b2538c6e",
-      "bytes": 1897,
+      "path": "sources/provenance/batches/20260908-090907-5a66.json",
+      "sha256": "66e51e4680db911c4b3491c9ee3d83bd45d37478cd531f930cd5328a46f82fff",
+      "bytes": 1761,
+      "preservation": "byte-preserved-copy"
+    },
+    {
+      "path": "sources/provenance/batches/20260908-114759-951e.json",
+      "sha256": "e97a03d1c0f3ebafe76e7c47ee0f9665e0bb856cb4b7d051d4411f27bcf49600",
+      "bytes": 1761,
+      "preservation": "byte-preserved-copy"
+    },
+    {
+      "path": "sources/provenance/batches/20260909-123711-ff11.json",
+      "sha256": "49694845b687fab6c6ebe4612539483fcb89553efe03773937df6ea1e3f34014",
+      "bytes": 1735,
       "preservation": "byte-preserved-copy"
     },
     {
       "path": "sources/provenance/codebase-memory.json",
-      "sha256": "ff4570487872a01dc315cea42d17311703791b1a4c9cfc3083eed099d02d2ce3",
-      "bytes": 48140,
+      "sha256": "d712f29701196491246c803766c8f3a482e64236b4e3798caf0d235cceb1ac11",
+      "bytes": 48129,
       "preservation": "derived-published-evidence"
     },
     {
@@ -205,8 +217,8 @@
     },
     {
       "path": "sources/provenance/selected-evidence.json",
-      "sha256": "907bff8d1db75bb5bc0ad42d32ca8cbabc27bcb142b9fe0f2caa0da3dab95076",
-      "bytes": 30593,
+      "sha256": "816f793da84d0d676cae202ffddb9aca7d3833033f5edb718f67a6b7beda5af6",
+      "bytes": 30885,
       "preservation": "derived-provenance-index"
     },
     {
@@ -238,7 +250,7 @@
     {
       "benchmarkId": "codebase-memory",
       "scope": "Published evidence scope",
-      "reason": "The final current result covers all 18 retained attempts across three cases; raw sensitive run artifacts remain excluded.",
+      "reason": "The current result covers all 18 off and on attempts across three cases on Felan 0.23.2; the enabled arm ran the curated tool surface. The runs carry no benchmark stamp, so figures are recomputed from recorded run metrics.",
       "report": "benchmarks/codebase-memory/results.html"
     }
   ],
@@ -305,5 +317,17 @@
     "benchmarks/codebase-memory/results.json",
     "benchmarks/codebase-memory/results.csv",
     "benchmarks/codebase-memory/results.html"
+  ],
+  "amendments": [
+    {
+      "date": "2026-09-11",
+      "benchmarkId": "codebase-memory",
+      "summary": "Replaced the 2026-09-04 Codebase Memory evidence (batch 20260904-124556-6ffe, Felan 0.21.11, 5.2% lower cost) with three 2026-09-08/09 case batches on Felan 0.23.2 / ext-codebase-memory 0.3.1 (27.8% lower cost). Same three case definitions. Portfolio aggregate moved from 36.6% to 41.8%.",
+      "batches": [
+        "20260908-090907-5a66",
+        "20260908-114759-951e",
+        "20260909-123711-ff11"
+      ]
+    }
   ]
 }

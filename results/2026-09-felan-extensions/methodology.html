@@ -980,7 +980,7 @@
                   <th scope="row">
                     <span class="cell-title">Codebase Memory</span>
                     <span class="cell-meta"><code>felan-cbm-off</code> → <code>felan-cbm-on</code><br><code>codebaseMemory:
-                        false</code> → <code>true</code></span>
+                        false</code> → <code>true</code> · mode <code>curated</code></span>
                   </th>
                   <td>
                     <ul class="case-list">
@@ -990,7 +990,7 @@
                     </ul>
                   </td>
                   <td><span class="cell-title">18</span><span class="cell-meta">3 cases × 2 arms × 3 trials</span></td>
-                  <td><span class="cell-title">Observed Felan 0.21.11*</span><span
+                  <td><span class="cell-title">Felan 0.23.2*</span><span
                       class="cell-meta">gpt-5.6-sol · medium</span></td>
                   <td><span class="cell-title">Cost</span><span class="cell-meta">Agent-step duration</span></td>
                 </tr>
@@ -999,11 +999,12 @@
           </div>
 
           <aside class="callout">
-            <p><strong>* Codebase Memory version evidence differs.</strong> Imported run evidence records Felan
-              <code>0.21.11</code>, while the preserved project config declares <code>packageVersion: 0.21.3</code> for
-              both CBM arms. The exact source <code>harness-evals.yaml</code> for the imported CBM batch was not
-              supplied. This page reports the observed run version and does not claim that the frozen config exactly
-              reproduces that batch.</p>
+            <p><strong>* Codebase Memory evidence provenance.</strong> The three cases ran as separate batches on Felan
+              <code>0.23.2</code> with <code>@felan-ai/ext-codebase-memory</code> <code>0.3.1</code>; the enabled arm
+              used the harness agent <code>felan-cbm-curated</code> (<code>mode: curated</code>, the extension default),
+              presented here as <code>felan-cbm-on</code>. The batches were launched with <code>--case</code>, so runs
+              carry no benchmark stamp; published figures are recomputed from each run's recorded metrics with the
+              declared estimator. The frozen project config in this package predates these runs.</p>
           </aside>
         </section>
 
@@ -1168,11 +1169,11 @@
             <details>
               <summary>Codebase Memory pass status versus verifier reward</summary>
               <div class="exception-body">
-                <p>All 18 attempts reported <code>status: passed</code> and <code>pass: true</code>. One candidate
-                  architecture attempt received reward 0.8 after matching four of five directional facts; every other
-                  reward was 1.0. Reward magnitude and binary framework pass rate are therefore not interchangeable.
-                  All six architecture attempts also recorded a non-required clean-tool-execution assertion failure,
-                  which did not affect pass status.</p>
+                <p>All 18 attempts reported <code>status: passed</code> and <code>pass: true</code>. Two baseline
+                  architecture attempts received reward 0.8 after matching four of five directional facts; every other
+                  reward was 1.0, including all three candidate architecture attempts. Reward magnitude and binary
+                  framework pass rate are therefore not interchangeable. Four architecture attempts, two per arm, also
+                  recorded a non-required clean-tool-execution assertion failure, which did not affect pass status.</p>
               </div>
             </details>
             <details>
@@ -1289,18 +1290,18 @@
                 </tr>
                 <tr>
                   <th scope="row">Codebase Memory</th>
-                  <td class="numeric">$5.274961</td>
-                  <td class="numeric">$5.00093</td>
-                  <td class="numeric positive">5.195%</td>
-                  <td>1,594,397 → 1,546,213 step ms; 3.022% gain</td>
+                  <td class="numeric">$5.727142</td>
+                  <td class="numeric">$4.135741</td>
+                  <td class="numeric positive">27.787%</td>
+                  <td>1,167,282 → 1,076,719 step ms; 7.758% gain</td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr>
                   <th scope="row">Cost-weighted portfolio</th>
-                  <td class="numeric">$21.6297282</td>
-                  <td class="numeric">$13.71318104</td>
-                  <td class="numeric positive">36.600%</td>
+                  <td class="numeric">$22.0819092</td>
+                  <td class="numeric">$12.84799204</td>
+                  <td class="numeric positive">41.817%</td>
                   <td>Six independent primary comparisons</td>
                 </tr>
               </tfoot>
@@ -1309,7 +1310,7 @@
 
           <aside class="callout">
             <p><strong>Interpret the portfolio carefully.</strong> These dollar values are sums of case-level medians,
-              not the raw invoice total for all 90 attempts. The 36.6% figure is a descriptive cost-weighted aggregate
+              not the raw invoice total for all 90 attempts. The 41.8% figure is a descriptive cost-weighted aggregate
               across six separately configured comparisons. It does not measure a single run with all six extensions
               enabled, and the largest-cost tasks contribute the most weight.</p>
           </aside>
@@ -1370,9 +1371,9 @@
                 </tr>
                 <tr>
                   <th scope="row">Codebase Memory</th>
-                  <td>Derived, redacted local batch</td>
-                  <td><code>20260904-124556-6ffe</code></td>
-                  <td><code>20260904-124556-6ffe</code></td>
+                  <td>Derived from three local case batches</td>
+                  <td><code>20260908-090907-5a66</code><br><code>20260908-114759-951e</code><br><code>20260909-123711-ff11</code></td>
+                  <td><code>20260908-090907-5a66</code><br><code>20260908-114759-951e</code><br><code>20260909-123711-ff11</code></td>
                   <td>—</td>
                 </tr>
               </tbody>
@@ -1454,14 +1455,15 @@
             <li>Models, thinking levels, releases, task counts, and batch concurrency differ across benchmark rows.
               Compare candidate with baseline within a row; do not use the table to rank extensions against one
               another.</li>
-            <li>The 36.6% portfolio result is cost-weighted and dominated by higher-cost benchmark cases. It is not an
+            <li>The 41.8% portfolio result is cost-weighted and dominated by higher-cost benchmark cases. It is not an
               equal-weight average and not an all-extensions-enabled measurement.</li>
             <li>The RTK resource outcomes remain eligible under the configured absolute 0.8 floor even though candidate
               quality was 83.3% versus the baseline's 100%.</li>
             <li>Subagents cost uses a documented manual recalculation. Its descendant-inclusive prompt-token result is
               unavailable.</li>
-            <li>The exact source configuration for the imported Codebase Memory batch was not supplied, and its
-              observed Felan version differs from the preserved project config.</li>
+            <li>The Codebase Memory result comes from three separately launched case batches without a benchmark stamp;
+              its figures are recomputed from recorded run metrics, and it ran on Felan 0.23.2 while the other
+              extensions ran on earlier releases.</li>
             <li>Credentials, authentication and model stores, raw workspaces, full transcripts, and full session JSONL
               are excluded. The preserved files support aggregate audit, not full conversation replay.</li>
           </ul>

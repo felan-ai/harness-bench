@@ -245,19 +245,19 @@
 
     <aside class="scope-note" aria-label="Evidence scope">
       <p><strong>Published scope:</strong> all 18 attempts across Extension architecture, Extension config scope, and Project instructions.</p>
-      <p>The exact source <code>harness-evals.yaml</code> was not supplied; the source benchmark revision and digest are retained in the provenance.</p>
+      <p>Felan 0.23.2 with <code>@felan-ai/ext-codebase-memory</code> 0.3.1.</p>
     </aside>
 
     <div class="summary-grid" aria-label="Codebase Memory summary">
       <article class="metric-card">
         <span class="metric-label">Cost vs baseline</span>
-        <strong class="metric-value positive">5.2% lower</strong>
-        <span class="metric-context">$5.2750 baseline → $5.0009 candidate</span>
+        <strong class="metric-value positive">27.8% lower</strong>
+        <span class="metric-context">$5.7271 baseline → $4.1357 candidate</span>
       </article>
       <article class="metric-card">
         <span class="metric-label">Agent-step duration</span>
-        <strong class="metric-value positive">3.0% shorter</strong>
-        <span class="metric-context">1,594,397 ms baseline → 1,546,213 ms candidate</span>
+        <strong class="metric-value positive">7.8% shorter</strong>
+        <span class="metric-context">1,167,282 ms baseline → 1,076,719 ms candidate</span>
       </article>
       <article class="metric-card">
         <span class="metric-label">Framework pass rate</span>
@@ -279,23 +279,24 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td>Extension architecture</td><td>$1.2013</td><td>$1.4177</td><td>18.0% higher</td></tr>
-            <tr><td>Extension config scope</td><td>$3.1067</td><td>$2.6393</td><td class="positive">15.0% lower</td></tr>
-            <tr><td>Project instructions</td><td>$0.9669</td><td>$0.9439</td><td class="positive">2.4% lower</td></tr>
+            <tr><td>Extension architecture</td><td>$1.2002</td><td>$1.2125</td><td>1.0% higher</td></tr>
+            <tr><td>Extension config scope</td><td>$3.8948</td><td>$2.2432</td><td class="positive">42.4% lower</td></tr>
+            <tr><td>Project instructions</td><td>$0.6322</td><td>$0.6800</td><td>7.6% higher</td></tr>
           </tbody>
         </table>
       </div>
       <aside class="note">
-        <p><strong>Aggregate cost result:</strong> $5.2750 − $5.0009 = $0.2740 lower, or <strong>5.2% lower</strong> when the three reduced case values are summed.</p>
-        <p>The equal-case macro mean is <strong>0.2% higher</strong>, and the raw-attempt total is <strong>1.3% higher</strong>. These diagnostics are not the headline estimator, which uses the median trial per case followed by the ratio of reduced sums.</p>
+        <p><strong>Aggregate cost result:</strong> $5.7271 − $4.1357 = $1.5914 lower, or <strong>27.8% lower</strong> when the three reduced case values are summed.</p>
+        <p>The equal-case macro mean is <strong>11.3% lower</strong>, and the raw-attempt total is <strong>25.1% lower</strong>. These diagnostics are not the headline estimator, which uses the median trial per case followed by the ratio of reduced sums.</p>
+        <p>The estimator sums absolute case values, so Extension config scope carries <strong>68%</strong> of the baseline sum and supplies almost all of the aggregate gain.</p>
       </aside>
     </section>
 
     <section aria-labelledby="quality-heading">
       <h2 id="quality-heading">Quality and evidence notes</h2>
       <aside class="note">
-        <p>All 18 published attempts reported framework status <strong>passed</strong>. One Codebase Memory-on architecture attempt received verifier reward <strong>0.8</strong> (coverage 4/5; missed <code>tool-to-model-path</code>); the other 17 verifier rewards were 1.0.</p>
-        <p>All six architecture attempts recorded a non-required <code>clean-tool-execution</code> failure, primarily <code>grep</code> ENOENT; these failures did not affect framework pass status.</p>
+        <p>All 18 published attempts reported framework status <strong>passed</strong>. Two Codebase Memory-off architecture attempts received verifier reward <strong>0.8</strong> (coverage 4/5); the other 16 verifier rewards were 1.0, including all three Codebase Memory-on architecture attempts.</p>
+        <p>Four architecture attempts, two in each arm, recorded a non-required <code>clean-tool-execution</code> failure, primarily <code>grep</code> ENOENT; these failures did not affect framework pass status.</p>
         <p><a href="../../sources/provenance/codebase-memory.json">View redacted evidence and source hashes</a> · <a href="results.json">JSON</a> · <a href="results.csv">CSV</a></p>
       </aside>
     </section>

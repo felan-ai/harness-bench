@@ -585,16 +585,12 @@
     {
       "id": "codebase-memory",
       "label": "Codebase Memory retrieval cost",
-      "evidenceType": "derived-redacted-local-batch",
-      "selectedBatchId": "20260904-124556-6ffe",
-      "sourceBatchId": "20260904-124556-6ffe",
+      "evidenceType": "derived-local-case-batches",
+      "selectedBatchId": "20260908-090907-5a66,20260908-114759-951e,20260909-123711-ff11",
+      "sourceBatchId": "20260908-090907-5a66,20260908-114759-951e,20260909-123711-ff11",
       "reverificationId": null,
       "publicationEligible": true,
-      "sourceBenchmark": {
-        "id": "codebase-memory",
-        "revision": 3,
-        "digest": "b2df3463b963f3d36003bc48391eef139fd32e9dfa6a1a9ab51f45441398d0d6"
-      },
+      "sourceBenchmark": null,
       "targetBenchmark": {
         "id": "codebase-memory",
         "revision": 4,
@@ -610,47 +606,47 @@
         "medium"
       ],
       "felanVersion": [
-        "0.21.11"
+        "0.23.2"
       ],
       "selectedRunIds": [
-        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-45-56-901Z-0",
-        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-51-58-947Z-1",
-        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-58-08-372Z-2",
-        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-04-27-913Z-3",
-        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-10-44-911Z-4",
-        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-16-50-044Z-5",
-        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-20-05-757Z-6",
-        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-37-12-857Z-7",
-        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-53-00-314Z-8",
-        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-07-29-236Z-9",
-        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-21-11-934Z-10",
-        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-37-38-933Z-11",
-        "cbm-project-instructions-felan-cbm-off-2026-09-04T14-52-13-277Z-12",
-        "cbm-project-instructions-felan-cbm-off-2026-09-04T14-58-41-496Z-13",
-        "cbm-project-instructions-felan-cbm-off-2026-09-04T15-04-01-556Z-14",
-        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-11-28-612Z-15",
-        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-18-55-726Z-16",
-        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-25-58-176Z-17"
+        "cbm-extension-architecture-felan-cbm-off-2026-09-08T09-09-07-267Z-0",
+        "cbm-extension-architecture-felan-cbm-off-2026-09-08T09-14-21-067Z-1",
+        "cbm-extension-architecture-felan-cbm-off-2026-09-08T09-18-22-240Z-2",
+        "cbm-extension-architecture-felan-cbm-curated-2026-09-08T09-22-14-881Z-3",
+        "cbm-extension-architecture-felan-cbm-curated-2026-09-08T09-26-08-463Z-4",
+        "cbm-extension-architecture-felan-cbm-curated-2026-09-08T09-30-16-278Z-5",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-08T11-47-59-658Z-0",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-08T12-00-52-571Z-1",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-08T12-16-18-598Z-2",
+        "cbm-extension-config-scope-felan-cbm-curated-2026-09-08T12-29-48-122Z-3",
+        "cbm-extension-config-scope-felan-cbm-curated-2026-09-08T12-42-47-889Z-4",
+        "cbm-extension-config-scope-felan-cbm-curated-2026-09-08T12-53-07-165Z-5",
+        "cbm-project-instructions-felan-cbm-off-2026-09-09T12-37-11-946Z-0",
+        "cbm-project-instructions-felan-cbm-off-2026-09-09T12-42-06-679Z-1",
+        "cbm-project-instructions-felan-cbm-off-2026-09-09T12-47-32-028Z-2",
+        "cbm-project-instructions-felan-cbm-curated-2026-09-09T12-50-32-243Z-3",
+        "cbm-project-instructions-felan-cbm-curated-2026-09-09T12-54-42-619Z-4",
+        "cbm-project-instructions-felan-cbm-curated-2026-09-09T12-58-49-961Z-5"
       ],
       "sourceRunIds": [
-        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-45-56-901Z-0",
-        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-51-58-947Z-1",
-        "cbm-extension-architecture-felan-cbm-off-2026-09-04T12-58-08-372Z-2",
-        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-04-27-913Z-3",
-        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-10-44-911Z-4",
-        "cbm-extension-architecture-felan-cbm-on-2026-09-04T13-16-50-044Z-5",
-        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-20-05-757Z-6",
-        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-37-12-857Z-7",
-        "cbm-extension-config-scope-felan-cbm-off-2026-09-04T13-53-00-314Z-8",
-        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-07-29-236Z-9",
-        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-21-11-934Z-10",
-        "cbm-extension-config-scope-felan-cbm-on-2026-09-04T14-37-38-933Z-11",
-        "cbm-project-instructions-felan-cbm-off-2026-09-04T14-52-13-277Z-12",
-        "cbm-project-instructions-felan-cbm-off-2026-09-04T14-58-41-496Z-13",
-        "cbm-project-instructions-felan-cbm-off-2026-09-04T15-04-01-556Z-14",
-        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-11-28-612Z-15",
-        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-18-55-726Z-16",
-        "cbm-project-instructions-felan-cbm-on-2026-09-04T15-25-58-176Z-17"
+        "cbm-extension-architecture-felan-cbm-off-2026-09-08T09-09-07-267Z-0",
+        "cbm-extension-architecture-felan-cbm-off-2026-09-08T09-14-21-067Z-1",
+        "cbm-extension-architecture-felan-cbm-off-2026-09-08T09-18-22-240Z-2",
+        "cbm-extension-architecture-felan-cbm-curated-2026-09-08T09-22-14-881Z-3",
+        "cbm-extension-architecture-felan-cbm-curated-2026-09-08T09-26-08-463Z-4",
+        "cbm-extension-architecture-felan-cbm-curated-2026-09-08T09-30-16-278Z-5",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-08T11-47-59-658Z-0",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-08T12-00-52-571Z-1",
+        "cbm-extension-config-scope-felan-cbm-off-2026-09-08T12-16-18-598Z-2",
+        "cbm-extension-config-scope-felan-cbm-curated-2026-09-08T12-29-48-122Z-3",
+        "cbm-extension-config-scope-felan-cbm-curated-2026-09-08T12-42-47-889Z-4",
+        "cbm-extension-config-scope-felan-cbm-curated-2026-09-08T12-53-07-165Z-5",
+        "cbm-project-instructions-felan-cbm-off-2026-09-09T12-37-11-946Z-0",
+        "cbm-project-instructions-felan-cbm-off-2026-09-09T12-42-06-679Z-1",
+        "cbm-project-instructions-felan-cbm-off-2026-09-09T12-47-32-028Z-2",
+        "cbm-project-instructions-felan-cbm-curated-2026-09-09T12-50-32-243Z-3",
+        "cbm-project-instructions-felan-cbm-curated-2026-09-09T12-54-42-619Z-4",
+        "cbm-project-instructions-felan-cbm-curated-2026-09-09T12-58-49-961Z-5"
       ],
       "quality": {
         "baseline": {
@@ -691,15 +687,16 @@
         "runCount": 18,
         "derivedRunCount": 18,
         "publishedRelativePath": "benchmarks/codebase-memory/results.html",
-        "sourceSha256": "ff4570487872a01dc315cea42d17311703791b1a4c9cfc3083eed099d02d2ce3"
+        "sourceSha256": "d712f29701196491246c803766c8f3a482e64236b4e3798caf0d235cceb1ac11"
       },
       "batch": {
         "status": "completed",
         "expectedRunCount": 18,
         "actualRunCount": 18,
-        "sourceManifestDeclaredRunCount": 18,
-        "startedAt": "2026-09-04T12:45:56.897Z",
-        "completedAt": "2026-09-04T15:32:46.890Z"
+        "sourceManifestDeclaredRunCount": 36,
+        "sourceManifestNote": "Each case batch declared 12 runs across four arms; the 18 off and on runs are selected.",
+        "startedAt": "2026-09-08T09:09:07.259Z",
+        "completedAt": "2026-09-09T13:27:41.333Z"
       },
       "publicationScope": {
         "status": "final",
@@ -711,7 +708,9 @@
           "cbm-extension-config-scope",
           "cbm-project-instructions"
         ]
-      }
+      },
+      "sourceBenchmarkNote": "The three case batches were launched with --case and carry no benchmark stamp.",
+      "candidateSourceAgent": "felan-cbm-curated"
     }
   ],
   "publicationAggregation": {

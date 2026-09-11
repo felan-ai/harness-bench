@@ -651,10 +651,10 @@
     {
       "benchmarkId": "codebase-memory",
       "sourceEvidence": "sources/provenance/codebase-memory.json",
-      "sourceSha256": "ff4570487872a01dc315cea42d17311703791b1a4c9cfc3083eed099d02d2ce3",
+      "sourceSha256": "d712f29701196491246c803766c8f3a482e64236b4e3798caf0d235cceb1ac11",
       "originalDefinition": {
         "trials": "median",
-        "cases": "three cases from complete source batch",
+        "cases": "three cases from three --case batches",
         "metrics": [
           "cost.total",
           "duration.stepsMs"
@@ -673,33 +673,33 @@
           "cases": [
             {
               "caseId": "cbm-extension-architecture",
-              "baselineReducedValue": 1.201322,
-              "candidateReducedValue": 1.4177250000000001,
-              "caseChangePercent": 18.013738198418086,
-              "caseGainPercent": -18.013738198418086
+              "baselineReducedValue": 1.2001530000000002,
+              "candidateReducedValue": 1.2125380000000001,
+              "caseChangePercent": 1.031951759483988,
+              "caseGainPercent": -1.031951759483988
             },
             {
               "caseId": "cbm-extension-config-scope",
-              "baselineReducedValue": 3.106707000000001,
-              "candidateReducedValue": 2.639272000000001,
-              "caseChangePercent": -15.045995647481398,
-              "caseGainPercent": 15.045995647481398
+              "baselineReducedValue": 3.8947869999999996,
+              "candidateReducedValue": 2.243165,
+              "caseChangePercent": -42.405964690752015,
+              "caseGainPercent": 42.405964690752015
             },
             {
               "caseId": "cbm-project-instructions",
-              "baselineReducedValue": 0.9669319999999999,
-              "candidateReducedValue": 0.9439329999999998,
-              "caseChangePercent": -2.378554024481567,
-              "caseGainPercent": 2.378554024481567
+              "baselineReducedValue": 0.632202,
+              "candidateReducedValue": 0.680038,
+              "caseChangePercent": 7.566568913100557,
+              "caseGainPercent": -7.566568913100557
             }
           ],
-          "baselineReducedSum": 5.274961000000001,
-          "candidateReducedSum": 5.000930000000001,
-          "aggregateChangePercent": -5.194938882012585,
-          "aggregateGainPercent": 5.194938882012585,
-          "macroMeanCaseGainPercent": -0.1963961754850403,
-          "macroMinCaseGainPercent": -18.013738198418086,
-          "macroMaxCaseGainPercent": 15.045995647481398
+          "baselineReducedSum": 5.727142,
+          "candidateReducedSum": 4.135741,
+          "aggregateChangePercent": -27.78700091598915,
+          "aggregateGainPercent": 27.78700091598915,
+          "macroMeanCaseGainPercent": 11.269148006055824,
+          "macroMinCaseGainPercent": -7.566568913100557,
+          "macroMaxCaseGainPercent": 42.405964690752015
         },
         {
           "metric": "duration.stepsMs",
@@ -709,33 +709,33 @@
           "cases": [
             {
               "caseId": "cbm-extension-architecture",
-              "baselineReducedValue": 365290,
-              "candidateReducedValue": 361023,
-              "caseChangePercent": -1.1681130061047387,
-              "caseGainPercent": 1.1681130061047387
+              "baselineReducedValue": 233785,
+              "candidateReducedValue": 244129,
+              "caseChangePercent": 4.424578138032808,
+              "caseGainPercent": -4.424578138032808
             },
             {
               "caseId": "cbm-extension-config-scope",
-              "baselineReducedValue": 875685,
-              "candidateReducedValue": 802482,
-              "caseChangePercent": -8.3595128385207,
-              "caseGainPercent": 8.3595128385207
+              "baselineReducedValue": 727694,
+              "candidateReducedValue": 666171,
+              "caseChangePercent": -8.454515222057623,
+              "caseGainPercent": 8.454515222057623
             },
             {
               "caseId": "cbm-project-instructions",
-              "baselineReducedValue": 353422,
-              "candidateReducedValue": 382708,
-              "caseChangePercent": 8.28641114588226,
-              "caseGainPercent": -8.28641114588226
+              "baselineReducedValue": 205803,
+              "candidateReducedValue": 166419,
+              "caseChangePercent": -19.136747277736475,
+              "caseGainPercent": 19.136747277736475
             }
           ],
-          "baselineReducedSum": 1594397,
-          "candidateReducedSum": 1546213,
-          "aggregateChangePercent": -3.0220829567541836,
-          "aggregateGainPercent": 3.0220829567541836,
-          "macroMeanCaseGainPercent": 0.413738232914393,
-          "macroMinCaseGainPercent": -8.28641114588226,
-          "macroMaxCaseGainPercent": 8.3595128385207
+          "baselineReducedSum": 1167282,
+          "candidateReducedSum": 1076719,
+          "aggregateChangePercent": -7.758450828505879,
+          "aggregateGainPercent": 7.758450828505879,
+          "macroMeanCaseGainPercent": 7.722228120587097,
+          "macroMinCaseGainPercent": -4.424578138032808,
+          "macroMaxCaseGainPercent": 19.136747277736475
         }
       ]
     }

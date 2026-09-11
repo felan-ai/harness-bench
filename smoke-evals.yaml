@@ -3,7 +3,7 @@ version: 1
 tests:
   - evals/cases/smoke/**/*.eval.yaml
 
-# Share local history and reports with the main configuration.
+# Share local history and reports with the other root configurations.
 artifactRoot: .harness-evals/runs
 outputRoot: .harness-evals/output
 
@@ -50,6 +50,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true

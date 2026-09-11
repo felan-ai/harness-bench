@@ -25,11 +25,14 @@ work is tied to a Linear issue.
 
 ```bash
 bun run list
+bun run list:comparison
 bun run list:smoke
 bun run smoke                 # live provider call
 bun run build:runtime
 bun run run --case prewalk-checkout --concurrency 1
 bun run view
+bun run run:comparison --benchmark codex-vs-felan-all --concurrency 1
+bun run view:comparison
 bun run run --case <id> --agents <agent>
 bun run view
 ```
@@ -38,6 +41,7 @@ bun run view
 
 ```text
 felan-extension-evals.yaml
+agent-comparison-evals.yaml
 smoke-evals.yaml
 evals/cases/**/*.eval.yaml
 evals/fixtures/<name>/<version>/{fixture.json,source/}
@@ -45,7 +49,7 @@ evals/runtimes/<name>/Dockerfile
 .harness-evals/
 ```
 
-The smoke-only and non-smoke configurations share the same local artifact and
-output roots. The smoke case is a plumbing check, not an all-enabled feature
+All root configurations share the same local artifact and output roots. The
+smoke case is a plumbing check, not an all-enabled feature
 baseline. Dependency-bearing cases share one generic Felan runtime; workspace
 setup installs each case's committed lockfile from the npm registry.

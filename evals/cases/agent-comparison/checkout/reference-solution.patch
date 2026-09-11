@@ -1,0 +1,414 @@
+diff --git a/app/checkout-complete/page.tsx b/app/checkout-complete/page.tsx
+index 6216521..0bcd088 100644
+--- a/app/checkout-complete/page.tsx
++++ b/app/checkout-complete/page.tsx
+@@ -4,9 +4,16 @@ import { useEffect, useState } from "react"
+ import { CheckCircle } from "lucide-react"
+ import { Button } from "@/components/ui/button"
+ import Header from "@/components/header"
++import {
++  isOrderReceipt,
++  ORDER_RECEIPT_STORAGE_KEY,
++  type OrderReceipt,
++} from "@/lib/order-receipt"
+ 
+ export default function CheckoutCompletePage() {
+   const [currentUser, setCurrentUser] = useState<string | null>(null)
++  const [order, setOrder] = useState<OrderReceipt | null>(null)
++  const [isReceiptLoaded, setIsReceiptLoaded] = useState(false)
+ 
+   useEffect(() => {
+     const user = localStorage.getItem("currentUser")
+@@ -14,11 +21,24 @@ export default function CheckoutCompletePage() {
+       window.location.href = "/"
+     }
+     setCurrentUser(user)
++
++    const savedOrder = localStorage.getItem(ORDER_RECEIPT_STORAGE_KEY)
++    if (savedOrder) {
++      try {
++        const parsedOrder: unknown = JSON.parse(savedOrder)
++        if (isOrderReceipt(parsedOrder)) setOrder(parsedOrder)
++      } catch {
++        setOrder(null)
++      }
++    }
++    setIsReceiptLoaded(true)
+   }, [])
+ 
+   const handleLogout = () => {
+     localStorage.removeItem("currentUser")
++    localStorage.removeItem("authToken")
+     localStorage.removeItem("cart")
++    localStorage.removeItem(ORDER_RECEIPT_STORAGE_KEY)
+     window.location.href = "/"
+   }
+ 
+@@ -28,9 +48,34 @@ export default function CheckoutCompletePage() {
+ 
+       <main className="max-w-2xl mx-auto px-4 py-16">
+         <div className="bg-white rounded-lg p-12 text-center">
+-          <CheckCircle className="w-16 h-16 text-primary mx-auto mb-6" />
+-          <h2 className="text-3xl font-bold text-slate-900 mb-2">Thank You For Your Order</h2>
+-          <p className="text-slate-600 mb-8">Your order has been completed successfully.</p>
++          {order ? (
++            <>
++              <CheckCircle className="w-16 h-16 text-primary mx-auto mb-6" />
++              <h2 className="text-3xl font-bold text-slate-900 mb-2">Thank You For Your Order</h2>
++              <p className="text-slate-600 mb-8">Your order has been completed successfully.</p>
++              <dl aria-label="Order receipt" className="bg-slate-50 rounded-lg p-6 mb-8 text-left space-y-3">
++                <div className="flex justify-between gap-4">
++                  <dt className="font-medium text-slate-600">Order ID</dt>
++                  <dd className="font-semibold text-slate-900">{order.id}</dd>
++                </div>
++                <div className="flex justify-between gap-4">
++                  <dt className="font-medium text-slate-600">Customer</dt>
++                  <dd className="font-semibold text-slate-900">
++                    {order.customer.firstName} {order.customer.lastName}
++                  </dd>
++                </div>
++                <div className="flex justify-between gap-4">
++                  <dt className="font-medium text-slate-600">Total</dt>
++                  <dd className="font-semibold text-slate-900">${order.total.toFixed(2)}</dd>
++                </div>
++              </dl>
++            </>
++          ) : isReceiptLoaded ? (
++            <>
++              <h2 className="text-3xl font-bold text-slate-900 mb-2">Order Details Unavailable</h2>
++              <p className="text-slate-600 mb-8">No completed order receipt was found.</p>
++            </>
++          ) : null}
+           <Button onClick={handleLogout} className="bg-primary hover:bg-primary/90 text-white font-semibold">
+             Back Home
+           </Button>
+diff --git a/app/checkout/page.tsx b/app/checkout/page.tsx
+index 1bedb1d..c7a2af9 100644
+--- a/app/checkout/page.tsx
++++ b/app/checkout/page.tsx
+@@ -2,11 +2,15 @@
+ 
+ import type React from "react"
+ 
+-import { useState, useEffect } from "react"
++import { useEffect, useRef, useState } from "react"
+ import { Button } from "@/components/ui/button"
+ import { Input } from "@/components/ui/input"
+ import Header from "@/components/header"
++import { isOrderReceipt, ORDER_RECEIPT_STORAGE_KEY } from "@/lib/order-receipt"
+ import { PRODUCTS } from "@/lib/products"
++import { readAuthToken } from "@/lib/auth-session"
++
++const ORDER_ERROR_MESSAGE = "Unable to place order. Please try again."
+ 
+ export default function CheckoutPage() {
+   const [currentUser, setCurrentUser] = useState<string | null>(null)
+@@ -18,6 +22,7 @@ export default function CheckoutPage() {
+   const [isLoading, setIsLoading] = useState(false)
+   const [country, setCountry] = useState("")
+   const [shippingMethod, setShippingMethod] = useState("")
++  const isSubmitting = useRef(false)
+ 
+   const isImprovedCheckout = process.env.NEXT_PUBLIC_IMPROVED_CHECKOUT === 'true'
+ 
+@@ -34,11 +39,29 @@ export default function CheckoutPage() {
+     }
+   }, [])
+ 
++  const cartItems = Object.entries(cart)
++    .map(([id, quantity]) => ({
++      product: PRODUCTS.find((p) => p.id === Number.parseInt(id)),
++      quantity,
++    }))
++    .filter(
++      (item): item is { product: (typeof PRODUCTS)[number]; quantity: number } =>
++        item.product !== undefined && Number.isFinite(item.quantity) && item.quantity > 0,
++    )
++
++  const subtotal = cartItems.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
++  const tax = subtotal * 0.08
++  const total = subtotal + tax
++  const cartCount = Object.values(cart).reduce((sum, count) => sum + count, 0)
++
+   const handleCheckout = async (e: React.FormEvent) => {
+     e.preventDefault()
++    if (isSubmitting.current) return
++
+     setErrors({})
+     const newErrors: { [key: string]: string } = {}
+ 
++    if (cartItems.length === 0) newErrors.cart = "Your cart is empty"
+     if (!firstName) newErrors.firstName = "First Name is required"
+     if (!lastName) newErrors.lastName = "Last Name is required"
+     if (!postalCode) newErrors.postalCode = "Postal Code is required"
+@@ -53,26 +76,51 @@ export default function CheckoutPage() {
+       return
+     }
+ 
++    isSubmitting.current = true
+     setIsLoading(true)
+-    await new Promise((resolve) => setTimeout(resolve, 1000))
+ 
+-    // Complete checkout
++    try {
++      const response = await fetch("/api/orders", {
++        method: "POST",
++        headers: {
++          "Content-Type": "application/json",
++          Authorization: `Bearer ${readAuthToken() ?? ""}`,
++        },
++        body: JSON.stringify({
++          items: cartItems.map((item) => ({
++            productId: item.product.id,
++            quantity: item.quantity,
++          })),
++          customer: { firstName, lastName, postalCode },
++        }),
++      })
++
++      if (!response.ok || response.status !== 201) {
++        throw new Error("Order request failed")
++      }
++
++      const data: unknown = await response.json()
++      if (
++        typeof data !== "object" ||
++        data === null ||
++        !("order" in data) ||
++        !isOrderReceipt(data.order)
++      ) {
++        throw new Error("Order response was invalid")
++      }
++
++      localStorage.setItem(ORDER_RECEIPT_STORAGE_KEY, JSON.stringify(data.order))
++    } catch {
++      isSubmitting.current = false
++      setIsLoading(false)
++      setErrors({ api: ORDER_ERROR_MESSAGE })
++      return
++    }
++
+     localStorage.removeItem("cart")
+     window.location.href = "/checkout-complete"
+   }
+ 
+-  const cartItems = Object.entries(cart)
+-    .map(([id, quantity]) => ({
+-      product: PRODUCTS.find((p) => p.id === Number.parseInt(id)),
+-      quantity,
+-    }))
+-    .filter((item) => item.product)
+-
+-  const subtotal = cartItems.reduce((sum, item) => sum + item.product!.price * item.quantity, 0)
+-  const tax = subtotal * 0.08
+-  const total = subtotal + tax
+-  const cartCount = Object.values(cart).reduce((sum, count) => sum + count, 0)
+-
+   return (
+     <div className="min-h-screen bg-slate-50">
+       <Header cartCount={cartCount} currentUser={currentUser} />
+@@ -82,6 +130,11 @@ export default function CheckoutPage() {
+ 
+         <div className="grid md:grid-cols-3 gap-8">
+           <div className="md:col-span-2 bg-white rounded-lg p-8">
++            {(errors.cart || errors.api) && (
++              <div role="alert" className="bg-red-600 text-white p-3 rounded text-sm mb-6">
++                {errors.cart || errors.api}
++              </div>
++            )}
+             {isImprovedCheckout ? (
+               <form onSubmit={handleCheckout} className="checkout-form-v2 flex flex-col gap-8">
+                 <div className="checkout-fields-grid grid md:grid-cols-3 gap-6">
+@@ -260,12 +313,12 @@ export default function CheckoutPage() {
+             <h3 className="text-lg font-semibold text-slate-900 mb-4">Order Summary</h3>
+             <div className="space-y-2 mb-6 max-h-64 overflow-y-auto">
+               {cartItems.map((item) => (
+-                <div key={item.product!.id} className="text-sm text-slate-600">
++                <div key={item.product.id} className="text-sm text-slate-600">
+                   <div className="flex justify-between">
+                     <span>
+-                      {item.product!.name} x {item.quantity}
++                      {item.product.name} x {item.quantity}
+                     </span>
+-                    <span>${(item.product!.price * item.quantity).toFixed(2)}</span>
++                    <span>${(item.product.price * item.quantity).toFixed(2)}</span>
+                   </div>
+                 </div>
+               ))}
+diff --git a/app/page.tsx b/app/page.tsx
+index bd774f7..2a40571 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -6,48 +6,68 @@ import { useState } from "react"
+ import { Button } from "@/components/ui/button"
+ import { Input } from "@/components/ui/input"
+ import { AlertCircle } from "lucide-react"
++import { storeAuthenticatedSession } from "@/lib/auth-session"
+ 
+-const VALID_USERS = ["test_user"]
+-const VALID_PASSWORD = "password"
++interface LoginResponse {
++  token?: unknown
++  user?: unknown
++  error?: unknown
++}
+ 
+ export default function LoginPage() {
+   const [username, setUsername] = useState("")
+   const [password, setPassword] = useState("")
+-  const [errors, setErrors] = useState<{ username?: string; password?: string }>({})
++  const [errors, setErrors] = useState<{ username?: string; password?: string; form?: string }>({})
+   const [isLoading, setIsLoading] = useState(false)
+ 
+   const handleLogin = async (e: React.FormEvent) => {
+     e.preventDefault()
+     setErrors({})
+-    setIsLoading(true)
+-
+-    // Simulate network delay
+-    await new Promise((resolve) => setTimeout(resolve, 500))
+ 
+     const newErrors: typeof errors = {}
+ 
+     if (!username) {
+       newErrors.username = "Username is required"
+-    } else if (!VALID_USERS.includes(username)) {
+-      newErrors.username = "Invalid username"
+     }
+ 
+     if (!password) {
+       newErrors.password = "Password is required"
+-    } else if (password !== VALID_PASSWORD) {
+-      newErrors.password = "Invalid password"
+     }
+ 
+-
+     if (Object.keys(newErrors).length > 0) {
+       setErrors(newErrors)
+-      setIsLoading(false)
+       return
+     }
+ 
+-    // Successful login - redirect to products
+-    localStorage.setItem("currentUser", username)
+-    window.location.href = "/inventory"
++    setIsLoading(true)
++
++    try {
++      const response = await fetch("/api/auth/login", {
++        method: "POST",
++        headers: { "Content-Type": "application/json" },
++        body: JSON.stringify({ username, password }),
++      })
++      const data = (await response.json()) as LoginResponse
++
++      if (!response.ok) {
++        setErrors({
++          form: typeof data.error === "string" ? data.error : "Invalid username or password",
++        })
++        return
++      }
++
++      if (typeof data.token !== "string" || !data.token) {
++        throw new Error("Login response did not include a token")
++      }
++
++      const authenticatedUser = typeof data.user === "string" ? data.user : username
++      storeAuthenticatedSession(authenticatedUser, data.token)
++      window.location.href = "/inventory"
++    } catch {
++      setErrors({ form: "Unable to log in. Please try again." })
++    } finally {
++      setIsLoading(false)
++    }
+   }
+ 
+   return (
+@@ -87,8 +107,10 @@ export default function LoginPage() {
+               </div>
+             </div>
+ 
+-            {(errors.username || errors.password) && (
+-              <div className="bg-red-600 text-white p-3 rounded text-sm">{errors.username || errors.password}</div>
++            {(errors.username || errors.password || errors.form) && (
++              <div role="alert" className="bg-red-600 text-white p-3 rounded text-sm">
++                {errors.username || errors.password || errors.form}
++              </div>
+             )}
+ 
+             <Button
+diff --git a/components/header.tsx b/components/header.tsx
+index 6d8cc38..a5bf323 100644
+--- a/components/header.tsx
++++ b/components/header.tsx
+@@ -2,6 +2,8 @@
+ 
+ import { ShoppingCart, Menu, LogOut, X } from "lucide-react"
+ import { useState } from "react"
++import { ORDER_RECEIPT_STORAGE_KEY } from "@/lib/order-receipt"
++import { clearAuthenticatedSession } from "@/lib/auth-session"
+ 
+ interface HeaderProps {
+   cartCount: number
+@@ -12,8 +14,9 @@ export default function Header({ cartCount, currentUser }: HeaderProps) {
+   const [showMenu, setShowMenu] = useState(false)
+ 
+   const handleLogout = () => {
+-    localStorage.removeItem("currentUser")
++    clearAuthenticatedSession()
+     localStorage.removeItem("cart")
++    localStorage.removeItem(ORDER_RECEIPT_STORAGE_KEY)
+     window.location.href = "/"
+   }
+ 
+diff --git a/lib/auth-session.ts b/lib/auth-session.ts
+new file mode 100644
+index 0000000..87a4fb8
+--- /dev/null
++++ b/lib/auth-session.ts
+@@ -0,0 +1,13 @@
++export function storeAuthenticatedSession(user: string, token: string) {
++  window.localStorage.setItem("currentUser", user)
++  window.localStorage.setItem("authToken", token)
++}
++
++export function readAuthToken() {
++  return window.localStorage.getItem("authToken")
++}
++
++export function clearAuthenticatedSession() {
++  window.localStorage.removeItem("currentUser")
++  window.localStorage.removeItem("authToken")
++}
+diff --git a/lib/order-receipt.ts b/lib/order-receipt.ts
+new file mode 100644
+index 0000000..65408ae
+--- /dev/null
++++ b/lib/order-receipt.ts
+@@ -0,0 +1,26 @@
++export const ORDER_RECEIPT_STORAGE_KEY = "lastOrder"
++
++export interface OrderReceipt {
++  id: string
++  customer: {
++    firstName: string
++    lastName: string
++  }
++  total: number
++}
++
++export function isOrderReceipt(value: unknown): value is OrderReceipt {
++  if (typeof value !== "object" || value === null) return false
++
++  const order = value as Record<string, unknown>
++  if (typeof order.customer !== "object" || order.customer === null) return false
++
++  const customer = order.customer as Record<string, unknown>
++  return (
++    typeof order.id === "string" &&
++    typeof order.total === "number" &&
++    Number.isFinite(order.total) &&
++    typeof customer.firstName === "string" &&
++    typeof customer.lastName === "string"
++  )
++}

@@ -1,0 +1,113 @@
+version: 1
+
+tests:
+  - evals/cases/agent-comparison/**/*.eval.yaml
+
+# All root configs share these paths so local history and reports stay unified.
+artifactRoot: .harness-evals/runs
+outputRoot: .harness-evals/output
+
+workspace:
+  mode: copy
+  containerPath: /workspace
+
+docker:
+  repoPath: /workspace
+  home: /tmp/felan-home
+  envAllowlist: []
+  # The managed Felan layer uses the local generic runtime as its base.
+  pullOnRefresh: false
+
+agents:
+  codex-clean:
+    adapter: codex
+    label: Codex CLI · clean
+    comparisonId: codex-clean
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 1800000
+    useCurrentConfig: true
+    userConfigDirs:
+      - ~/.codex
+    args:
+      - --ignore-user-config
+      - --ignore-rules
+      - --ephemeral
+      - -c
+      - model_reasoning_effort="max"
+      - -c
+      - model_verbosity="low"
+      - -c
+      - service_tier="priority"
+
+  felan-all-extensions:
+    adapter: felan
+    label: Felan · all extensions
+    comparisonId: felan-all-extensions
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: max
+    timeoutMs: 1800000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    config:
+      useCurrentConfig: false
+      settings:
+        extensionConfig:
+          codex:
+            fast: true
+            verbosity: low
+          codebaseMemory:
+            mode: curated
+          outputStyle:
+            style: concise
+          prewalk:
+            targetModel: openai-codex/gpt-5.6-luna
+            targetThinking: medium
+            restorePlanner: true
+            entryApproval: allow
+            planReview: skip
+          rtkOptimizer:
+            enabled: true
+            mode: rewrite
+          sessionCompaction:
+            model: low
+        felanTui:
+          memoryProcessing: false
+
+scoring:
+  verifierReward:
+    weight: 1
+  assertionPassRate:
+    weight: 0
+  judgeScore:
+    weight: 0
+
+benchmarks:
+  codex-vs-felan-all:
+    revision: 3
+    label: Codex CLI versus Felan with all extensions
+    description: Compare the official Codex CLI with Felan's full extension surface on a complex authenticated checkout implementation.
+    select:
+      cases: [codex-vs-felan-checkout]
+    arms:
+      baseline: codex-clean
+      candidate: felan-all-extensions
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 0.8
+    objective:
+      - metric: quality.passRate
+        goal: maximize
+      - metric: duration.stepsMs
+        goal: minimize
+    aggregation:
+      trials: median
+      cases: macroMean
+
+visualization:
+  enabled: true
+  formats: [html, json, csv]
+  latest: true

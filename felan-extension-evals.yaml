@@ -1,5 +1,12 @@
 version: 1
 
+# Felan extension evaluations only; cross-agent comparisons use
+# agent-comparison-evals.yaml.
+
+adapters:
+  felan:
+    module: ./evals/adapters/felan-compaction.mjs
+
 tests:
   - evals/cases/codebase-memory/**/*.eval.yaml
   - evals/cases/output-style/**/*.eval.yaml
@@ -10,8 +17,9 @@ tests:
   - evals/cases/repository-fetch/**/*.eval.yaml
   - evals/cases/memory/**/*.eval.yaml
   - evals/cases/subagents/**/*.eval.yaml
+  - evals/cases/session-compaction/**/*.eval.yaml
 
-# The smoke config uses these same roots so local history and reports stay unified.
+# All root configs use these same paths so local history and reports stay unified.
 artifactRoot: .harness-evals/runs
 outputRoot: .harness-evals/output
 
@@ -31,6 +39,7 @@ agents:
   # logical arm and use a distinct ID for each behaviorally different variant.
   # Except for the ordinary-read MarkItDown profiles, every arm keeps Codex,
   # Tasks, and progressive Context on and varies only its named extension.
+
   felan-no-prewalk:
     adapter: felan
     label: Felan · Prewalk off
@@ -62,6 +71,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true
@@ -103,6 +113,7 @@ agents:
           powerline: false
           prewalk: true
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true
@@ -149,6 +160,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true
@@ -190,6 +202,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true
@@ -233,6 +246,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true
@@ -248,6 +262,7 @@ agents:
   # Adapted from Julius Brussee's Caveman skill:
   # https://github.com/JuliusBrussee/caveman/blob/main/skills/caveman/SKILL.md
   # Copyright (c) 2026 Julius Brussee. Used under the MIT License.
+
   felan-caveman:
     adapter: felan
     label: Felan · Caveman
@@ -279,6 +294,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true
@@ -350,6 +366,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true
@@ -391,6 +408,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: true
           tasks: true
@@ -432,6 +450,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true
@@ -473,6 +492,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: true
           subagents: false
           tasks: true
@@ -514,6 +534,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true
@@ -557,6 +578,7 @@ agents:
           powerline: false
           prewalk: false
           promptHistory: false
+          sessionCompaction: false
           rtkOptimizer: false
           subagents: false
           tasks: true
@@ -647,11 +669,112 @@ agents:
         felanTui:
           memoryProcessing: false
 
-  # Codebase Memory profiles. The curated profile is the existing model surface;
-  # direct and single-proxy are experimental alternatives.
-  # felan 0.23.2 bundles @felan-ai/ext-codebase-memory 0.3.1, which hard-pins the
-  # codebase-memory-mcp binary at 0.10.8 (strict equality; a mismatch disables the
-  # extension nonfatally). The binary is baked into evals/runtimes/felan/Dockerfile.
+  felan-no-session-compaction:
+    adapter: felan
+    label: Felan · native Pi compaction
+    comparisonId: felan-no-session-compaction
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: low
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    args:
+      - --session
+      - 01a042ca-0d42-75eb-aeac-0397822915e2
+      - --session-dir
+      - /workspace/sessions
+    config:
+      useCurrentConfig: false
+      compactionCostAccounting: true
+      settings:
+        compaction:
+          enabled: true
+          reserveTokens: 60000
+          keepRecentTokens: 20000
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          sessionCompaction: false
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: false
+            postAgentRunCompaction: false
+        felanTui:
+          memoryProcessing: false
+
+  felan-inherit-compaction:
+    adapter: felan
+    label: Felan · inherited-model session compaction
+    comparisonId: felan-inherit-compaction
+    provider: openai-codex
+    model: gpt-5.6-sol
+    thinking: low
+    timeoutMs: 900000
+    auth:
+      type: oauth
+    useCurrentConfig: false
+    args:
+      - --session
+      - 01a042ca-0d42-75eb-aeac-0397822915e2
+      - --session-dir
+      - /workspace/sessions
+    config:
+      useCurrentConfig: false
+      compactionCostAccounting: true
+      settings:
+        compaction:
+          enabled: true
+          reserveTokens: 60000
+          keepRecentTokens: 20000
+        builtinExtensions:
+          askUser: false
+          backgroundBash: false
+          browser: false
+          codebaseMemory: false
+          codex: true
+          context: true
+          contextView: false
+          felanApi: false
+          insights: false
+          markitdown: false
+          mcp: false
+          memory: false
+          outputStyle: false
+          powerline: false
+          prewalk: false
+          promptHistory: false
+          sessionCompaction: true
+          rtkOptimizer: false
+          subagents: false
+          tasks: true
+          webAccess: false
+        extensionConfig:
+          codex:
+            fast: false
+            postAgentRunCompaction: false
+        felanTui:
+          memoryProcessing: false
+
   felan-cbm-off:
     adapter: felan
     label: Felan · Codebase Memory off
@@ -1000,6 +1123,28 @@ benchmarks:
     arms:
       baseline: felan-no-rtk-optimizer
       candidate: felan-rtk-optimizer
+    trials: 3
+    qualityGates:
+      - metric: quality.passRate
+        min: 0.8
+    objective:
+      - metric: cost.total
+        goal: minimize
+      - metric: usage.promptTokens
+        goal: minimize
+    aggregation:
+      trials: median
+      cases: ratioOfReducedSums
+
+  session-compaction:
+    revision: 4
+    label: Inherited-model session compaction
+    description: Compare native Pi compaction with Felan's verified summary using the default inherited active model on a sanitized real coding trajectory.
+    select:
+      suites: [session-compaction]
+    arms:
+      baseline: felan-no-session-compaction
+      candidate: felan-inherit-compaction
     trials: 3
     qualityGates:
       - metric: quality.passRate

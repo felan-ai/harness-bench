@@ -6,17 +6,18 @@ Read and follow [`CLAUDE.md`](./CLAUDE.md) for the full repository workflow and 
 
 The root project configurations are named for their scope:
 
-- `felan-extension-evals.yaml` owns the non-smoke benchmark suites and profiles.
+- `felan-extension-evals.yaml` owns Felan extension suites and profiles only.
+- `agent-comparison-evals.yaml` owns cross-agent suites and profiles.
 - `smoke-evals.yaml` owns the isolated smoke case and profile.
 
-The framework does not auto-discover the renamed main configuration, so invoke
-the CLI through the package scripts or pass the appropriate `--config` path
+The framework does not auto-discover these root configurations, so invoke the
+CLI through the package scripts or pass the appropriate `--config` path
 explicitly.
 
 Keep every agent profile self-contained. Do not use agent `extends`; repeat the
 effective provider, model, thinking, timeout, auth, and adapter configuration so
 reviewers can see exactly what each profile runs. Keep shared project defaults in
-the two files aligned unless their intentional difference is documented. Use
+all three files aligned unless their intentional difference is documented. Use
 concise, behavior-oriented profile names and keep exact settings in configuration
 and documentation.
 
@@ -34,8 +35,9 @@ grouping metadata, not a configuration fingerprint.
 Use these ownership boundaries:
 
 ```text
-felan-extension-evals.yaml                non-smoke project configuration
-smoke-evals.yaml                          smoke-only project configuration
+felan-extension-evals.yaml                Felan extension configuration
+agent-comparison-evals.yaml               cross-agent configuration
+smoke-evals.yaml                          smoke-only configuration
 evals/cases/**/*.eval.yaml                 task and default agent matrix
 evals/cases/<family>/<case>/verifier/      hidden grading assets
 evals/fixtures/<name>/<version>/source/    immutable starting workspace
@@ -130,6 +132,7 @@ For every change, run the narrowest relevant checks followed by:
 
 ```bash
 bun run list
+bun run list:comparison
 bun run list:smoke
 git diff --check
 ```

@@ -787,23 +787,23 @@
     <section class="intro" aria-labelledby="page-title">
       <p class="overline">Benchmark Methodology</p>
       <h1 id="page-title">How the extension benchmarks were run</h1>
-      <p class="lede">Six isolated A/B comparisons measured whether a single Felan extension changed model cost,
+      <p class="lede">Seven isolated A/B comparisons measured whether a single Felan extension changed model cost,
         token use, or agent-step duration while task correctness remained above a declared quality floor.</p>
-      <p class="study-meta"><span>Source runs: 2–4 September 2026</span><span>Study ID:
+      <p class="study-meta"><span>Source runs: 2–11 September 2026</span><span>Study ID:
           felan-extensions-2026-09</span><span>Status: complete</span></p>
 
       <div class="summary-grid" aria-label="Study scope">
         <div class="summary-card">
-          <span class="summary-value">6</span>
+          <span class="summary-value">7</span>
           <span class="summary-label">independent extension comparisons</span>
         </div>
         <div class="summary-card">
-          <span class="summary-value">15</span>
+          <span class="summary-value">16</span>
           <span class="summary-label">benchmark-case combinations</span>
         </div>
         <div class="summary-card">
-          <span class="summary-value">90</span>
-          <span class="summary-label">retained attempts: 45 per arm</span>
+          <span class="summary-value">96</span>
+          <span class="summary-label">retained attempts: 48 per arm</span>
         </div>
         <div class="summary-card">
           <span class="summary-value">3</span>
@@ -864,9 +864,9 @@
             must not make the treatment tool call.</p>
 
           <aside class="callout">
-            <p><strong>Published scope.</strong> These six primary comparisons are a selected subset of the repository's
+            <p><strong>Published scope.</strong> These seven primary comparisons are a selected subset of the repository's
               evaluation cases. Unselected profiles, cases, and smoke checks do not contribute to any figure on the
-              results page. The 15 count is benchmark-case combinations; <code>prewalk-checkout</code> appears in both
+              results page. The 16 count is benchmark-case combinations; <code>prewalk-checkout</code> appears in both
               the Prewalk and RTK comparisons.</p>
           </aside>
         </section>
@@ -994,6 +994,16 @@
                       class="cell-meta">gpt-5.6-sol · medium</span></td>
                   <td><span class="cell-title">Cost</span><span class="cell-meta">Agent-step duration</span></td>
                 </tr>
+                <tr>
+                  <th scope="row">
+                    <span class="cell-title">Session Compaction</span>
+                    <span class="cell-meta"><code>felan-no-session-compaction</code> → <code>felan-inherit-compaction</code><br>native Pi → verified extension; <code>model: inherit</code></span>
+                  </th>
+                  <td><ul class="case-list"><li><code>session-compaction-continuation</code></li></ul></td>
+                  <td><span class="cell-title">6</span><span class="cell-meta">1 case × 2 arms × 3 trials</span></td>
+                  <td><span class="cell-title">Felan 0.24.7</span><span class="cell-meta">gpt-5.6-sol · low<br>local pre-release extension artifact</span></td>
+                  <td><span class="cell-title">Cost</span><span class="cell-meta">Prompt tokens</span></td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -1004,7 +1014,7 @@
               used the harness agent <code>felan-cbm-curated</code> (<code>mode: curated</code>, the extension default),
               presented here as <code>felan-cbm-on</code>. The batches were launched with <code>--case</code>, so runs
               carry no benchmark stamp; published figures are recomputed from each run's recorded metrics with the
-              declared estimator. The frozen project config in this package predates these runs.</p>
+              declared estimator. The frozen project config in this package predates these runs. The Session Compaction config and evidence are linked below.</p>
           </aside>
         </section>
 
@@ -1055,6 +1065,11 @@
                   <th scope="row"><code>rtk-felan-project-instructions</code></th>
                   <td>Felan <code>104faa5559029c8be9e8a1eb504d87974a5864e9</code></td>
                   <td>Agent Core type-check, focused public and hidden tests, build</td>
+                </tr>
+                <tr>
+                  <th scope="row"><code>session-compaction-continuation</code></th>
+                  <td><code>evals/fixtures/session-compaction/v1/source</code></td>
+                  <td>Sanitized 234-entry real session; native versus inherited extension ownership, summary fact ledger, continuation fidelity, no tools</td>
                 </tr>
                 <tr>
                   <th scope="row"><code>cbm-extension-architecture</code></th>
@@ -1139,6 +1154,12 @@
                   <td class="warning">Passed at 83.3%</td>
                 </tr>
                 <tr>
+                  <th scope="row">Session Compaction</th>
+                  <td class="numeric">2/3</td>
+                  <td class="numeric">3/3</td>
+                  <td class="positive">Passed at 100%</td>
+                </tr>
+                <tr>
                   <th scope="row">Codebase Memory</th>
                   <td class="numeric">9/9</td>
                   <td class="numeric">9/9</td>
@@ -1148,8 +1169,8 @@
               <tfoot>
                 <tr>
                   <th scope="row">Descriptive total</th>
-                  <td class="numeric">45/45</td>
-                  <td class="numeric">44/45</td>
+                  <td class="numeric">47/48</td>
+                  <td class="numeric">47/48</td>
                   <td>Gates are evaluated per benchmark</td>
                 </tr>
               </tfoot>
@@ -1196,7 +1217,7 @@
             <div>
               <dl>
                 <dt>cost.total</dt>
-                <dd>Provider-reported billed model cost in US dollars. This is the primary objective for all six
+                <dd>Provider-reported billed model cost in US dollars. This is the primary objective for all seven
                   comparisons.</dd>
               </dl>
             </div>
@@ -1289,6 +1310,13 @@
                   <td>7,240,443 → 4,302,107 prompt tokens; 40.582% gain</td>
                 </tr>
                 <tr>
+                  <th scope="row">Session Compaction</th>
+                  <td class="numeric">$0.49551</td>
+                  <td class="numeric">$0.27131</td>
+                  <td class="numeric positive">45.246%</td>
+                  <td>83,304 → 39,891 prompt tokens; 52.114% gain</td>
+                </tr>
+                <tr>
                   <th scope="row">Codebase Memory</th>
                   <td class="numeric">$5.727142</td>
                   <td class="numeric">$4.135741</td>
@@ -1299,10 +1327,10 @@
               <tfoot>
                 <tr>
                   <th scope="row">Cost-weighted portfolio</th>
-                  <td class="numeric">$22.0819092</td>
-                  <td class="numeric">$12.84799204</td>
-                  <td class="numeric positive">41.817%</td>
-                  <td>Six independent primary comparisons</td>
+                  <td class="numeric">$22.5774192</td>
+                  <td class="numeric">$13.11930204</td>
+                  <td class="numeric positive">41.892%</td>
+                  <td>Seven independent primary comparisons</td>
                 </tr>
               </tfoot>
             </table>
@@ -1310,8 +1338,8 @@
 
           <aside class="callout">
             <p><strong>Interpret the portfolio carefully.</strong> These dollar values are sums of case-level medians,
-              not the raw invoice total for all 90 attempts. The 41.8% figure is a descriptive cost-weighted aggregate
-              across six separately configured comparisons. It does not measure a single run with all six extensions
+              not the raw invoice total for all 96 attempts. The 41.9% figure is a descriptive cost-weighted aggregate
+              across seven separately configured comparisons. It does not measure a single run with all seven extensions
               enabled, and the largest-cost tasks contribute the most weight.</p>
           </aside>
         </section>
@@ -1370,6 +1398,13 @@
                   <td><code>20260903-045947-56b5</code></td>
                 </tr>
                 <tr>
+                  <th scope="row">Session Compaction</th>
+                  <td>Direct local pre-release</td>
+                  <td><code>20260911-154148-3bc0</code></td>
+                  <td><code>20260911-154148-3bc0</code></td>
+                  <td>—</td>
+                </tr>
+                <tr>
                   <th scope="row">Codebase Memory</th>
                   <td>Derived from three local case batches</td>
                   <td><code>20260908-090907-5a66</code><br><code>20260908-114759-951e</code><br><code>20260909-123711-ff11</code></td>
@@ -1418,6 +1453,9 @@
             </div>
           </div>
 
+          <h3>Session Compaction evidence qualification</h3>
+          <p>The selected six-attempt batch used a local pre-release image containing an unreleased <code>0.1.2</code> artifact. The candidate used extension-owned compaction in all three attempts and passed its quality gate at 100%. The native baseline passed two of three because one continuation omitted the required black-box end-to-end publication plan. The later registry <code>0.1.2</code> tarball is not byte-identical; this provenance limitation is independent of candidate quality. See the <a href="sources/provenance/session-compaction.json">full evidence</a>.</p>
+
           <h3>Subagents descendant-cost correction</h3>
           <p>Native root-session telemetry omitted the candidate's child-session spend. For each candidate attempt,
             every child assistant message's <code>usage.cost.total</code> was summed and added to the native root cost
@@ -1440,6 +1478,7 @@
               evidence<span>Descendant-inclusive attempt costs and source hashes</span></a>
             <a class="artifact-link" href="sources/provenance/codebase-memory.json">Codebase Memory evidence<span>All
                 18 retained attempts in the final three-case scope</span></a>
+            <a class="artifact-link" href="sources/provenance/session-compaction.json">Session Compaction evidence<span>Six retained attempts, ownership, quality, and pre-release qualification</span></a>
             <a class="artifact-link" href="sources/provenance/project/felan-extension-evals.yaml">Frozen project
               config<span>Byte-preserved configuration at the repository freeze</span></a>
           </div>
@@ -1455,12 +1494,13 @@
             <li>Models, thinking levels, releases, task counts, and batch concurrency differ across benchmark rows.
               Compare candidate with baseline within a row; do not use the table to rank extensions against one
               another.</li>
-            <li>The 41.8% portfolio result is cost-weighted and dominated by higher-cost benchmark cases. It is not an
+            <li>The 41.9% portfolio result is cost-weighted and dominated by higher-cost benchmark cases. It is not an
               equal-weight average and not an all-extensions-enabled measurement.</li>
             <li>The RTK resource outcomes remain eligible under the configured absolute 0.8 floor even though candidate
               quality was 83.3% versus the baseline's 100%.</li>
             <li>Subagents cost uses a documented manual recalculation. Its descendant-inclusive prompt-token result is
               unavailable.</li>
+            <li>Session Compaction candidate quality was 100% (3/3); the native baseline passed 2/3. The benchmarked local pre-release artifact is not byte-identical to the later npm 0.1.2 artifact.</li>
             <li>The Codebase Memory result comes from three separately launched case batches without a benchmark stamp;
               its figures are recomputed from recorded run metrics, and it ran on Felan 0.23.2 while the other
               extensions ran on earlier releases.</li>
@@ -1471,8 +1511,7 @@
 
         <section id="integrity" class="method-section" aria-labelledby="integrity-heading">
           <h2 id="integrity-heading">8. Artifacts and integrity</h2>
-          <p class="section-intro">Every benchmark has a linked HTML detail page. MarkItDown, concise output, Prewalk,
-            RTK, and Codebase Memory also include report-local JSON and CSV evidence; Subagents' corrected evidence is
+          <p class="section-intro">Every benchmark has a linked HTML detail page. MarkItDown, concise output, Prewalk, RTK, Codebase Memory, and Session Compaction also include report-local JSON and CSV evidence; Subagents' corrected evidence is
             the dedicated provenance JSON.</p>
 
           <p>The canonical <a href="results.json">top-level JSON</a> records methodology, arms, cases, execution

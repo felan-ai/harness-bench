@@ -10,5 +10,6 @@
 | [Prewalk](https://felan-ai.github.io/harness-bench/results/2026-09-felan-extensions/benchmarks/prewalk/results.html) | 100% | **66.0% lower** | — |
 | [RTK](https://felan-ai.github.io/harness-bench/results/2026-09-felan-extensions/benchmarks/rtk/results.html) | 83.3% | **26.6% lower** | 40.6% fewer prompt tokens |
 | [Codebase Memory](https://felan-ai.github.io/harness-bench/results/2026-09-felan-extensions/benchmarks/codebase-memory/results.html) | 100% | **27.8% lower** | 7.8% shorter agent-step duration |
+| [Session Compaction](https://felan-ai.github.io/harness-bench/results/2026-09-felan-extensions/benchmarks/session-compaction/results.html) | 100% | **45.2% lower** | 52.1% fewer prompt tokens |
 
 \* Subagents cost includes billed usage from all child sessions. [View the full benchmark results](https://felan-ai.github.io/harness-bench/results/2026-09-felan-extensions/).

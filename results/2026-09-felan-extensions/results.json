@@ -739,11 +739,136 @@
         "candidateValue": 1.0,
         "changePercentagePoints": 0.0
       }
+    },
+    {
+      "cohortId": "local-session-compaction",
+      "benchmarkId": "session-compaction",
+      "label": "Inherited-model session compaction",
+      "evidenceRole": "primary",
+      "evidenceType": "direct-local-pre-release",
+      "status": "eligible-with-baseline-failure",
+      "provider": [
+        "openai-codex"
+      ],
+      "model": [
+        "gpt-5.6-sol"
+      ],
+      "thinking": [
+        "low"
+      ],
+      "felanVersion": [
+        "0.24.7"
+      ],
+      "cases": [
+        "session-compaction-continuation"
+      ],
+      "trials": 3,
+      "aggregation": {
+        "trials": "median",
+        "cases": "ratioOfReducedSums"
+      },
+      "quality": {
+        "baseline": {
+          "runs": 3,
+          "validRuns": 3,
+          "passed": 2,
+          "failed": 1,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": []
+        },
+        "candidate": {
+          "runs": 3,
+          "validRuns": 3,
+          "passed": 3,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1.0,
+              "pass": true
+            }
+          ]
+        }
+      },
+      "objectives": [
+        {
+          "metric": "cost.total",
+          "role": "primary",
+          "goal": "minimize",
+          "baselineValue": 0.49551,
+          "candidateValue": 0.27131000000000005,
+          "averageChangePercent": -45.24631188068857,
+          "averageGainPercent": 45.24631188068857,
+          "minGainPercent": 45.24631188068857,
+          "maxGainPercent": 45.24631188068857,
+          "comparedCases": 1,
+          "expectedCases": 1,
+          "macroMeanBaselineValue": 0.49551,
+          "macroMeanCandidateValue": 0.27131000000000005,
+          "macroMeanChangePercent": -45.24631188068857,
+          "macroMeanGainPercent": 45.24631188068857,
+          "macroMinGainPercent": 45.24631188068857,
+          "macroMaxGainPercent": 45.24631188068857,
+          "aggregateBaselineValue": 0.49551,
+          "aggregateCandidateValue": 0.27131000000000005,
+          "aggregateChangePercent": -45.24631188068857,
+          "aggregateGainPercent": 45.24631188068857,
+          "headlineEstimator": "ratioOfReducedSums",
+          "evidence": "sources/provenance/session-compaction.json"
+        },
+        {
+          "metric": "usage.promptTokens",
+          "role": "secondary",
+          "goal": "minimize",
+          "baselineValue": 83304,
+          "candidateValue": 39891,
+          "averageChangePercent": -52.11394410832612,
+          "averageGainPercent": 52.11394410832612,
+          "minGainPercent": 52.11394410832612,
+          "maxGainPercent": 52.11394410832612,
+          "comparedCases": 1,
+          "expectedCases": 1,
+          "macroMeanBaselineValue": 83304,
+          "macroMeanCandidateValue": 39891,
+          "macroMeanChangePercent": -52.11394410832612,
+          "macroMeanGainPercent": 52.11394410832612,
+          "macroMinGainPercent": 52.11394410832612,
+          "macroMaxGainPercent": 52.11394410832612,
+          "aggregateBaselineValue": 83304,
+          "aggregateCandidateValue": 39891,
+          "aggregateChangePercent": -52.11394410832612,
+          "aggregateGainPercent": 52.11394410832612,
+          "headlineEstimator": "ratioOfReducedSums",
+          "evidence": "sources/provenance/session-compaction.json"
+        }
+      ],
+      "selectedBatchId": "20260911-154148-3bc0",
+      "sourceBatchId": "20260911-154148-3bc0",
+      "reverificationId": null,
+      "publicationEligible": false,
+      "notes": [
+        "The selected batch is direct provider-backed evidence from a local pre-release image containing an unreleased 0.1.2 artifact.",
+        "The candidate quality gate passes at 3/3; one native baseline continuation omitted the required black-box end-to-end publication plan.",
+        "The later npm 0.1.2 artifact is not byte-identical to the benchmarked local artifact; the package comparison is recorded in sources/provenance/session-compaction.json.",
+        "Resource outcomes are included in the descriptive portfolio total; the baseline failure remains visible in detailed evidence."
+      ],
+      "qualityComparison": {
+        "metric": "quality.passRate",
+        "baselineValue": 0.6666666666666666,
+        "candidateValue": 1.0,
+        "changePercentagePoints": 33.333333333333336
+      },
+      "report": "benchmarks/session-compaction/results.html"
     }
   ],
   "publicationAggregation": {
     "mode": "ratioOfReducedSums",
     "evidence": "sources/provenance/aggregate-gain-recalculation.json",
-    "headline": "Aggregate resource outcome; macro case gains remain diagnostics."
+    "headline": "Aggregate resource outcome; macro case gains remain diagnostics.",
+    "scope": "Seven benchmark primary/secondary additive resource objectives"
   }
 }

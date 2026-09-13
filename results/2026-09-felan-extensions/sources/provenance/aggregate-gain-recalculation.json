@@ -738,6 +738,144 @@
           "macroMaxCaseGainPercent": 19.136747277736475
         }
       ]
+    },
+    {
+      "benchmarkId": "session-compaction",
+      "sourceReport": "benchmarks/session-compaction/results.json",
+      "sourceSha256Before": "ea99f9458eb368e9e8731506c43fda2925236527c5ff4eef0e8afbefeca292e9",
+      "originalDefinition": {
+        "revision": 4,
+        "label": "Inherited-model session compaction",
+        "description": "Compare native Pi compaction with Felan's verified summary using the default inherited active model on a sanitized real coding trajectory.",
+        "select": {
+          "suites": [
+            "session-compaction"
+          ]
+        },
+        "arms": {
+          "baseline": "felan-no-session-compaction",
+          "candidate": "felan-inherit-compaction"
+        },
+        "trials": 3,
+        "qualityGates": [
+          {
+            "metric": "quality.passRate",
+            "min": 0.8
+          }
+        ],
+        "objective": [
+          {
+            "metric": "cost.total",
+            "goal": "minimize"
+          },
+          {
+            "metric": "usage.promptTokens",
+            "goal": "minimize"
+          }
+        ],
+        "aggregation": {
+          "trials": "median",
+          "cases": "ratioOfReducedSums"
+        }
+      },
+      "publicationDefinition": {
+        "revision": 4,
+        "label": "Inherited-model session compaction",
+        "description": "Compare native Pi compaction with Felan's verified summary using the default inherited active model on a sanitized real coding trajectory.",
+        "select": {
+          "suites": [
+            "session-compaction"
+          ]
+        },
+        "arms": {
+          "baseline": "felan-no-session-compaction",
+          "candidate": "felan-inherit-compaction"
+        },
+        "trials": 3,
+        "qualityGates": [
+          {
+            "metric": "quality.passRate",
+            "min": 0.8
+          }
+        ],
+        "objective": [
+          {
+            "metric": "cost.total",
+            "goal": "minimize"
+          },
+          {
+            "metric": "usage.promptTokens",
+            "goal": "minimize"
+          }
+        ],
+        "aggregation": {
+          "trials": "median",
+          "cases": "ratioOfReducedSums"
+        }
+      },
+      "objectives": [
+        {
+          "metric": "cost.total",
+          "role": "primary",
+          "goal": "minimize",
+          "trialReducer": "median",
+          "cases": [
+            {
+              "caseId": "session-compaction-continuation",
+              "baselineReducedValue": 0.49551,
+              "candidateReducedValue": 0.27131000000000005,
+              "caseChangePercent": -45.24631188068857,
+              "caseGainPercent": 45.24631188068857
+            }
+          ],
+          "baselineReducedSum": 0.49551,
+          "candidateReducedSum": 0.27131000000000005,
+          "aggregateChangePercent": -45.24631188068857,
+          "aggregateGainPercent": 45.24631188068857,
+          "macroMeanCaseGainPercent": 45.24631188068857,
+          "macroMinCaseGainPercent": 45.24631188068857,
+          "macroMaxCaseGainPercent": 45.24631188068857
+        },
+        {
+          "metric": "usage.promptTokens",
+          "role": "secondary",
+          "goal": "minimize",
+          "trialReducer": "median",
+          "cases": [
+            {
+              "caseId": "session-compaction-continuation",
+              "baselineReducedValue": 83304,
+              "candidateReducedValue": 39891,
+              "caseChangePercent": -52.11394410832612,
+              "caseGainPercent": 52.11394410832612
+            }
+          ],
+          "baselineReducedSum": 83304,
+          "candidateReducedSum": 39891,
+          "aggregateChangePercent": -52.11394410832612,
+          "aggregateGainPercent": 52.11394410832612,
+          "macroMeanCaseGainPercent": 52.11394410832612,
+          "macroMinCaseGainPercent": 52.11394410832612,
+          "macroMaxCaseGainPercent": 52.11394410832612
+        }
+      ],
+      "quality": {
+        "baseline": {
+          "attemptCount": 3,
+          "passed": 2,
+          "failed": 1,
+          "passRate": 0.6666666666666666
+        },
+        "candidate": {
+          "attemptCount": 3,
+          "passed": 3,
+          "failed": 0,
+          "passRate": 1.0
+        },
+        "candidateGatePassed": true,
+        "baselineDisclosure": "One native continuation omitted the required black-box end-to-end publication plan; the candidate quality gate is evaluated independently and passed 3/3."
+      },
+      "publicationNote": "The candidate quality gate passed 3/3. The metric is included in the descriptive portfolio total; the native baseline 2/3 result and local pre-release provenance remain disclosed."
     }
   ]
 }

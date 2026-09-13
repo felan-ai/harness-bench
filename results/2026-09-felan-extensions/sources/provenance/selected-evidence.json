@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "kind": "selected-benchmark-evidence",
   "selection": {
-    "description": "Selected retained evidence for the September 2026 Felan extension study; Codebase Memory uses the separately supplied 20260904-124556-6ffe batch.",
+    "description": "Selected retained evidence for the September 2026 Felan extension study; Session Compaction uses qualified local pre-release provenance and passed its candidate quality gate.",
     "dashboardSourceRelativePath": ".harness-evals/output/benchmarks/index.html",
     "dashboardSha256": "18104bbc1e5e64a7ec8a4e909713dff86d257a5a4c57c3172c948ea068b1a0f6",
     "dashboardObservedMtime": "2026-09-03T05:38:08.844948+00:00"
@@ -711,13 +711,102 @@
       },
       "sourceBenchmarkNote": "The three case batches were launched with --case and carry no benchmark stamp.",
       "candidateSourceAgent": "felan-cbm-curated"
+    },
+    {
+      "id": "session-compaction",
+      "label": "Inherited-model session compaction",
+      "evidenceType": "direct-local-pre-release",
+      "selectedBatchId": "20260911-154148-3bc0",
+      "sourceBatchId": "20260911-154148-3bc0",
+      "reverificationId": null,
+      "publicationEligible": false,
+      "sourceBenchmark": null,
+      "targetBenchmark": {
+        "id": "session-compaction",
+        "revision": 4,
+        "digest": "32aea55491eb12e63ed01cf2a6fab513c7ae7b36191e073443e3dfa7390f783a"
+      },
+      "provider": [
+        "openai-codex"
+      ],
+      "model": [
+        "gpt-5.6-sol"
+      ],
+      "thinking": [
+        "low"
+      ],
+      "felanVersion": [
+        "0.24.7"
+      ],
+      "selectedRunIds": [
+        "session-compaction-continuation-felan-no-session-compaction-2026-09-11T15-41-48-065Z-0",
+        "session-compaction-continuation-felan-no-session-compaction-2026-09-11T15-42-50-178Z-1",
+        "session-compaction-continuation-felan-no-session-compaction-2026-09-11T15-43-51-907Z-2",
+        "session-compaction-continuation-felan-inherit-compaction-2026-09-11T15-45-08-651Z-3",
+        "session-compaction-continuation-felan-inherit-compaction-2026-09-11T15-46-08-378Z-4",
+        "session-compaction-continuation-felan-inherit-compaction-2026-09-11T15-47-01-735Z-5"
+      ],
+      "sourceRunIds": [
+        "session-compaction-continuation-felan-no-session-compaction-2026-09-11T15-41-48-065Z-0",
+        "session-compaction-continuation-felan-no-session-compaction-2026-09-11T15-42-50-178Z-1",
+        "session-compaction-continuation-felan-no-session-compaction-2026-09-11T15-43-51-907Z-2",
+        "session-compaction-continuation-felan-inherit-compaction-2026-09-11T15-45-08-651Z-3",
+        "session-compaction-continuation-felan-inherit-compaction-2026-09-11T15-46-08-378Z-4",
+        "session-compaction-continuation-felan-inherit-compaction-2026-09-11T15-47-01-735Z-5"
+      ],
+      "quality": {
+        "baseline": {
+          "runs": 3,
+          "validRuns": 3,
+          "passed": 2,
+          "failed": 1,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": []
+        },
+        "candidate": {
+          "runs": 3,
+          "validRuns": 3,
+          "passed": 3,
+          "failed": 0,
+          "invalid": 0,
+          "state": "eligible",
+          "gateResults": [
+            {
+              "metric": "quality.passRate",
+              "min": 0.8,
+              "value": 1,
+              "pass": true
+            }
+          ]
+        }
+      },
+      "report": {
+        "sourceRelativePath": "sources/provenance/session-compaction.json",
+        "runCount": 6,
+        "derivedRunCount": 0,
+        "publishedRelativePath": "benchmarks/session-compaction/results.html",
+        "sourceSha256": "7c3c54a536b0b0fc0bc1cebfb2f0ae8d631a08f215d6d5bb065d24b5e9a70ba1"
+      },
+      "batch": {
+        "status": "completed",
+        "expectedRunCount": 6,
+        "actualRunCount": 6,
+        "startedAt": "2026-09-11T15:41:48.062Z",
+        "completedAt": "2026-09-11T15:48:16.172Z"
+      },
+      "publishedOutcomes": {
+        "quality": "candidate-gate-passed",
+        "cost": "available",
+        "note": "The candidate passed 3/3; the baseline 2/3 result remains disclosed separately."
+      }
     }
   ],
   "publicationAggregation": {
     "mode": "ratioOfReducedSums",
     "trials": "median",
     "evidenceRelativePath": "sources/provenance/aggregate-gain-recalculation.json",
-    "scope": "Six benchmark primary/secondary additive resource objectives",
+    "scope": "Seven benchmark primary/secondary additive resource objectives, evaluated against each candidate quality gate.",
     "macroDiagnostics": "Retained as case-level average/min/max fields."
   }
 }

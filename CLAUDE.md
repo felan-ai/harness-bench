@@ -1,55 +1,10 @@
-# CLAUDE.md — working in harness-bench
+# Felan harness comparisons
 
-Read `README.md` for the project narrative and `AGENTS.md` for the authoritative
-evaluation-authoring and runtime conventions.
+This repository is limited to cross-agent comparisons and adapter smoke tests.
+Felan extension benchmarks are maintained in the Felan repository under
+`evals/`; do not reintroduce the removed extension suite here.
 
-## Skills
-
-Load the `harness-evals` skill before changing harness configuration, cases,
-adapters, Docker settings, verifiers, or reports. Use the `linear` skill when
-work is tied to a Linear issue.
-
-## Scope and safety
-
-- Keep changes focused on the requested evaluation or supporting infrastructure.
-- Do not reintroduce the removed legacy benchmark.
-- Preserve unrelated local changes and the optional no-save `harness-evals` link.
-- Never commit API keys, OAuth tokens, auth files, local environment files,
-  dependencies, generated builds, run artifacts, or caches.
-- Do not start a live paid benchmark solely for offline validation; obtain clear
-  authorization for the paid run.
-- Treat correctness as primary. Cost or latency savings matter only when quality
-  remains acceptable.
-
-## Commands
-
-```bash
-bun run list
-bun run list:comparison
-bun run list:smoke
-bun run smoke                 # live provider call
-bun run build:runtime
-bun run run --case prewalk-checkout --concurrency 1
-bun run view
-bun run run:comparison --benchmark codex-vs-felan-all --concurrency 1
-bun run view:comparison
-bun run run --case <id> --agents <agent>
-bun run view
-```
-
-## Layout
-
-```text
-felan-extension-evals.yaml
-agent-comparison-evals.yaml
-smoke-evals.yaml
-evals/cases/**/*.eval.yaml
-evals/fixtures/<name>/<version>/{fixture.json,source/}
-evals/runtimes/<name>/Dockerfile
-.harness-evals/
-```
-
-All root configurations share the same local artifact and output roots. The
-smoke case is a plumbing check, not an all-enabled feature
-baseline. Dependency-bearing cases share one generic Felan runtime; workspace
-setup installs each case's committed lockfile from the npm registry.
+Use `bun run list:comparison`, `bun run list:smoke`, and `bun run build:runtime`.
+Provider-backed runs require explicit authorization. Preserve the Bun lockfile,
+optional no-save harness-evals link, shared runtime, smoke fixture, and
+unrelated local changes.

@@ -52,6 +52,7 @@ agents:
           promptHistory: false
           sessionCompaction: false
           rtkOptimizer: false
+          run: false
           subagents: false
           tasks: true
           webAccess: false

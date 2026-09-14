@@ -6,12 +6,13 @@ ARG RTK_VERSION=0.45.0
 ARG RTK_INSTALLER_COMMIT=b34be37caf3796b69a50952a28e60e32b5daad43
 ARG RTK_INSTALLER_SHA256=d6eb73a772903e13ff34ee1be8a8b24e896ba9a978f20d2279a08b4083ea6f77
 ARG PYTHON_VERSION=3.13.5-1
-ARG PYTHON_RUNTIME_VERSION=3.13.5-2+deb13u4
+ARG PYTHON_RUNTIME_VERSION=3.13.5-2+deb13u5
 ARG MARKITDOWN_VERSION=0.1.7
 ARG MARKITDOWN_REQUIREMENTS_SHA256=446b712aa8197d8a2ba50af317b08b10a7e49dd52caac215beaa5e0a19732bd8
 ARG CA_CERTIFICATES_VERSION=20250419
-ARG CURL_VERSION=8.14.1-2+deb13u4
+ARG CURL_VERSION=8.14.1-2+deb13u5
 ARG GIT_VERSION=1:2.47.3-0+deb13u1
+ARG RIPGREP_VERSION=14.1.1-1+b4
 
 # codebase-memory-mcp is hard-pinned by @felan-ai/ext-codebase-memory (strict
 # version equality). Bump CBM_VERSION and CBM_INSTALLER_{COMMIT,SHA256} together
@@ -26,6 +27,7 @@ LABEL org.harness-bench.rtk-version="${RTK_VERSION}"
 LABEL org.harness-bench.markitdown-version="${MARKITDOWN_VERSION}"
 LABEL org.harness-bench.markitdown-requirements-sha256="${MARKITDOWN_REQUIREMENTS_SHA256}"
 LABEL org.harness-bench.cbm-version="${CBM_VERSION}"
+LABEL org.harness-bench.ripgrep-version="${RIPGREP_VERSION}"
 
 ENV RTK_TELEMETRY_DISABLED=1
 
@@ -38,6 +40,8 @@ RUN apt-get update \
     "python3-venv=${PYTHON_VERSION}" \
     "python3.13=${PYTHON_RUNTIME_VERSION}" \
     "python3.13-venv=${PYTHON_RUNTIME_VERSION}" \
+    "ripgrep=${RIPGREP_VERSION}" \
+  && test "$(rg --version | head -n1)" = "ripgrep 14.1.1" \
   && rm -rf /var/lib/apt/lists/*
 
 RUN npm install --global "pnpm@${PNPM_VERSION}" \

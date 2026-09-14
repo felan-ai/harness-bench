@@ -54,6 +54,8 @@ agents:
     config:
       useCurrentConfig: false
       settings:
+        builtinExtensions:
+          run: true
         extensionConfig:
           codex:
             fast: true

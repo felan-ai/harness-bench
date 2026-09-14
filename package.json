@@ -3,16 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Felan agent evaluations and benchmarks powered by harness-evals.",
+  "description": "Felan agent comparisons and smoke evaluations powered by harness-evals.",
   "scripts": {
-    "list": "bun node_modules/harness-evals/dist/cli.js list --config felan-extension-evals.yaml",
+    "list": "bun node_modules/harness-evals/dist/cli.js list --config agent-comparison-evals.yaml",
     "list:comparison": "bun node_modules/harness-evals/dist/cli.js list --config agent-comparison-evals.yaml",
     "list:smoke": "bun node_modules/harness-evals/dist/cli.js list --config smoke-evals.yaml",
-    "run": "bun node_modules/harness-evals/dist/cli.js run --config felan-extension-evals.yaml",
+    "run": "bun node_modules/harness-evals/dist/cli.js run --config agent-comparison-evals.yaml",
     "run:comparison": "bun node_modules/harness-evals/dist/cli.js run --config agent-comparison-evals.yaml",
     "build:runtime": "bun scripts/build-runtime.ts",
     "smoke": "bun node_modules/harness-evals/dist/cli.js run --config smoke-evals.yaml --case felan-adapter-smoke",
-    "view": "bun node_modules/harness-evals/dist/cli.js view --config felan-extension-evals.yaml --latest --open",
+    "view": "bun node_modules/harness-evals/dist/cli.js view --config agent-comparison-evals.yaml --latest --open",
     "view:comparison": "bun node_modules/harness-evals/dist/cli.js view --config agent-comparison-evals.yaml --latest --open"
   },
   "dependencies": {
